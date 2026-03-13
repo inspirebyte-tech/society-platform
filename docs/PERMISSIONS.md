@@ -103,6 +103,12 @@ role.create              → create custom roles
 role.assign              → assign roles to members
 ```
 
+### Co-resident delegation
+```
+co_resident.invite    → resident can invite someone as co-resident
+                        to their flat (cannot be further delegated)
+```
+
 ---
 
 ## Default Role Bundles
@@ -152,6 +158,21 @@ asset.book, asset.view
 ```
 visitor.log, visitor.view_live
 emergency.declare, emergency.view
+```
+
+### Co-resident
+```
+complaint.create, complaint.view_own
+announcement.view
+visitor.approve, visitor.view_own
+service.view
+poll.vote, poll.view
+emergency.declare, emergency.view
+asset.book, asset.view
+
+Cannot invite further co-residents.
+Cannot manage personal staff.
+Cannot delegate any permissions.
 ```
 
 ---

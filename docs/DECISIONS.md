@@ -78,3 +78,19 @@ Reason: Societies require accountability records for disputes.
 Alternatives considered: Add later, use PostgreSQL triggers
 Why rejected: Later addition requires touching all existing features,
               triggers harder to maintain than app-level logging
+
+## 008 — Co-resident role added at foundation
+Date: 2026-03-13
+Decision: Add Co-resident system role and co_resident.invite permission
+          to core seed data before feature development begins
+Reason: Owner and tenant delegation of flat-scoped access is a
+        guaranteed future requirement. Adding the role and permission
+        to the foundation costs nothing and avoids a painful retrofit
+        later. The route and UI are not built yet — just the data model
+        is ready.
+Alternatives considered: Add later when feature is built
+Why rejected: Schema is already open for it. Seed change is trivial.
+              Doing it now means the permission exists in all future
+              test data automatically.
+The rule: You can only assign a role with permissions equal to
+          or less than your own. Co-resident cannot invite further.
