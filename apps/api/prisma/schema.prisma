@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────
+// IDENTITY LAYER
+// ─────────────────────────────────────────
+
+model User {
+  id            String   @id @default(uuid())
+  phone         String   @unique
+  email         String?  @unique
+  passwordHash  String?
+  phoneVerified Boolean  @default(false)
+  emailVerified Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  person        Person?
+  memberships   Membership[]
+  
+  @@map("users")
+}
+
+model Person {
+  id        String   @id @default(uuid())
+  userId    String?  @unique
+  fullName  String
+  phone     String
+  email     String?
+  photoUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user            User?            @relation(fields: [userId], references: [id])
+  ownerships      UnitOwnership[]
+  occupancies     UnitOccupancy[]
+  
+  @@map("people")
+}
+
+// ─────────────────────────────────────────
+// ORGANIZATION LAYER
+// ─────────────────────────────────────────
+
+model Organization {
+  id             String   @id @default(uuid())
+  name           String
+  address        String?
+  city           String
+  state          String
+  pincode        String
+  registrationNo String?
+  logoUrl        String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  settings       OrganizationSetting[]
+  memberships    Membership[]
+  propertyNodes  PropertyNode[]
+  roles          Role[]
+
+  @@map("organizations")
+}
+
+model OrganizationSetting {
+  id        String   @id @default(uuid())
+  orgId     String
+  key       String
+  value     String
+  updatedAt DateTime @updatedAt
+
+  org       Organization @relation(fields: [orgId], references: [id])
+
+  @@unique([orgId, key])
+  @@map("organization_settings")
+}
+
+// ─────────────────────────────────────────
+// ACCESS CONTROL LAYER
+// ─────────────────────────────────────────
+
+model Role {
+  id           String   @id @default(uuid())
+  orgId        String?  // null = platform level system role
+  name         String
+  isSystemRole Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  org             Organization?    @relation(fields: [orgId], references: [id])
+  memberships     Membership[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String @id @default(uuid())
+  name        String @unique  // "complaint.create", "visitor.approve"
+  description String
+  module      String          // "complaints", "visitors", "units"
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Membership {
+  id        String   @id @default(uuid())
+  userId    String
+  orgId     String
+  roleId    String
+  invitedBy String?
+  joinedAt  DateTime @default(now())
+  isActive  Boolean  @default(true)
+
+  user  User         @relation(fields: [userId], references: [id])
+  org   Organization @relation(fields: [orgId], references: [id])
+  role  Role         @relation(fields: [roleId], references: [id])
+
+  @@map("memberships")
+}
+
+// ─────────────────────────────────────────
+// PROPERTY LAYER
+// ─────────────────────────────────────────
+
+model PropertyNode {
+  id           String       @id @default(uuid())
+  orgId        String
+  parentId     String?
+  nodeType     NodeType
+  name         String
+  code         String
+  displayOrder Int          @default(0)
+  metadata     Json         @default("{}")
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  org          Organization   @relation(fields: [orgId], references: [id])
+  parent       PropertyNode?  @relation("NodeTree", fields: [parentId], references: [id])
+  children     PropertyNode[] @relation("NodeTree")
+  ownerships   UnitOwnership[]
+  occupancies  UnitOccupancy[]
+
+  @@map("property_nodes")
+}
+
+enum NodeType {
+  SOCIETY
+  TOWER
+  WING
+  FLOOR
+  UNIT
+  COMMON_AREA
+}
+
+model UnitOwnership {
+  id            String    @id @default(uuid())
+  unitId        String
+  personId      String
+  ownedFrom     DateTime
+  ownedUntil    DateTime?  // null = currently owns
+  ownershipType OwnershipType
+  transferDocRef String?
+  createdAt     DateTime  @default(now())
+
+  unit   PropertyNode @relation(fields: [unitId], references: [id])
+  person Person       @relation(fields: [personId], references: [id])
+
+  @@map("unit_ownerships")
+}
+
+enum OwnershipType {
+  SOLE
+  JOINT
+}
+
+model UnitOccupancy {
+  id            String        @id @default(uuid())
+  unitId        String
+  personId      String
+  occupiedFrom  DateTime
+  occupiedUntil DateTime?     // null = currently lives here
+  occupancyType OccupancyType
+  isPrimary     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+
+  unit   PropertyNode @relation(fields: [unitId], references: [id])
+  person Person       @relation(fields: [personId], references: [id])
+
+  @@map("unit_occupancies")
+}
+
+enum OccupancyType {
+  OWNER_RESIDENT
+  TENANT
+  FAMILY_MEMBER
+  CARETAKER
+}
