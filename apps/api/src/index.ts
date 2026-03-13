@@ -1,9 +1,11 @@
 import express from 'express'
 import testRouter from './routes/test'
+import authRouter from './routes/auth'
 
 const app = express()
 app.use(express.json())
 app.use('/api', testRouter)
+app.use('/api/auth', authRouter)
 
 const PORT = process.env.PORT || 3000
 
