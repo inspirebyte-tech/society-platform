@@ -43,6 +43,8 @@ async function main() {
         { name: 'asset.manage_booking', module: 'assets', description: 'Manage bookings' },
         { name: 'role.create', module: 'roles', description: 'Create custom roles' },
         { name: 'role.assign', module: 'roles', description: 'Assign roles' },
+        { name: 'co_resident.invite', module: 'co_resident', description: 'Invite a co-resident to your flat' },
+
     ]
 
     for (const p of permissions) {
@@ -86,7 +88,24 @@ async function main() {
             'service.view', 'service.manage_personal',
             'poll.vote', 'poll.view',
             'emergency.declare', 'emergency.view',
-            'asset.book', 'asset.view'
+            'asset.book', 'asset.view', 'co_resident.invite'
+        ],
+        'Co-resident': [  
+            'complaint.create',
+            'complaint.view_own',
+            'announcement.view',
+            'visitor.approve',
+            'visitor.view_own',
+            'service.view',
+            'poll.vote',
+            'poll.view',
+            'emergency.declare',
+            'emergency.view',
+            'asset.book',
+            'asset.view',
+            // deliberately missing:
+            // co_resident.invite  ← co-resident cannot invite further
+            // service.manage_personal ← personal staff managed by primary resident only
         ],
         Gatekeeper: [
             'visitor.log', 'visitor.view_live',

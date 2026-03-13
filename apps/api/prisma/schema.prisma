@@ -67,6 +67,7 @@ model Organization {
   memberships    Membership[]
   propertyNodes  PropertyNode[]
   roles          Role[]
+  auditLogs      AuditLog[]
 
   @@map("organizations")
 }
@@ -138,6 +139,7 @@ model Membership {
   role  Role         @relation(fields: [roleId], references: [id])
 
   @@map("memberships")
+  @@index([userId, orgId])
 }
 
 // ─────────────────────────────────────────
@@ -152,7 +154,7 @@ model PropertyNode {
   name         String
   code         String
   displayOrder Int          @default(0)
-  metadata     Json         @default("{}")
+  metadata     Json         @default("{}") @db.JsonB
   isActive     Boolean      @default(true)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -164,6 +166,7 @@ model PropertyNode {
   occupancies  UnitOccupancy[]
 
   @@map("property_nodes")
+  @@index([orgId, parentId])
 }
 
 enum NodeType {
@@ -189,6 +192,7 @@ model UnitOwnership {
   person Person       @relation(fields: [personId], references: [id])
 
   @@map("unit_ownerships")
+  @@index([unitId, ownedUntil])
 }
 
 enum OwnershipType {
@@ -210,6 +214,7 @@ model UnitOccupancy {
   person Person       @relation(fields: [personId], references: [id])
 
   @@map("unit_occupancies")
+  @@index([unitId, occupiedUntil])
 }
 
 enum OccupancyType {
@@ -217,4 +222,21 @@ enum OccupancyType {
   TENANT
   FAMILY_MEMBER
   CARETAKER
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  orgId     String
+  tableName String
+  recordId  String
+  action    String
+  oldData   Json?
+  newData   Json?
+  actorId   String
+  createdAt DateTime @default(now())
+
+  org       Organization @relation(fields: [orgId], references: [id])
+
+  @@index([orgId, tableName, createdAt])
+  @@map("audit_logs")
 }
