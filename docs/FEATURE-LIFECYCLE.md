@@ -129,6 +129,71 @@ Now backend starts coding.
 
 ---
 
+# 6.5 Testing (Backend + Frontend)
+
+## Types of Tests We Use
+
+### 1. Basic Unit Tests (Backend)
+
+Test small pieces of logic.
+
+ Example:
+
+- If amount < 0 → error
+- If flat not found → return 404
+
+### Why:
+
+Catches bugs early without running full app
+
+
+### 2. API Tests (VERY IMPORTANT)
+
+Test your endpoints directly.
+
+ Example:
+
+- POST /visitors with valid data → success
+- POST /visitors with empty name → 400
+- GET /visitors → returns correct list
+
+### Tools:
+
+- Postman / Thunder Client / curl
+
+
+### 3. Integration Tests (Lightweight)
+
+Test flow with DB.
+
+ Example:
+
+- Create visitor → check DB → fetch visitors → verify entry exists
+
+
+### 4. Frontend Testing (Basic)
+
+We don’t overcomplicate this yet.
+
+ Test:
+
+- Form submits correctly
+- Error messages show
+- API response handled
+
+
+### 5. Manual Testing (Final Layer)
+
+Now test like a real user.
+
+ Example:
+
+- Guard adds visitor
+- Resident sees it
+- Try wrong inputs
+
+---
+
 # 7. Frontend Build
 
 Frontend builds using:
@@ -355,6 +420,76 @@ Fields:
 
 ---
 
+## 6.5. Unit Test Examples (Backend)
+
+- Empty name → should fail
+- Invalid phone → should fail
+- Valid input → should pass
+
+
+## API Test Examples
+
+### Test 1:
+
+POST /visitors with valid data → ✅ success
+
+### Test 2:
+
+POST /visitors with missing name → ❌ 400
+
+### Test 3:
+
+GET /visitors → returns correct list
+
+
+### Integration Test
+
+- Add visitor
+- Check DB → entry exists
+- Fetch → entry returned
+
+
+### Frontend Test
+
+- Submit empty form → error shown
+- Submit valid form → success message
+- Data appears in list
+
+
+### Manual Test
+
+- Real flow from guard → resident
+- Try wrong flat
+- Try duplicate entries
+
+
+###  Rules for Testing
+
+-  Don’t skip API testing
+-  Don’t rely only on UI testing
+-  Don’t test only “happy path”
+-  Always test errors
+-  Always test edge cases
+-  Always test full flow once
+
+
+###  How Much Testing is Enough?
+
+Right now (small team, early stage):
+
+ Minimum standard:
+
+- API tested
+- Edge cases tested
+- One full flow tested manually
+
+Bonus (good devs do this):
+
+- Add unit tests for validation logic
+
+
+---
+
 ## 7. Frontend Build
 
 ### Guard Side:
@@ -379,13 +514,13 @@ Fields:
 
 ### Test:
 
-✅ Add visitor → appears in DB
+ Add visitor → appears in DB
 
-✅ Resident sees entry
+ Resident sees entry
 
-✅ Invalid input → error shown
+ Invalid input → error shown
 
-✅ Server error → handled
+ Server error → handled
 
 ---
 
