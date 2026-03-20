@@ -68,6 +68,7 @@ model Organization {
   propertyNodes  PropertyNode[]
   roles          Role[]
   auditLogs      AuditLog[]
+  invitations    Invitation[]
 
   @@map("organizations")
 }
@@ -99,6 +100,7 @@ model Role {
   org             Organization?    @relation(fields: [orgId], references: [id])
   memberships     Membership[]
   rolePermissions RolePermission[]
+  invitations    Invitation[]
 
   @@map("roles")
 }
@@ -239,4 +241,35 @@ model AuditLog {
 
   @@index([orgId, tableName, createdAt])
   @@map("audit_logs")
+}
+
+model OtpVerification {
+  id          String   @id @default(uuid())
+  phone       String
+  otp         String
+  expiresAt   DateTime
+  verified    Boolean  @default(false)
+  attempts    Int      @default(0)
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([phone, verified])
+  @@map("otp_verifications")
+}
+
+model Invitation {
+  id          String    @id @default(uuid())
+  orgId       String
+  phone       String
+  roleId      String
+  invitedBy   String
+  acceptedAt  DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  org         Organization @relation(fields: [orgId], references: [id])
+  role        Role         @relation(fields: [roleId], references: [id])
+
+  @@index([phone, orgId])
+  @@map("invitations")
 }
