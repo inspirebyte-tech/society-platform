@@ -401,4 +401,76 @@ router.post('/logout', authenticate, async (req: AuthRequest, res: Response) => 
   }
 })
 
+// ─────────────────────────────────────────────
+// POST /api/auth/refresh
+// Public — refresh token in body
+// ─────────────────────────────────────────────
+router.post('/refresh', async (req: AuthRequest, res: Response) => {
+  try {
+    const { refreshToken } = req.body
+
+    const validation = validateRequired({ refreshToken }, ['refreshToken'])
+    if (!validation.valid) {
+      return sendError(res, validation.error!, 400, {
+        field: validation.field
+      })
+    }
+
+    // 1. verify refresh token
+    const decoded = verifyRefreshToken(refreshToken)
+    if (!decoded) {
+      return sendUnauthorized(res, 'invalid_refresh_token')
+    }
+
+    // 2. check user still exists and is active
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: {
+        memberships: {
+          where: { isActive: true },
+          include: {
+            org: true,
+            role: true
+          }
+        }
+      }
+    })
+
+    if (!user || !user.isActive) {
+      return sendUnauthorized(res, 'user_not_found')
+    }
+
+    // 3. generate new session token
+    // preserve orgId if user only has one society
+    const activeMemberships = user.memberships
+    const orgId = activeMemberships.length === 1
+      ? activeMemberships[0].orgId
+      : undefined
+
+    const newToken = generateToken({
+      userId: user.id,
+      orgId
+    })
+
+    // 4. generate new refresh token (rotate it)
+    const newRefreshToken = generateRefreshToken(user.id)
+
+    return sendSuccess(res, {
+      token: newToken,
+      refreshToken: newRefreshToken,
+      ...(orgId && {
+        currentOrg: {
+          id: activeMemberships[0].org.id,
+          name: activeMemberships[0].org.name,
+          role: activeMemberships[0].role.name
+        }
+      })
+    })
+
+  } catch (error) {
+    console.error('POST /auth/refresh error:', error)
+    return sendServerError(res)
+  }
+})
+
 export default router
