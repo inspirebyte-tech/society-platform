@@ -78,3 +78,30 @@ Make sure DATABASE_URL uses port 5433.
 ### Unknown file extension .ts
 Use tsx instead of ts-node:
 npx tsx src/index.ts
+
+---
+
+## API Testing
+  Use `Thunder Client` (VS Code) or Postman.
+  
+  Thunder Client users:
+    Import docs/api-collection.thunder.json
+  
+  Postman users:
+    Refer to docs/API.md to manually set up endpoints.
+    All request/response formats are documented there.
+
+
+### Import steps
+1. Open VS Code
+2. Click Thunder Client icon in left sidebar
+3. Click "Collections" tab
+4. Click the menu icon → Import
+5. Select docs/api-collection.thunder.json
+6. All endpoints are now pre-configured
+
+### Using the collection
+- Replace REPLACE_WITH_TOKEN with actual token
+- Replace REPLACE_WITH_OTP with OTP from terminal
+- Replace REPLACE_WITH_ORG_ID with org ID from your DB
+- Base URL is always http://localhost:3000

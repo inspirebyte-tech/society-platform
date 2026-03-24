@@ -1,11 +1,17 @@
 import express from 'express'
 import testRouter from './routes/test'
 import authRouter from './routes/auth'
+import { errorHandler } from './middleware/error'
+import { apiRateLimit } from './middleware/rateLimit'
 
 const app = express()
 app.use(express.json())
+app.use(apiRateLimit)          // global rate limit on all routes
+
 app.use('/api', testRouter)
 app.use('/api/auth', authRouter)
+
+app.use(errorHandler)          // always last — catches everything above
 
 const PORT = process.env.PORT || 3000
 
