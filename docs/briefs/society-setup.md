@@ -259,6 +259,22 @@ Create a new society. Builder role assigned automatically.
 All in one DB transaction — if any step fails, all roll back.
 ```
 
+**Important for developer:**
+Use Prisma $transaction for this endpoint.
+All three DB operations must succeed together
+or all must fail together:
+
+await prisma.$transaction(async (tx) => {
+  const org = await tx.organization.create(...)
+  const node = await tx.propertyNode.create(...)
+  const membership = await tx.membership.create(...)
+})
+
+If society creates but membership fails →
+user locked out of their own society.
+Transaction prevents this.
+```
+
 ---
 
 ### GET /societies
@@ -622,6 +638,7 @@ Invite someone to the society.
 403 insufficient_permissions → no invitation.create permission
 ```
 
+
 **Notes:**
 ```
 Phone normalized to +91 format before saving
@@ -629,6 +646,21 @@ Invitation expires in 7 days
 When invited person registers via OTP →
 invitation auto-accepted → membership created
 SMS sent to invited phone (logged in dev)
+
+To get valid roleIds for testing:
+  Query your local DB:
+  SELECT id, name FROM roles;
+
+  Or hit GET /api/test-tokens and check the
+  role names, then match to role IDs in pgAdmin.
+
+  System role IDs (from seed):
+    role-builder
+    role-admin
+    role-resident
+    role-co-resident
+    role-gatekeeper
+    
 ```
 
 ---
