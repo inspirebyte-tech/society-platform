@@ -10,7 +10,7 @@ datasource db {
 // ─────────────────────────────────────────
 // IDENTITY LAYER
 // ─────────────────────────────────────────
-
+// store user data with person and membership's references
 model User {
   id            String   @id @default(uuid())
   phone         String   @unique
@@ -28,7 +28,7 @@ model User {
   
   @@map("users")
 }
-
+// store person records referenced user ownerships occupancies
 model Person {
   id        String   @id @default(uuid())
   userId    String?  @unique
@@ -49,7 +49,7 @@ model Person {
 // ─────────────────────────────────────────
 // ORGANIZATION LAYER
 // ─────────────────────────────────────────
-
+// organization records will store in this table
 model Organization {
   id             String   @id @default(uuid())
   name           String
@@ -68,10 +68,11 @@ model Organization {
   propertyNodes  PropertyNode[]
   roles          Role[]
   auditLogs      AuditLog[]
+  invitations    Invitation[]
 
   @@map("organizations")
 }
-
+// organization setting which hold records for multiple organization keys to secure the data-leaks.
 model OrganizationSetting {
   id        String   @id @default(uuid())
   orgId     String
@@ -88,7 +89,7 @@ model OrganizationSetting {
 // ─────────────────────────────────────────
 // ACCESS CONTROL LAYER
 // ─────────────────────────────────────────
-
+// Holds the roles for a user for multiple organizations.
 model Role {
   id           String   @id @default(uuid())
   orgId        String?  // null = platform level system role
@@ -99,10 +100,11 @@ model Role {
   org             Organization?    @relation(fields: [orgId], references: [id])
   memberships     Membership[]
   rolePermissions RolePermission[]
+  invitations    Invitation[]
 
   @@map("roles")
 }
-
+// this belongs to roles hold the records of permission for a role.
 model Permission {
   id          String @id @default(uuid())
   name        String @unique  // "complaint.create", "visitor.approve"
@@ -113,7 +115,7 @@ model Permission {
 
   @@map("permissions")
 }
-
+// holds the default permissions for the roles 
 model RolePermission {
   roleId       String
   permissionId String
@@ -124,7 +126,7 @@ model RolePermission {
   @@id([roleId, permissionId])
   @@map("role_permissions")
 }
-
+// holds the membership records which user which organization which role.
 model Membership {
   id        String   @id @default(uuid())
   userId    String
@@ -145,7 +147,7 @@ model Membership {
 // ─────────────────────────────────────────
 // PROPERTY LAYER
 // ─────────────────────────────────────────
-
+// property records 
 model PropertyNode {
   id           String       @id @default(uuid())
   orgId        String
@@ -199,7 +201,7 @@ enum OwnershipType {
   SOLE
   JOINT
 }
-
+// unit records for property
 model UnitOccupancy {
   id            String        @id @default(uuid())
   unitId        String
@@ -223,7 +225,7 @@ enum OccupancyType {
   FAMILY_MEMBER
   CARETAKER
 }
-
+// audit records 
 model AuditLog {
   id        String   @id @default(uuid())
   orgId     String
@@ -239,4 +241,35 @@ model AuditLog {
 
   @@index([orgId, tableName, createdAt])
   @@map("audit_logs")
+}
+
+model OtpVerification {
+  id          String   @id @default(uuid())
+  phone       String
+  otp         String
+  expiresAt   DateTime
+  verified    Boolean  @default(false)
+  attempts    Int      @default(0)
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([phone, verified])
+  @@map("otp_verifications")
+}
+
+model Invitation {
+  id          String    @id @default(uuid())
+  orgId       String
+  phone       String
+  roleId      String
+  invitedBy   String
+  acceptedAt  DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  org         Organization @relation(fields: [orgId], references: [id])
+  role        Role         @relation(fields: [roleId], references: [id])
+
+  @@index([phone, orgId])
+  @@map("invitations")
 }
