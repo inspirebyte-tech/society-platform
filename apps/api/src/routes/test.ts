@@ -38,6 +38,10 @@ router.get(
 
 // TEMPORARY - test tokens
 router.get('/test-tokens', async (req, res) => {
+  if (process.env.NODE_ENV !== 'development') {
+    return res.status(404).json({ error: 'not_found' })
+  }
+
   const users = await prisma.user.findMany({
     include: {
       person: true,
@@ -52,7 +56,7 @@ router.get('/test-tokens', async (req, res) => {
     role: user.memberships[0]?.role.name,
     token: generateToken({
       userId: user.id,
-      orgId: user.memberships[0]?.orgId
+      orgId: user.memberships[0]?.orgId ?? undefined
     })
   }))
 

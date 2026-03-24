@@ -1,84 +1,93 @@
-# Turborepo starter
+# Society Platform
 
-This Turborepo starter is maintained by the Turborepo core team.
+Society management software built for Indian residential societies.
+Builder-first. Operational in 30 minutes. No ads. No data selling.
 
-## Using this example
+---
 
-Run the following command:
+## What It Does
 
-```sh
-npx create-turbo@latest
+- Builder sets up a society before handover to residents
+- Admin manages members, complaints, announcements
+- Residents raise complaints, approve visitors, book amenities
+- Gatekeeper manages physical entry with real-time resident approval
+
+---
+
+## Who It's For
+
+Small to medium societies: 20 to 200 units.
+Builders managing new residential projects.
+Societies currently running on WhatsApp groups and physical registers.
+
+---
+
+## Stack
+```
+Backend:   Node.js + Express + TypeScript + Prisma + PostgreSQL
+Web:       React + TypeScript
+Mobile:    React Native + TypeScript
+Monorepo:  Turborepo
 ```
 
-## What's inside?
+Full details in [docs/STACK.md](docs/STACK.md)
 
-This Turborepo includes the following packages/apps:
+---
 
-### Apps and Packages
+## Getting Started
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+See [docs/SETUP.md](docs/SETUP.md) for complete local setup instructions.
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+Quick version:
+```bash
+git clone https://github.com/inspirebyte-tech/society-platform.git
+cd society-platform
+npm install
+cd apps/api
+cp .env.example .env
+# fill in .env values
+npx prisma migrate reset
+npx tsx src/index.ts
 ```
 
-Without global `turbo`, use your package manager:
+---
 
-```sh
-cd my-turborepo
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+## Documentation
+```
+docs/ARCHITECTURE.md   → system design and why
+docs/FEATURES.md       → what the app does per role
+docs/PERMISSIONS.md    → every permission string and role bundle
+docs/STACK.md          → tech choices and reasoning
+docs/DECISIONS.md      → architectural decision log
+docs/SETUP.md          → local development setup
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+---
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
+## Branch Strategy
+```
+main        → stable, protected, PRs only
+dev         → integration branch, all features merge here
+feature/*   → individual feature work
+fix/*       → bug fixes
 ```
 
-Without global `turbo`:
+Never push directly to main or dev.
+Always create a branch, always open a PR.
 
-```sh
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+---
 
-### Develop
+## Project Status
 
-To develop all apps and packages, run the following command:
+Currently in active development.
+V1 target: Core society management features.
+See GitHub Projects board for current progress.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+---
 
-```sh
-cd my-turborepo
-turbo dev
-```
+## Team
 
+<<<<<<< HEAD
 Without global `turbo`, use your package manager:
 
 ```sh
@@ -158,3 +167,6 @@ Learn more about the power of Turborepo:
 - [Configuration Options](https://turborepo.dev/docs/reference/configuration)
 - [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
 test
+=======
+Built by Inspirebyte.
+>>>>>>> 6fca88c951291e69a906dc243fdbccc437d387d0

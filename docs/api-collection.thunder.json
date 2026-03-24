@@ -1,0 +1,136 @@
+{
+  "clientName": "Thunder Client",
+  "collectionName": "Society Platform API",
+  "collectionId": "society-platform-v1",
+  "dateExported": "2026-03-20",
+  "version": "1.2",
+  "folders": [
+    {
+      "name": "Health",
+      "containerId": "health"
+    },
+    {
+      "name": "Auth",
+      "containerId": "auth"
+    },
+    {
+      "name": "Test (Dev Only)",
+      "containerId": "test-dev"
+    }
+  ],
+  "requests": [
+    {
+      "name": "Health Check",
+      "id": "req-health-01",
+      "colId": "society-platform-v1",
+      "containerId": "health",
+      "url": "http://localhost:3000/api/health",
+      "method": "GET",
+      "headers": [],
+      "body": { "type": "none" },
+      "notes": "Public. No token needed. Should always return 200."
+    },
+    {
+      "name": "Request OTP",
+      "id": "req-auth-01",
+      "colId": "society-platform-v1",
+      "containerId": "auth",
+      "url": "http://localhost:3000/api/auth/request-otp",
+      "method": "POST",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"phone\": \"9999999999\"\n}"
+      },
+      "notes": "Rate limited — 3 per hour per IP. OTP printed in terminal in dev."
+    },
+    {
+      "name": "Verify OTP",
+      "id": "req-auth-02",
+      "colId": "society-platform-v1",
+      "containerId": "auth",
+      "url": "http://localhost:3000/api/auth/verify-otp",
+      "method": "POST",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"phone\": \"9999999999\",\n  \"otp\": \"REPLACE_WITH_OTP\"\n}"
+      },
+      "notes": "Replace OTP with value from terminal. Returns token + refreshToken."
+    },
+    {
+      "name": "Select Org",
+      "id": "req-auth-03",
+      "colId": "society-platform-v1",
+      "containerId": "auth",
+      "url": "http://localhost:3000/api/auth/select-org",
+      "method": "POST",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer REPLACE_WITH_TOKEN" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"orgId\": \"REPLACE_WITH_ORG_ID\"\n}"
+      },
+      "notes": "Use token from verify-otp. Replace orgId with value from your DB."
+    },
+    {
+      "name": "Get My Context",
+      "id": "req-auth-04",
+      "colId": "society-platform-v1",
+      "containerId": "auth",
+      "url": "http://localhost:3000/api/auth/me",
+      "method": "GET",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer REPLACE_WITH_TOKEN" }
+      ],
+      "body": { "type": "none" },
+      "notes": "Requires session token with orgId. Returns full user context + permissions."
+    },
+    {
+      "name": "Refresh Token",
+      "id": "req-auth-05",
+      "colId": "society-platform-v1",
+      "containerId": "auth",
+      "url": "http://localhost:3000/api/auth/refresh",
+      "method": "POST",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"refreshToken\": \"REPLACE_WITH_REFRESH_TOKEN\"\n}"
+      },
+      "notes": "Returns new session token and new refresh token. Old refresh token invalidated."
+    },
+    {
+      "name": "Logout",
+      "id": "req-auth-06",
+      "colId": "society-platform-v1",
+      "containerId": "auth",
+      "url": "http://localhost:3000/api/auth/logout",
+      "method": "POST",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer REPLACE_WITH_TOKEN" }
+      ],
+      "body": { "type": "none" },
+      "notes": "Client must delete token from storage after this."
+    },
+    {
+      "name": "Get Test Tokens (Dev Only)",
+      "id": "req-test-01",
+      "colId": "society-platform-v1",
+      "containerId": "test-dev",
+      "url": "http://localhost:3000/api/test-tokens",
+      "method": "GET",
+      "headers": [],
+      "body": { "type": "none" },
+      "notes": "Only works in development. Returns tokens for all seeded test users."
+    }
+  ]
+}
