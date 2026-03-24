@@ -19,94 +19,111 @@ New roles are database inserts — zero code change.
 
 ## All Permission Strings
 
-### Organisation
+### Society
 ```
-org.create          → create a new society
+society.create    → create a new society
+society.update    → edit society details
+society.view      → view society information
 ```
 
-### Units
+### Structure (nodes)
 ```
-unit.create         → add units to a society
-unit.update         → edit unit details
-unit.view           → view unit list and details
+node.create       → add towers, wings, units to society
+node.update       → edit node details
+node.delete       → remove nodes from society
+node.view         → view society structure
 ```
 
 ### Members
 ```
-member.invite       → invite a person to the platform
-member.remove       → deactivate a member
-member.view         → view member list
+member.view       → view society members list
+member.remove     → remove a member from society
 ```
 
-### Ownership and Occupancy
+### Invitations
 ```
-ownership.assign    → link an owner to a unit
-occupancy.assign    → link a tenant or resident to a unit
-occupancy.remove    → mark a person as moved out
+invitation.create → invite someone to society
+invitation.cancel → cancel a pending invitation
+invitation.view   → view pending invitations
+```
+
+### Ownership
+```
+ownership.assign  → link an owner to a unit
+ownership.remove  → remove ownership record
+ownership.view    → view ownership records
+```
+
+### Occupancy
+```
+occupancy.assign  → link a resident or tenant to a unit
+occupancy.remove  → mark someone as moved out
+occupancy.view    → view occupancy records
 ```
 
 ### Complaints
 ```
-complaint.create         → raise a new complaint
-complaint.view_own       → view own complaints only
-complaint.view_all       → view all complaints in the society
-complaint.update_status  → change complaint status, add updates
-complaint.broadcast      → send complaint update to all residents
+complaint.create        → raise a new complaint
+complaint.view_own      → view own complaints only
+complaint.view_all      → view all society complaints
+complaint.update_status → change status, add updates
+complaint.broadcast     → send update to all residents
 ```
 
 ### Announcements
 ```
-announcement.create      → create announcements and events
-announcement.view        → view announcements
+announcement.create     → create announcements and events
+announcement.view       → view announcements
 ```
 
 ### Visitors
 ```
-visitor.log              → log a visitor arrival at gate
-visitor.approve          → approve or deny a visitor request
-visitor.view_own         → view own visitor history
-visitor.view_live        → view who is currently inside
-visitor.view_emergency   → full visitor log access (admin/emergency)
+visitor.log             → log a visitor at gate
+visitor.approve         → approve or deny a visitor
+visitor.view_own        → view own visitor history
+visitor.view_live       → view who is currently inside
+visitor.view_emergency  → full visitor log access
 ```
 
-### Services Directory
+### Services
 ```
-service.create           → add a service to society directory
-service.view             → view society services directory
-service.manage_personal  → manage own personal staff list
+service.create          → add to society services directory
+service.view            → view services directory
+service.manage_personal → manage own personal staff list
 ```
 
 ### Polls
 ```
-poll.create              → create a poll
-poll.vote                → vote on a poll
-poll.view                → view polls and results
+poll.create             → create a poll
+poll.vote               → vote on a poll
+poll.view               → view polls and results
 ```
 
-### Emergencies
+### Emergency
 ```
-emergency.declare        → declare an emergency
-emergency.view           → view active and past emergencies
+emergency.declare       → declare an emergency
+emergency.view          → view emergencies
 ```
 
 ### Assets
 ```
-asset.create             → define a bookable asset or amenity
-asset.book               → make a booking
-asset.view               → view available assets and bookings
-asset.manage_booking     → approve, reject, cancel any booking
+asset.create            → define a bookable asset
+asset.book              → make a booking
+asset.view              → view available assets
+asset.manage_booking    → approve, reject, cancel bookings
 ```
 
 ### Roles
 ```
-role.create              → create custom roles
-role.assign              → assign roles to members
+role.create             → create custom roles
+role.assign             → assign roles to members
+role.view               → view roles and permissions
 ```
 
-### Co-resident delegation
+### Co-resident
 ```
-co_resident.invite    → resident can invite someone as co-resident
-                        to their flat (cannot be further delegated)
+co_resident.invite      → invite a co-resident to your flat
+                          cannot be further delegated
 ```
 
 ---
@@ -115,40 +132,58 @@ co_resident.invite    → resident can invite someone as co-resident
 
 ### Builder
 ```
-org.create
-unit.create, unit.update, unit.view
-member.invite, member.remove, member.view
-ownership.assign
-occupancy.assign, occupancy.remove
-complaint.create, complaint.view_all, complaint.update_status, complaint.broadcast
+society.create, society.update, society.view
+node.create, node.update, node.delete, node.view
+member.view, member.remove
+invitation.create, invitation.cancel, invitation.view
+ownership.assign, ownership.remove, ownership.view
+occupancy.assign, occupancy.remove, occupancy.view
+complaint.create, complaint.view_all
+complaint.update_status, complaint.broadcast
 announcement.create, announcement.view
 visitor.view_live, visitor.view_emergency
 emergency.declare, emergency.view
-role.create, role.assign
+role.create, role.assign, role.view
 ```
 
 ### Admin
 ```
-unit.update, unit.view
-member.invite, member.remove, member.view
-ownership.assign
-occupancy.assign, occupancy.remove
+society.update, society.view
+node.update, node.view
+member.view, member.remove
+invitation.create, invitation.cancel, invitation.view
+ownership.assign, ownership.remove, ownership.view
+occupancy.assign, occupancy.remove, occupancy.view
 complaint.view_all, complaint.update_status, complaint.broadcast
 announcement.create, announcement.view
 visitor.view_live, visitor.view_emergency
 service.create, service.view
-poll.create, poll.view
+poll.create, poll.vote, poll.view
 emergency.declare, emergency.view
-asset.create, asset.view, asset.manage_booking
-role.create, role.assign
+asset.create, asset.book, asset.view, asset.manage_booking
+role.create, role.assign, role.view
 ```
 
 ### Resident
 ```
+society.view, node.view
 complaint.create, complaint.view_own
 announcement.view
 visitor.approve, visitor.view_own
 service.view, service.manage_personal
+poll.vote, poll.view
+emergency.declare, emergency.view
+asset.book, asset.view
+co_resident.invite
+```
+
+### Co-resident
+```
+society.view, node.view
+complaint.create, complaint.view_own
+announcement.view
+visitor.approve, visitor.view_own
+service.view
 poll.vote, poll.view
 emergency.declare, emergency.view
 asset.book, asset.view
@@ -158,21 +193,6 @@ asset.book, asset.view
 ```
 visitor.log, visitor.view_live
 emergency.declare, emergency.view
-```
-
-### Co-resident
-```
-complaint.create, complaint.view_own
-announcement.view
-visitor.approve, visitor.view_own
-service.view
-poll.vote, poll.view
-emergency.declare, emergency.view
-asset.book, asset.view
-
-Cannot invite further co-residents.
-Cannot manage personal staff.
-Cannot delegate any permissions.
 ```
 
 ---

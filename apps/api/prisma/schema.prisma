@@ -59,6 +59,7 @@ model Organization {
   pincode        String
   registrationNo String?
   logoUrl        String?
+  type           OrgType  @default(APARTMENT)
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -72,6 +73,13 @@ model Organization {
 
   @@map("organizations")
 }
+enum OrgType {
+  APARTMENT
+  VILLA
+  MIXED
+  PLOTTED
+}
+
 // organization setting which hold records for multiple organization keys to secure the data-leaks.
 model OrganizationSetting {
   id        String   @id @default(uuid())
@@ -178,6 +186,11 @@ enum NodeType {
   FLOOR
   UNIT
   COMMON_AREA
+  PHASE
+  BUILDING
+  VILLA
+  PLOT
+  BASEMENT
 }
 
 model UnitOwnership {
