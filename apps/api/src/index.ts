@@ -1,6 +1,7 @@
 import express from 'express'
 import testRouter from './routes/test'
 import authRouter from './routes/auth'
+import societyRouter from './routes/societies'
 import { errorHandler } from './middleware/error'
 import { apiRateLimit } from './middleware/rateLimit'
 
@@ -10,6 +11,7 @@ app.use(apiRateLimit)          // global rate limit on all routes
 
 app.use('/api', testRouter)
 app.use('/api/auth', authRouter)
+app.use('/api/societies', societyRouter)
 
 app.use(errorHandler)          // always last — catches everything above
 
