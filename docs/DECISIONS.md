@@ -94,3 +94,43 @@ Why rejected: Schema is already open for it. Seed change is trivial.
               test data automatically.
 The rule: You can only assign a role with permissions equal to
           or less than your own. Co-resident cannot invite further.
+
+## 009 — Permission strings renamed for clarity
+Date: 2026-03-24
+Decision: Renamed permission strings from technical names
+          to descriptive domain names before first feature build
+          org.create → society.create
+          unit.create/update/view → node.create/update/view
+          member.invite → invitation.create
+          Added new permissions: society.update, node.delete,
+          invitation.cancel, invitation.view,
+          ownership.remove, ownership.view,
+          occupancy.view, role.view
+Reason: Pre-production is the only safe time to rename.
+        After launch, changing permission strings in production
+        requires data migrations on live user data.
+        Clean naming now prevents confusion forever.
+        node.* is more accurate than unit.* because
+        the system handles towers, wings, floors, not just units.
+Alternatives considered: Keep old names, add new ones alongside
+Why rejected: Two sets of permission strings for same concepts
+              creates confusion for every future developer.
+
+## 010 — OrgType enum added to Organization
+Date: 2026-03-24
+Decision: Added type field to Organization model
+          Values: APARTMENT, VILLA, MIXED, PLOTTED
+Reason: Different society types affect UI and future features.
+        A plotted development has no towers.
+        A villa community has no floors.
+        Knowing the type lets the app show relevant options.
+
+## 011 — NodeType enum extended
+Date: 2026-03-24
+Decision: Added PHASE, BUILDING, VILLA, PLOT, BASEMENT
+          to NodeType enum
+Reason: Indian society layouts vary significantly.
+        Township projects have phases.
+        Plotted developments have plots not units.
+        Adding now costs one migration line.
+        Adding after launch costs a production migration.
