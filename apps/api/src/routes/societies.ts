@@ -76,6 +76,99 @@ router.post('/create', authenticate, async(req, res) => {
             message: "Something went wrong while creating society.",
         });
     }
-})
+});
+
+router.get('/:userId/all', authenticate, async(req, res) =>{
+    const loggedUser = (req as any).user;
+    const { userId } = req.params as {userId: string};
+    console.log(`UserId ${loggedUser.userId}`);
+    try{
+        if (loggedUser.userId !== userId) {
+            return res.status(403).json({
+                status: "Failed",
+                message: "Unauthorized access"
+            });
+        }
+        const memberships = await prisma.membership.findMany({
+            where: {
+                userId,
+                isActive: true,
+            },
+            select: {
+                roleId: true,
+                org: {
+                    select:{
+                        id: true,
+                        name: true,
+                        city: true,
+                        propertyNodes: {
+                            where: {
+                                parentId: null
+                            },
+                            select: {
+                                nodeType: true
+                            },
+                            take: 1
+                        },
+                        _count: {
+                            select: {
+                                propertyNodes: {
+                                    where: {
+                                        nodeType: 'UNIT'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        if (!memberships || memberships.length === 0) {
+            return res.status(200).json({
+                status: "Success",
+                data: []
+            });
+        }
+        
+        const societies = memberships.map( m => ({
+            id: m.org.id,
+            name: m.org.name,
+            city: m.org.city,
+            role: m.roleId,
+            type: m.org.propertyNodes[0]?.nodeType || null,
+            unitCount: m.org._count.propertyNodes
+        }))
+        
+        return res.status(200).json({
+            status: "Success",
+            data: societies
+        });
+        
+        
+    } catch (error: any){
+        console.error("[GET_SOCIETIES_ERROR]:", error);
+        
+        // Prisma specific errors
+        if (error.code === 'P2002') {
+            return res.status(409).json({
+                status: "Failed",
+                message: "Duplicate data issue"
+            });
+        }
+        
+        if (error.code === 'P2003') {
+            return res.status(400).json({
+                status: "Failed",
+                message: "Invalid reference data"
+            });
+        }
+        
+        return res.status(500).json({
+            status: "Error",
+            message: "Something went wrong while fetching societies"
+        });
+    }
+});
 
 export default router
