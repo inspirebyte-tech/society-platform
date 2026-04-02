@@ -5,11 +5,11 @@ interface SmsResult {
 
 export const sendOtp = async (
   phone: string,
-  otp: string
+  message: string
 ): Promise<SmsResult> => {
   if (process.env.NODE_ENV === 'development') {
     console.log(`\n--------------------------`)
-    console.log(`OTP for ${phone}: ${otp}`)
+    console.log(`SMS for ${phone}: ${message}`)
     console.log(`--------------------------\n`)
     return { success: true }
   }
