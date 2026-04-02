@@ -258,12 +258,12 @@ async function main() {
   // ─────────────────────────────────────────────
   const builderUser = await prisma.user.create({
     data: {
-      phone: '+911111111111',
+      phone: '+919111111111',
       phoneVerified: true,
       person: {
         create: {
           fullName: 'Vikram Builder',
-          phone: '+911111111111'
+          phone: '+919111111111'
         }
       }
     }
@@ -271,12 +271,12 @@ async function main() {
 
   const residentUser = await prisma.user.create({
     data: {
-      phone: '+912222222222',
+      phone: '+919222222222',
       phoneVerified: true,
       person: {
         create: {
           fullName: 'Arjun Mehta',
-          phone: '+912222222222'
+          phone: '+919222222222'
         }
       }
     }
@@ -284,12 +284,12 @@ async function main() {
 
   const gatekeeperUser = await prisma.user.create({
     data: {
-      phone: '+913333333333',
+      phone: '+919333333333',
       phoneVerified: true,
       person: {
         create: {
           fullName: 'Ramesh Gate',
-          phone: '+913333333333'
+          phone: '+919333333333'
         }
       }
     }
@@ -297,12 +297,12 @@ async function main() {
 
   const coResidentUser = await prisma.user.create({
     data: {
-      phone: '+914444444444',
+      phone: '+919444444444',
       phoneVerified: true,
       person: {
         create: {
           fullName: 'Meera Mehta',
-          phone: '+914444444444'
+          phone: '+919444444444'
         }
       }
     }
@@ -392,10 +392,10 @@ async function main() {
 
   console.log('Seed complete.')
   console.log('Test phones:')
-  console.log('  Builder:      +911111111111')
-  console.log('  Resident:     +912222222222')
-  console.log('  Gatekeeper:   +913333333333')
-  console.log('  Co-resident:  +914444444444')
+  console.log('  Builder:      +919111111111')
+  console.log('  Resident:     +919222222222')
+  console.log('  Gatekeeper:   +919333333333')
+  console.log('  Co-resident:  +919444444444')
 }
 
 main()
