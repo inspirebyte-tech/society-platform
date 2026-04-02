@@ -26,10 +26,14 @@ If you can't, read ARCHITECTURE.md first.
 ## Daily Workflow
 ```
 1. Pick up a GitHub issue marked "Ready"
-2. Create a branch from dev
-   git checkout dev
-   git pull origin dev
+2. Create a branch from the feature base branch
+   git checkout feature/society-setup   ← current feature branch
+   git pull origin feature/society-setup
    git checkout -b feature/your-task-name
+
+   Note: branch base changes per feature.
+   Tech lead tells you which branch to branch from.
+   Right now: feature/society-setup
 
 3. Build the thing
 4. Test it manually
@@ -135,6 +139,7 @@ import { Router, Response } from 'express'
 import { authenticate, AuthRequest } from '../middleware/auth'
 import { requirePermission } from '../middleware/permission'
 import { prisma } from '../lib/prisma'
+import { sendSuccess, sendCreated, sendError, sendServerError } from '../utils/response'
 
 const router = Router()
 
@@ -148,9 +153,8 @@ router.post(
 
       // 3. validate inputs
       if (!unitCode || !visitorName || !visitorPhone) {
-        return res.status(400).json({ 
-          error: 'missing_fields',
-          required: ['unitCode', 'visitorName', 'visitorPhone']
+        return sendError(res, 'missing_fields', 400, {
+            required: ['unitCode', 'visitorName', 'visitorPhone']
         })
       }
 
@@ -168,7 +172,7 @@ router.post(
       })
 
       // 5. return consistent response
-      return res.status(201).json({ data: visitor })
+      return sendCreated(res, visitor)
 
     } catch (error) {
       console.error('POST /visitors error:', error)
@@ -317,34 +321,6 @@ Before opening a PR, check every item:
 □ PERMISSIONS.md updated if new permissions added
 ```
 
----
-
-## What Your Code Will Be Reviewed For
-
-When you open a PR, expect review comments on:
-```
-Security
-  → Is orgId always from the token?
-  → Are all routes authenticated?
-  → Are permissions checked before any data access?
-  → Are inputs validated?
-
-Consistency  
-  → Does the response format match the standard?
-  → Are status codes correct?
-  → Does the route naming follow conventions?
-
-Correctness
-  → Does it actually do what the issue says?
-  → Are edge cases handled?
-  → What happens if the record doesn't exist?
-  → What happens if required fields are missing?
-
-Code quality
-  → Is the code readable?
-  → Is logic duplicated that could be shared?
-  → Are error messages clear and consistent?
-```
 
 ---
 
@@ -419,6 +395,8 @@ keep things small and focused, avoid side effects.
 → No PR description
 → Two unrelated features in one branch
 → Schema changes without a migration
+→ Not using utils/response.ts helpers
+   (raw res.status().json() instead of sendSuccess/sendError)
 ```
 
 ---
@@ -438,6 +416,43 @@ trying to solve it yourself.
 
 ---
 
+## PR Review Checklist
+
+Reviewer checks every PR for:
+
+### Security
+□ orgId from req.user.orgId — never from req.body
+□ authenticate middleware on every protected route
+□ requirePermission with correct permission string
+□ inputs validated before any DB query
+
+### Contract compliance
+□ Response shape matches API contract exactly
+□ Error codes are snake_case and match contract
+□ HTTP status codes are correct
+□ No extra fields in response not in contract
+□ No missing fields from contract
+
+### Code quality
+□ utils/response.ts helpers used (sendSuccess, sendError etc)
+□ No console.logs in code
+□ No hardcoded strings that should be constants
+□ Error messages don't expose internal details
+
+### Database
+□ Transaction used where multiple writes happen together
+□ orgId scope on every query that touches society data
+□ No raw SQL unless absolutely necessary
+
+### Testing
+□ PR description has test instructions
+□ Happy path tested
+□ All error cases tested
+□ Edge cases tested
+□ Definition of done checklist completed
+
+---
+
 ## Quick Reference
 ```
 Run server:        npx tsx src/index.ts
@@ -451,6 +466,8 @@ Test users:
   Builder:     +911111111111
   Resident:    +912222222222
   Gatekeeper:  +913333333333
+  Co-resident: +914444444444
 
 Get test tokens:   GET /api/test-tokens (dev only)
+
 ```
