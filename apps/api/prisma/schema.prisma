@@ -57,8 +57,6 @@ model Organization {
   city           String
   state          String
   pincode        String
-  registrationNo String?
-  logoUrl        String?
   type           OrgType  @default(APARTMENT)
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
