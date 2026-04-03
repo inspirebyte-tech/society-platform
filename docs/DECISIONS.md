@@ -134,3 +134,38 @@ Reason: Indian society layouts vary significantly.
         Plotted developments have plots not units.
         Adding now costs one migration line.
         Adding after launch costs a production migration.
+
+## 012 — Member visibility restricted to admin only
+Date: 2026-04-03
+Decision: Residents cannot see other members details.
+          Only Admin and Builder can view full member list.
+Reason: DPDP Act 2023 compliance. Phone numbers and
+        personal details cannot be shared without consent.
+        Opt-in community directory planned for V2.
+Alternatives considered: Show limited directory to residents
+Why rejected: Even name + flat number without consent
+              is a grey area legally. V1 stays conservative.
+
+## 013 — Member removal is always soft
+Date: 2026-04-03
+Decision: Removing a member deactivates membership,
+          never deletes it. Occupancy end dated separately.
+          Two removal types in V1:
+            1. Deactivate only (membership.isActive = false)
+            2. Mark moved out (+ occupiedUntil = today)
+Reason: Historical records needed for disputes, insurance,
+        legal cases. Reactivation possible if mistake made.
+Alternatives considered: Hard delete
+Why rejected: Destroys history permanently.
+              Cannot answer "who lived here in Jan 2023?"
+
+## 014 — Only Builder can reactivate members
+Date: 2026-04-03
+Decision: Admin can deactivate but not reactivate.
+          Only Builder can reactivate any member.
+Reason: Prevents rogue admin locking out legitimate
+        members permanently. Builder always has
+        override capability.
+Note: When RWA takes over from builder, RWA President
+      role gets this capability via permission assignment.
+      Zero code change needed.
