@@ -23,6 +23,7 @@ async function main() {
     // Members
     { name: 'member.view',   module: 'members', description: 'View society members' },
     { name: 'member.remove', module: 'members', description: 'Remove a member from society' },
+    { name: 'member.reactivate', module: 'members', description: 'Reactivate a deactivated member' },
 
     // Invitations
     { name: 'invitation.create', module: 'invitations', description: 'Invite someone to society' },
@@ -110,7 +111,8 @@ async function main() {
       'announcement.create', 'announcement.view',
       'visitor.view_live', 'visitor.view_emergency',
       'emergency.declare', 'emergency.view',
-      'role.create', 'role.assign', 'role.view'
+      'role.create', 'role.assign', 'role.view',
+      'member.reactivate'
     ],
 
     Admin: [

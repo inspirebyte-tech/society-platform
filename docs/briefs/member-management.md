@@ -230,7 +230,7 @@ List all members of a society.
 }
 ```
 
-**Errors**
+**Errors:**
 401 no_token
 403 insufficient_permissions
 404 society_not_found
