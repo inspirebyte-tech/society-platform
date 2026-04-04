@@ -2,6 +2,7 @@ import { Router, Response } from 'express'
 import { authenticate, AuthRequest } from '../middleware/auth'
 import { requirePermission } from '../middleware/permission'
 import { prisma } from '../lib/prisma'
+import { enforceTenantContext } from '../middleware/tenantContext'
 import { validateRequired } from '../utils/validate'
 import {
   sendSuccess,
@@ -153,7 +154,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
 // GET /api/societies/:id
 // Get one society details
 // ─────────────────────────────────────────────
-router.get('/:id', authenticate, requirePermission('society.view'),
+router.get('/:id', authenticate, enforceTenantContext, requirePermission('society.view'),
   async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params
@@ -225,7 +226,7 @@ router.get('/:id', authenticate, requirePermission('society.view'),
 // PATCH /api/societies/:id
 // Update society details
 // ─────────────────────────────────────────────
-router.patch('/:id', authenticate, requirePermission('society.update'),
+router.patch('/:id', authenticate, enforceTenantContext, requirePermission('society.update'),
   async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params

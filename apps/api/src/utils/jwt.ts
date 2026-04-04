@@ -7,11 +7,13 @@ export interface TokenPayload {
   userId: string
   orgId?: string
   type: 'session' | 'auth'
+  tokenVersion: number
 }
 
 export interface RefreshTokenPayload {
   userId: string
   type: 'refresh'
+  tokenVersion: number
 }
 
 export const generateToken = (
@@ -25,9 +27,12 @@ export const generateToken = (
   )
 }
 
-export const generateRefreshToken = (userId: string): string => {
+export const generateRefreshToken = (
+  userId: string,
+  tokenVersion: number
+): string => {
   return jwt.sign(
-    { userId, type: 'refresh' },
+    { userId, type: 'refresh', tokenVersion  },
     JWT_REFRESH_SECRET,
     { expiresIn: '30d' }
   )
