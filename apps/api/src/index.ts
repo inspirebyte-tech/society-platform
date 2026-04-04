@@ -16,7 +16,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/societies', societiesRouter)
 app.use('/api/societies', nodesRouter)
 app.use('/api/societies', invitationsRouter)
-
+// app.use('/api/societies', enforceTenantContext, membersRouter)    up-next
 
 app.use(errorHandler)          // always last — catches everything above
 

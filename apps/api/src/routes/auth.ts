@@ -224,11 +224,16 @@ router.post('/verify-otp', async (req: AuthRequest, res: Response) => {
     const activeMemberships = user!.memberships
 
     // 11. generate refresh token always
-    const refreshToken = generateRefreshToken(user!.id)
-
+const refreshToken = generateRefreshToken(
+  user!.id,
+  user!.tokenVersion     
+)
     // 12. no memberships — new user with no society
     if (activeMemberships.length === 0) {
-      const token = generateToken({ userId: user!.id })
+      const token = generateToken({
+  userId: user!.id,
+  tokenVersion: user!.tokenVersion
+})
       return sendSuccess(res, {
         token,
         refreshToken,
@@ -243,7 +248,8 @@ router.post('/verify-otp', async (req: AuthRequest, res: Response) => {
       const membership = activeMemberships[0]
       const token = generateToken({
         userId: user!.id,
-        orgId: membership.orgId
+        orgId: membership.orgId,
+        tokenVersion: user!.tokenVersion
       })
       return sendSuccess(res, {
         token,
@@ -258,7 +264,10 @@ router.post('/verify-otp', async (req: AuthRequest, res: Response) => {
     }
 
     // 14. multiple societies — return list, let user pick
-    const token = generateToken({ userId: user!.id })
+    const token = generateToken({
+  userId: user!.id,
+  tokenVersion: user!.tokenVersion    
+})
     return sendSuccess(res, {
       token,
       refreshToken,
@@ -312,7 +321,8 @@ router.post('/select-org', authenticate, async (req: AuthRequest, res: Response)
     // generate new session token with orgId
     const token = generateToken({
       userId: req.user!.userId,
-      orgId
+      orgId,
+      tokenVersion: req.user!.tokenVersion
     })
 
     return sendSuccess(res, {
@@ -389,9 +399,11 @@ router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
 // ─────────────────────────────────────────────
 router.post('/logout', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    // JWT is stateless — we can't invalidate tokens server side
-    // Client must delete the token from storage
-    // Future: maintain a token blacklist in Redis
+    // Increment tokenVersion — invalidates ALL existing tokens
+    await prisma.user.update({
+      where: { id: req.user!.userId },
+      data: { tokenVersion: { increment: 1 } }
+    })
 
     return sendSuccess(res, { message: 'logged_out' })
 
@@ -416,22 +428,19 @@ router.post('/refresh', async (req: AuthRequest, res: Response) => {
       })
     }
 
-    // 1. verify refresh token
+    // 1. verify refresh token signature
     const decoded = verifyRefreshToken(refreshToken)
     if (!decoded) {
       return sendUnauthorized(res, 'invalid_refresh_token')
     }
 
-    // 2. check user still exists and is active
+    // 2. check user exists and is active
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       include: {
         memberships: {
           where: { isActive: true },
-          include: {
-            org: true,
-            role: true
-          }
+          include: { org: true, role: true }
         }
       }
     })
@@ -440,8 +449,12 @@ router.post('/refresh', async (req: AuthRequest, res: Response) => {
       return sendUnauthorized(res, 'user_not_found')
     }
 
-    // 3. generate new session token
-    // preserve orgId if user only has one society
+    // 3. verify tokenVersion matches — prevents use after logout
+    if (user.tokenVersion !== decoded.tokenVersion) {
+      return sendUnauthorized(res, 'token_revoked')
+    }
+
+    // 4. generate new tokens
     const activeMemberships = user.memberships
     const orgId = activeMemberships.length === 1
       ? activeMemberships[0].orgId
@@ -449,11 +462,14 @@ router.post('/refresh', async (req: AuthRequest, res: Response) => {
 
     const newToken = generateToken({
       userId: user.id,
-      orgId
+      orgId,
+      tokenVersion: user.tokenVersion    // ← add
     })
 
-    // 4. generate new refresh token (rotate it)
-    const newRefreshToken = generateRefreshToken(user.id)
+    const newRefreshToken = generateRefreshToken(
+      user.id,
+      user.tokenVersion                  // ← add
+    )
 
     return sendSuccess(res, {
       token: newToken,

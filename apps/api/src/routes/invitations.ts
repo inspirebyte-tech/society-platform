@@ -2,6 +2,7 @@ import { Router, Response } from 'express'
 import { authenticate, AuthRequest } from '../middleware/auth'
 import { requirePermission } from '../middleware/permission'
 import { prisma } from '../lib/prisma'
+import { enforceTenantContext } from '../middleware/tenantContext'
 import { validatePhone, validateRequired, normalizePhone } from '../utils/validate'
 import { sendOtp } from '../utils/sms'
 import {
@@ -21,6 +22,7 @@ const router = Router()
 router.post(
   '/:id/invitations',
   authenticate,
+  enforceTenantContext,
   requirePermission('invitation.create'),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -151,6 +153,7 @@ router.post(
 router.get(
   '/:id/invitations',
   authenticate,
+  enforceTenantContext,
   requirePermission('invitation.view'),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -214,6 +217,7 @@ router.get(
 router.delete(
   '/:id/invitations/:invitationId',
   authenticate,
+  enforceTenantContext,
   requirePermission('invitation.cancel'),
   async (req: AuthRequest, res: Response) => {
     try {

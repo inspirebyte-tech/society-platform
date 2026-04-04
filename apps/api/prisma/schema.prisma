@@ -17,6 +17,7 @@ model User {
   email         String?  @unique
   passwordHash  String?
   phoneVerified Boolean  @default(false)
+  tokenVersion  Int      @default(0)
   emailVerified Boolean  @default(false)
   isActive      Boolean  @default(true)
   lastLoginAt   DateTime?
