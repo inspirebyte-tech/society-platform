@@ -56,7 +56,8 @@ router.get('/test-tokens', async (req, res) => {
     role: user.memberships[0]?.role.name,
     token: generateToken({
       userId: user.id,
-      orgId: user.memberships[0]?.orgId ?? undefined
+      orgId: user.memberships[0]?.orgId ?? undefined,
+      tokenVersion: user.tokenVersion
     })
   }))
 

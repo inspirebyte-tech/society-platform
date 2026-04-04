@@ -7,6 +7,7 @@ export interface AuthRequest extends Request {
         userId: string
         orgId?: string
         permissions: string[]
+        tokenVersion: number
     }
 }
 
@@ -26,13 +27,29 @@ export const authenticate = async (
             return res.status(401).json({ error: 'invalid_token' })
         }
 
+        // Verify user exists, is active, and token version matches
+        const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: { isActive: true, tokenVersion: true }
+        })
+
+        if (!user || !user.isActive) {
+        return res.status(401).json({ error: 'user_inactive' })
+        }
+
+        // Token version check — handles logout and revocation
+        if (user.tokenVersion !== decoded.tokenVersion) {
+        return res.status(401).json({ error: 'token_revoked' })
+        }
+        
         req.user = {
             userId: decoded.userId,
             orgId: decoded.orgId,
-            permissions: []
+            permissions: [],
+            tokenVersion: decoded.tokenVersion
         }
 
-        // If org context exists, load permissions
+        // Load permissions for this org context
         if (decoded.orgId) {
             const membership = await prisma.membership.findFirst({
                 where: {

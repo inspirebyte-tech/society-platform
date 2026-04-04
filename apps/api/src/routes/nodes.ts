@@ -2,6 +2,7 @@ import { Router, Response } from 'express'
 import { authenticate, AuthRequest } from '../middleware/auth'
 import { requirePermission } from '../middleware/permission'
 import { prisma } from '../lib/prisma'
+import { enforceTenantContext } from '../middleware/tenantContext'
 import { validateRequired } from '../utils/validate'
 import {
   sendSuccess,
@@ -66,6 +67,7 @@ async function getNodeInOrg(
 router.get(
   '/:id/nodes',
   authenticate,
+  enforceTenantContext,
   requirePermission('node.view'),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -125,6 +127,7 @@ router.get(
 router.post(
   '/:id/nodes',
   authenticate,
+  enforceTenantContext,
   requirePermission('node.create'),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -214,6 +217,7 @@ router.post(
 router.post(
   '/:id/nodes/bulk',
   authenticate,
+  enforceTenantContext,
   requirePermission('node.create'),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -337,6 +341,7 @@ router.post(
 router.patch(
   '/:id/nodes/:nodeId',
   authenticate,
+  enforceTenantContext,
   requirePermission('node.update'),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -415,6 +420,7 @@ router.patch(
 router.delete(
   '/:id/nodes/:nodeId',
   authenticate,
+  enforceTenantContext,
   requirePermission('node.delete'),
   async (req: AuthRequest, res: Response) => {
     try {
