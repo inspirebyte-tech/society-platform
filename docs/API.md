@@ -770,3 +770,187 @@ Cancel a pending invitation.
 404 society_not_found         → society doesn't exist
 404 invitation_not_found      → invitation doesn't exist
 ```
+
+---
+
+## Member Endpoints
+
+### GET /societies/:id/members
+List all members of a society.
+
+**Auth:** Required
+**Permission:** member.view
+**Query params:**
+  status=active (default) / inactive / all
+  role=Builder/Admin/Resident/Gatekeeper (optional)
+
+**Response 200:**
+```json
+{
+  "data": {
+    "active": [
+      {
+        "membershipId":  "uuid",
+        "userId":        "uuid",
+        "name":          "Arjun Mehta",
+        "phone":         "+919222222222",
+        "role":          "Resident",
+        "unit":          "Flat 4B",
+        "unitId":        "uuid",
+        "occupancyType": "OWNER_RESIDENT",
+        "joinedAt":      "datetime",
+        "isActive":      true
+      }
+    ],
+    "pendingSetup": [
+      {
+        "membershipId": "uuid",
+        "name":         "Vikram Builder",
+        "phone":        "+919111111111",
+        "role":         "Builder",
+        "unit":         null,
+        "unitId":       null,
+        "occupancyType": null,
+        "joinedAt":     "datetime",
+        "isActive":     true
+      }
+    ]
+  }
+}
+```
+
+**Errors:**
+400 invalid_status           → status not in allowed values
+401 no_token                 → not logged in
+403 insufficient_permissions → no member.view permission
+403 tenant_context_mismatch  → wrong society context
+404 society_not_found        → society doesn't exist
+
+---
+
+### GET /societies/:id/members/:memberId
+Get full details of one member.
+
+**Auth:** Required
+**Permission:** member.view
+
+**Response 200:**
+```json
+{
+  "data": {
+    "membershipId":  "uuid",
+    "userId":        "uuid",
+    "name":          "Arjun Mehta",
+    "phone":         "+919222222222",
+    "role":          "Resident",
+    "unit":          "Flat 4B",
+    "unitId":        "uuid",
+    "occupancyType": "OWNER_RESIDENT",
+    "isPrimary":     true,
+    "joinedAt":      "datetime",
+    "invitedBy":     "Vikram Builder",
+    "isActive":      true,
+    "occupancyHistory": [
+      {
+        "unitName": "Flat 4B",
+        "from":     "datetime",
+        "until":    null,
+        "type":     "OWNER_RESIDENT"
+      }
+    ]
+  }
+}
+```
+
+**Errors:**
+401 no_token                 → not logged in
+403 insufficient_permissions → no member.view permission
+403 tenant_context_mismatch  → wrong society context
+404 member_not_found         → member doesn't exist
+
+---
+
+### PATCH /societies/:id/members/:memberId/deactivate
+Remove app access. Occupancy and ownership preserved.
+
+**Auth:** Required
+**Permission:** member.remove
+
+**Response 200:**
+```json
+{ "data": { "message": "member_deactivated" } }
+```
+
+**Response 200 (last admin warning):**
+```json
+{
+  "data": {
+    "message": "member_deactivated",
+    "warning": "This was the only active Admin. Builder still has access."
+  }
+}
+```
+
+**Errors:**
+400 cannot_deactivate_self    → cannot remove yourself
+400 cannot_deactivate_builder → only Builder can deactivate Builder
+400 already_inactive          → member already deactivated
+401 no_token
+403 insufficient_permissions
+403 tenant_context_mismatch
+404 member_not_found
+
+---
+
+### PATCH /societies/:id/members/:memberId/moveout
+Remove access AND end occupancy. Ownership NOT affected.
+
+**Auth:** Required
+**Permission:** member.remove
+
+**Response 200:**
+```json
+{ "data": { "message": "member_moved_out" } }
+```
+
+**Errors:**
+400 cannot_deactivate_self    → cannot mark yourself as moved out
+400 cannot_deactivate_builder → only Builder can remove Builder
+400 no_active_occupancy       → member has no active occupancy to end
+401 no_token
+403 insufficient_permissions
+403 tenant_context_mismatch
+404 member_not_found
+
+---
+
+### PATCH /societies/:id/members/:memberId/reactivate
+Restore app access. Builder only.
+
+**Auth:** Required
+**Permission:** member.reactivate
+
+**Response 200:**
+```json
+{ "data": { "message": "member_reactivated" } }
+```
+
+**Response 200 (with warning):**
+```json
+{
+  "data": {
+    "message": "member_reactivated",
+    "warning": "Member reactivated. Unit assignment may need review."
+  }
+}
+```
+
+**Note:** Warning shown when member previously had
+an occupancy that was ended (moved out scenario).
+
+**Errors:**
+400 already_active    → member is already active
+401 no_token
+403 insufficient_permissions → Admin cannot reactivate
+403 tenant_context_mismatch
+404 member_not_found
