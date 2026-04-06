@@ -1,5 +1,19 @@
 import api from './api'
 
+export interface NodeData {
+  id: string
+  name: string
+  code: string
+  nodeType: NodeType
+  parentId: string | null
+  metadata: {
+    bhk?: string
+    sqFt?: number
+    floorNo?: number
+  }
+  children: NodeData[]
+}
+
 export type NodeType =
   | 'SOCIETY'
   | 'TOWER'
