@@ -257,7 +257,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
-    overflow: 'hidden',
   },
   form: {
     padding: Spacing.screenPadding,
