@@ -105,3 +105,31 @@ npx tsx src/index.ts
 - Replace REPLACE_WITH_OTP with OTP from terminal
 - Replace REPLACE_WITH_ORG_ID with org ID from your DB
 - Base URL is always http://localhost:3000
+
+## Running Tests
+
+### Prerequisites
+Create test database:
+  createdb -U postgres -p 5433 society_platform_test
+
+Run migrations on test DB:
+  npx dotenv -e .env.test -- npx prisma migrate reset --force
+
+### Run Tests
+  cd apps/api
+  npm test
+
+### Test Database
+Tests use a separate DB: society_platform_test
+Configured in apps/api/.env.test
+DB is reset automatically before each test run
+
+### Test Files
+  tests/setup.ts          → shared helpers
+  tests/globalSetup.ts    → DB reset before all suites
+  tests/security.test.ts  → security tests
+  tests/auth.test.ts      → auth endpoint tests
+  tests/societies.test.ts → society endpoint tests
+  tests/nodes.test.ts     → node endpoint tests
+  tests/invitations.test.ts → invitation tests
+  tests/members.test.ts   → member management tests
