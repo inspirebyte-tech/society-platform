@@ -169,3 +169,28 @@ Reason: Prevents rogue admin locking out legitimate
 Note: When RWA takes over from builder, RWA President
       role gets this capability via permission assignment.
       Zero code change needed.
+
+## 015 — Test environment bypasses rate limiting
+Date: 2026-04-06
+Decision: OTP and API rate limiters are bypassed
+          in NODE_ENV=test environment
+Reason: Rate limiting is infrastructure not business logic.
+        Tests must not be blocked by request counts.
+        Standard practice across all professional test suites.
+
+## 016 — Automated test suite added
+Date: 2026-04-06
+Decision: Jest + Supertest for integration tests.
+          Tests run sequentially (runInBand).
+          Single DB reset via globalSetup before all suites.
+          Separate test DB: society_platform_test
+Reason: Manual testing doesn't scale beyond 3 developers.
+        Automated tests catch regressions in seconds.
+        Required for CI/CD pipeline.
+
+## 017 — SMS sending bypassed in test environment  
+Date: 2026-04-06
+Decision: sendOtp returns success without sending
+          in development and test environments
+Reason: Tests must not depend on external services.
+        Real SMS would cost money and be unreliable in CI.
