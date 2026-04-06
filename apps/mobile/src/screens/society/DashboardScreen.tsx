@@ -301,7 +301,6 @@ const styles = StyleSheet.create({
   actionsList: {
     backgroundColor: Colors.surface,
     borderRadius: 12,
-    overflow: 'hidden',
     borderWidth: 1,
     borderColor: Colors.border,
   },

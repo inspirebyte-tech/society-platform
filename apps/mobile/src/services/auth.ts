@@ -35,9 +35,19 @@ export async function saveTokens(token: string, refresh: string) {
   await SecureStore.setItemAsync('refresh_token', refresh)
 }
 
+// Use this when only the session token changes (e.g. after selectOrg)
+export async function saveSessionToken(token: string) {
+  await SecureStore.setItemAsync('session_token', token)
+}
+
+export async function saveCurrentOrg(orgId: string) {
+  await SecureStore.setItemAsync('current_org_id', orgId)
+}
+
 export async function clearTokens() {
   await SecureStore.deleteItemAsync('session_token')
   await SecureStore.deleteItemAsync('refresh_token')
+  await SecureStore.deleteItemAsync('current_org_id')
 }
 
 export async function getStoredToken(): Promise<string | null> {

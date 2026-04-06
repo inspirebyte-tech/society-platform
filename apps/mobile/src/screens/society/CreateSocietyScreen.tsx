@@ -8,7 +8,8 @@ import { Toast } from '../../components/Toast'
 import { BottomSheetPicker, PickerOption } from '../../components/BottomSheetPicker'
 import { AppStackParamList } from '../../navigation/AppNavigator'
 import { createSociety, SocietyType } from '../../services/societies'
-import { saveTokens } from '../../services/auth'
+import { selectOrg, saveSessionToken, saveCurrentOrg } from '../../services/auth'
+import { useAuth } from '../../hooks/useAuth'
 import { getApiErrorCode, getApiErrorDetails } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
 import { Colors } from '../../constants/colors'
@@ -49,6 +50,7 @@ interface FormErrors {
 }
 
 export function CreateSocietyScreen({ navigation }: Props) {
+  const { loadUser } = useAuth()
   const [form, setForm] = useState<FormState>({
     name: '',
     address: '',
@@ -95,6 +97,11 @@ export function CreateSocietyScreen({ navigation }: Props) {
         pincode: form.pincode.trim(),
         type: form.type as SocietyType,
       })
+      // Get a session token that includes orgId for this society
+      const session = await selectOrg(society.id)
+      await saveSessionToken(session.token)
+      await saveCurrentOrg(society.id)
+      await loadUser()
       navigation.replace('Dashboard', { societyId: society.id })
     } catch (e) {
       const code = getApiErrorCode(e)

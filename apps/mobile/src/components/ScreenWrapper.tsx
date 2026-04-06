@@ -5,8 +5,8 @@ import {
   StyleSheet,
   Platform,
   ViewStyle,
-  StatusBar,
 } from 'react-native'
+import { StatusBar } from 'expo-status-bar'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from '../constants/colors'
 import { Spacing } from '../constants/spacing'
@@ -26,7 +26,7 @@ export function ScreenWrapper({
 }: ScreenWrapperProps) {
   return (
     <SafeAreaView style={[styles.safe, style]}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <StatusBar style="dark" />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

@@ -456,7 +456,6 @@ const styles = StyleSheet.create({
   },
   historyCard: {
     padding: 0,
-    overflow: 'hidden',
   },
   historyRow: {
     flexDirection: 'row',

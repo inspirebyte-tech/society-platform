@@ -6,7 +6,8 @@ import { Card } from '../../components/Card'
 import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { Toast } from '../../components/Toast'
 import { AuthStackParamList } from '../../navigation/AuthNavigator'
-import { selectOrg, saveTokens } from '../../services/auth'
+import { selectOrg, saveSessionToken, saveCurrentOrg } from '../../services/auth'
+import { useAuth } from '../../hooks/useAuth'
 import { getApiErrorCode } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
 import { Colors } from '../../constants/colors'
@@ -16,6 +17,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'SelectSociety'>
 
 export function SelectSocietyScreen({ route }: Props) {
   const { memberships } = route.params
+  const { loadUser } = useAuth()
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null)
 
@@ -23,8 +25,9 @@ export function SelectSocietyScreen({ route }: Props) {
     setLoadingId(orgId)
     try {
       const data = await selectOrg(orgId)
-      await saveTokens(data.token, data.token)
-      // RootNavigator will re-evaluate on token save
+      await saveSessionToken(data.token)
+      await saveCurrentOrg(orgId)
+      await loadUser()
     } catch (e) {
       const code = getApiErrorCode(e)
       setToast({ message: getErrorMessage(code), type: 'error' })

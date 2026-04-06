@@ -5,7 +5,8 @@ import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { Button } from '../../components/Button'
 import { Toast } from '../../components/Toast'
 import { AuthStackParamList } from '../../navigation/AuthNavigator'
-import { verifyOtp, saveTokens, requestOtp } from '../../services/auth'
+import { verifyOtp, saveTokens, saveCurrentOrg, requestOtp } from '../../services/auth'
+import { useAuth } from '../../hooks/useAuth'
 import { getApiErrorCode } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
 import { Colors } from '../../constants/colors'
@@ -17,6 +18,7 @@ const OTP_LENGTH = 6
 
 export function LoginOTPScreen({ route, navigation }: Props) {
   const { phone } = route.params
+  const { loadUser } = useAuth()
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''))
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
@@ -62,15 +64,14 @@ export function LoginOTPScreen({ route, navigation }: Props) {
       const data = await verifyOtp(phone, otpCode)
       await saveTokens(data.token, data.refreshToken)
 
-      if (data.isNewUser && data.memberships.length === 0) {
-        // new user, no society
-        navigation.reset({ index: 0, routes: [{ name: 'LoginPhone' }] })
-        // The RootNavigator will re-evaluate and navigate to CreateSociety
-      } else if (data.requiresOrgSelection) {
+      if (data.requiresOrgSelection) {
         navigation.navigate('SelectSociety', { memberships: data.memberships })
       } else {
-        // single society — token already has orgId, RootNavigator handles the rest
-        navigation.reset({ index: 0, routes: [{ name: 'LoginPhone' }] })
+        if (data.currentOrg?.id) {
+          await saveCurrentOrg(data.currentOrg.id)
+        }
+        await loadUser()
+        // RootNavigator sees isAuthenticated=true and routes accordingly
       }
     } catch (e) {
       const code = getApiErrorCode(e)

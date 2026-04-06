@@ -21,9 +21,14 @@ export type AppStackParamList = {
 
 const Stack = createNativeStackNavigator<AppStackParamList>()
 
-export function AppNavigator() {
+interface AppNavigatorProps {
+  initialSocietyId?: string
+}
+
+export function AppNavigator({ initialSocietyId }: AppNavigatorProps) {
   return (
     <Stack.Navigator
+      initialRouteName={initialSocietyId ? 'Dashboard' : 'CreateSociety'}
       screenOptions={{
         headerBackTitle: '',
         headerTintColor: Colors.primary,
@@ -33,7 +38,12 @@ export function AppNavigator() {
       }}
     >
       <Stack.Screen name="CreateSociety" component={CreateSocietyScreen} options={{ title: 'Create Society' }} />
-      <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: '' }} />
+      <Stack.Screen
+        name="Dashboard"
+        component={DashboardScreen}
+        options={{ title: '' }}
+        initialParams={initialSocietyId ? { societyId: initialSocietyId } : undefined}
+      />
       <Stack.Screen name="Structure" component={StructureScreen} options={{ title: 'Structure' }} />
       <Stack.Screen name="AddNode" component={AddNodeScreen} options={{ title: 'Add to Structure' }} />
       <Stack.Screen name="InviteMember" component={InviteMemberScreen} options={{ title: 'Invite Member' }} />

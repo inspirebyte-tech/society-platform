@@ -6,7 +6,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner'
 import { useAuth } from '../hooks/useAuth'
 
 export function RootNavigator() {
-  const { isLoading, isAuthenticated } = useAuth()
+  const { isLoading, isAuthenticated, currentOrgId } = useAuth()
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />
@@ -14,7 +14,10 @@ export function RootNavigator() {
 
   return (
     <NavigationContainer>
-      {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
+      {isAuthenticated
+        ? <AppNavigator initialSocietyId={currentOrgId ?? undefined} />
+        : <AuthNavigator />
+      }
     </NavigationContainer>
   )
 }

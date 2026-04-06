@@ -4,6 +4,7 @@ import {
   View,
   Text,
   ScrollView,
+  Pressable,
   TouchableWithoutFeedback,
   StyleSheet,
   KeyboardAvoidingView,
@@ -154,19 +155,17 @@ export function EditNodeSheet({
                 <>
                   <View>
                     <Text style={styles.label}>BHK Type</Text>
-                    <TextInput
-                      value={BHK_OPTIONS.find((o) => o.value === bhk)?.label ?? ''}
-                      placeholder="Select BHK type"
-                      editable={false}
-                      onPressIn={() => setBhkPickerOpen(true)}
-                      pointerEvents="none"
-                    />
-                    <Text
-                      style={styles.fakePressable}
-                      onPress={() => setBhkPickerOpen(true)}
-                    >
-                      {''}
-                    </Text>
+                    <View>
+                      <TextInput
+                        value={BHK_OPTIONS.find((o) => o.value === bhk)?.label ?? ''}
+                        placeholder="Select BHK type"
+                        editable={false}
+                      />
+                      <Pressable
+                        style={styles.fakePressable}
+                        onPress={() => setBhkPickerOpen(true)}
+                      />
+                    </View>
                   </View>
                   <View style={styles.row}>
                     <View style={styles.rowHalf}>
@@ -271,10 +270,10 @@ const styles = StyleSheet.create({
   },
   fakePressable: {
     position: 'absolute',
-    top: 28,
+    top: 0,
     left: 0,
     right: 0,
-    height: 52,
+    bottom: 0,
   },
   row: {
     flexDirection: 'row',
