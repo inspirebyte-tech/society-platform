@@ -160,7 +160,7 @@ export function StructureScreen({ route, navigation }: Props) {
             <Text style={styles.emptyTreeText}>No structure added yet.</Text>
             {canCreate ? (
               <Pressable
-                onPress={() => navigation.navigate('AddNode', { societyId, parentId: tree.id })}
+                onPress={() => navigation.navigate('AddNode', { societyId, parentId: tree.id, parentName: tree.name })}
                 style={styles.emptyAddBtn}
               >
                 <Text style={styles.emptyAddBtnText}>+ Add Tower / Wing</Text>
@@ -181,8 +181,8 @@ export function StructureScreen({ route, navigation }: Props) {
                 canDelete={canDelete}
                 onEdit={setEditTarget}
                 onDelete={setDeleteTarget}
-                onAddChild={(parentId) =>
-                  navigation.navigate('AddNode', { societyId, parentId })
+                onAddChild={(parentId, parentName) =>
+                  navigation.navigate('AddNode', { societyId, parentId, parentName })
                 }
               />
             ))}
@@ -192,7 +192,7 @@ export function StructureScreen({ route, navigation }: Props) {
               <AddRow
                 label="Add Tower / Wing"
                 depth={1}
-                onPress={() => navigation.navigate('AddNode', { societyId, parentId: tree.id })}
+                onPress={() => navigation.navigate('AddNode', { societyId, parentId: tree.id, parentName: tree.name })}
               />
             ) : null}
           </>
@@ -266,7 +266,7 @@ interface NodeBranchProps {
   canDelete: boolean
   onEdit: (node: NodeData) => void
   onDelete: (node: NodeData) => void
-  onAddChild: (parentId: string) => void
+  onAddChild: (parentId: string, parentName: string) => void
 }
 
 function NodeBranch({
@@ -360,7 +360,7 @@ function NodeBranch({
         <AddRow
           label={`Add under ${node.name}`}
           depth={depth + 1}
-          onPress={() => onAddChild(node.id)}
+          onPress={() => onAddChild(node.id, node.name)}
         />
       ) : null}
     </View>
