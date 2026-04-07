@@ -50,12 +50,13 @@ describe('Nodes', () => {
       expect(Array.isArray(res.body.data.children)).toBe(true)
     })
 
-    it('returns 200 for resident', async () => {
-      const res = await request(app)
-        .get(`/api/societies/${societyId}/nodes`)
-        .set('Authorization', `Bearer ${residentToken}`)
-      expect(res.status).toBe(200)
-    })
+    it('returns 403 for resident', async () => {
+  const res = await request(app)
+    .get(`/api/societies/${societyId}/nodes`)
+    .set('Authorization', `Bearer ${residentToken}`)
+  expect(res.status).toBe(403)
+  expect(res.body.error).toBe('insufficient_permissions')
+})
 
     it('returns 403 for gatekeeper', async () => {
       const res = await request(app)
