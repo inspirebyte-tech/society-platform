@@ -489,4 +489,49 @@ router.post('/refresh', async (req: AuthRequest, res: Response) => {
   }
 })
 
+// ─────────────────────────────────────────────
+// PATCH /api/auth/profile
+// Update current user's name
+// ─────────────────────────────────────────────
+router.patch('/profile', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const { name } = req.body
+
+    const validation = validateRequired({ name }, ['name'])
+    if (!validation.valid) {
+      return sendError(res, validation.error!, 400, {
+        field: validation.field
+      })
+    }
+
+    if (typeof name !== 'string' || name.trim().length < 2) {
+      return sendError(res, 'invalid_name', 400, {
+        message: 'Name must be at least 2 characters'
+      })
+    }
+
+    const person = await prisma.person.findFirst({
+      where: { userId: req.user!.userId }
+    })
+
+    if (!person) {
+      return sendNotFound(res, 'profile_not_found')
+    }
+
+    const updated = await prisma.person.update({
+      where: { id: person.id },
+      data: { fullName: name.trim() }
+    })
+
+    return sendSuccess(res, {
+      name: updated.fullName,
+      isProfileComplete: true
+    })
+
+  } catch (error) {
+    console.error('PATCH /auth/profile error:', error)
+    return sendServerError(res)
+  }
+})
+
 export default router

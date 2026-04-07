@@ -134,7 +134,6 @@ async function main() {
 
     Resident: [
       'society.view',
-      'node.view',
       'complaint.create', 'complaint.view_own',
       'announcement.view',
       'visitor.approve', 'visitor.view_own',
@@ -147,7 +146,6 @@ async function main() {
 
     'Co-resident': [
       'society.view',
-      'node.view',
       'complaint.create', 'complaint.view_own',
       'announcement.view',
       'visitor.approve', 'visitor.view_own',
