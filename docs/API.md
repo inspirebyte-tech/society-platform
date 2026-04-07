@@ -221,6 +221,36 @@ Get a new session token using a refresh token.
 
 ---
 
+### PATCH /auth/profile
+Update current user's display name.
+
+**Auth:** Required
+
+**Request:**
+```json
+{ "name": "Arjun Mehta" }
+```
+
+**Response 200:**
+```json
+{
+  "data": {
+    "name": "Arjun Mehta",
+    "isProfileComplete": true
+  }
+}
+```
+
+**Errors:**
+```
+400 missing_field  → name not provided
+400 invalid_name   → name less than 2 characters
+401 no_token       → not logged in
+404 profile_not_found → user has no person record
+```
+
+---
+
 ### POST /auth/logout
 Logout current session.
 
