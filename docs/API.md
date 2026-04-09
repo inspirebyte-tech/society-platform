@@ -270,6 +270,33 @@ expiry — future Redis blacklist will fix this.
 401 no_token → no Authorization header
 ```
 
+### POST /auth/device-token
+Register device push notification token.
+
+**Auth:** Required (any logged in user)
+
+**Request:**
+```json
+{
+  "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+  "platform": "ANDROID"
+}
+```
+
+**Response 200:**
+```json
+{
+  "data": { "registered": true }
+}
+```
+
+**Errors:**
+```
+400 missing_field    → token or platform not provided
+400 invalid_platform → platform not IOS or ANDROID
+401 no_token         → not logged in
+```
+
 ---
 
 ## Standard Error Format
@@ -984,3 +1011,179 @@ an occupancy that was ended (moved out scenario).
 403 insufficient_permissions → Admin cannot reactivate
 403 tenant_context_mismatch
 404 member_not_found
+
+
+### POST /societies/:id/complaints
+Raise a new complaint.
+
+**Auth:** Required
+**Permission:** complaint.create (Resident, Co-resident only)
+
+**Request:**
+```json
+{
+  "title": "Lift not working since 2 days",
+  "description": "Tower A lift is completely out of service.",
+  "category": "LIFT_ELEVATOR",
+  "visibility": "PUBLIC",
+  "images": []
+}
+```
+
+**Categories:**
+WATER_SUPPLY, ELECTRICITY, LIFT_ELEVATOR, GENERATOR,
+INTERNET_CABLE, PARKING, GARBAGE_WASTE, GARDEN_LANDSCAPING,
+GYM_CLUBHOUSE, SWIMMING_POOL, SECURITY, NOISE, PET_RELATED,
+DOMESTIC_HELP, NEIGHBOUR_BEHAVIOUR, STAFF_BEHAVIOUR,
+MAINTENANCE_REPAIR, RULE_VIOLATION, OTHER
+
+**Response 201:**
+```json
+{
+  "data": {
+    "id": "uuid",
+    "title": "Lift not working since 2 days",
+    "category": "LIFT_ELEVATOR",
+    "visibility": "PUBLIC",
+    "status": "OPEN",
+    "imageCount": 0,
+    "createdAt": "datetime"
+  }
+}
+```
+
+**Errors:**
+400 missing_field           → title, description or category missing
+400 invalid_category        → category not in allowed values
+400 invalid_visibility      → visibility not PUBLIC or PRIVATE
+400 too_many_images         → more than 5 images provided
+400 image_upload_failed     → Cloudinary upload error
+403 insufficient_permissions → admin/builder trying to raise
+401 no_token                → not logged in
+
+---
+
+### GET /societies/:id/complaints
+List complaints.
+
+**Auth:** Required
+
+**Query params:**
+status   → OPEN, RESOLVED, REJECTED
+category → any valid category
+page     → default 1
+limit    → default 20, max 50
+
+**Behaviour:**
+Admin/Builder → sees all complaints, raisedBy always shown
+Resident/Co-resident → sees own + public complaints
+  raisedBy hidden on other residents' public complaints
+
+**Response 200:**
+```json
+{
+  "data": {
+    "complaints": [
+      {
+        "id": "uuid",
+        "title": "Lift not working since 2 days",
+        "category": "LIFT_ELEVATOR",
+        "visibility": "PUBLIC",
+        "status": "OPEN",
+        "raisedBy": "Arjun Mehta",
+        "raisedByMe": true,
+        "imageCount": 0,
+        "createdAt": "datetime"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pages": 1
+  }
+}
+```
+
+---
+
+### GET /societies/:id/complaints/:complaintId
+Complaint detail.
+
+**Auth:** Required
+
+**Behaviour:**
+Admin/Builder → any complaint
+Resident → own + public only
+Private complaint from others → 404 complaint_not_found
+
+**Response 200:**
+```json
+{
+  "data": {
+    "id": "uuid",
+    "title": "Lift not working since 2 days",
+    "description": "Full description here",
+    "category": "LIFT_ELEVATOR",
+    "visibility": "PUBLIC",
+    "status": "OPEN",
+    "rejectionReason": null,
+    "raisedBy": {
+      "name": "Arjun Mehta",
+      "phone": "+919222222222"
+    },
+    "resolvedBy": null,
+    "resolvedAt": null,
+    "images": [
+      { "id": "uuid", "imageUrl": "https://res.cloudinary.com/..." }
+    ],
+    "createdAt": "datetime",
+    "updatedAt": "datetime"
+  }
+}
+```
+
+**Errors:**
+404 complaint_not_found → not found or no access
+401 no_token            → not logged in
+
+---
+
+### PATCH /societies/:id/complaints/:complaintId
+Update complaint status.
+
+**Auth:** Required
+
+**Request — resolve:**
+```json
+{ "status": "RESOLVED" }
+```
+
+**Request — reject (admin only):**
+```json
+{
+  "status": "REJECTED",
+  "rejectionReason": "Duplicate complaint"
+}
+```
+
+**Response 200:**
+```json
+{
+  "data": {
+    "id": "uuid",
+    "status": "RESOLVED",
+    "resolvedAt": "datetime",
+    "resolvedBy": "Vikram Builder"
+  }
+}
+```
+
+**Errors:**
+400 missing_field            → status not provided
+400 invalid_status           → not RESOLVED or REJECTED
+400 already_resolved         → complaint already resolved
+400 already_rejected         → complaint already rejected
+400 rejection_reason_required → rejected without reason
+403 insufficient_permissions  → resident trying to reject
+403 cannot_resolve_others     → resident resolving others' complaint
+404 complaint_not_found       → complaint not found
+401 no_token                  → not logged in

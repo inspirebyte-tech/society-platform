@@ -5,6 +5,8 @@ import societiesRouter from './routes/societies'
 import nodesRouter from './routes/nodes'
 import invitationsRouter from './routes/invitations'
 import membersRouter from './routes/members'
+import deviceTokensRouter from './routes/deviceTokens'
+import complaintsRouter from './routes/complaints'
 import { enforceTenantContext } from './middleware/tenantContext'
 import { errorHandler } from './middleware/error'
 import { apiRateLimit } from './middleware/rateLimit'
@@ -20,6 +22,8 @@ app.use('/api/societies', societiesRouter)
 app.use('/api/societies', nodesRouter)
 app.use('/api/societies', invitationsRouter)
 app.use('/api/societies', membersRouter)
+app.use('/api/auth', deviceTokensRouter)
+app.use('/api/societies', complaintsRouter)
 
 app.use(errorHandler)
 

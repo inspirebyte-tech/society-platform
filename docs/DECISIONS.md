@@ -194,3 +194,43 @@ Decision: sendOtp returns success without sending
           in development and test environments
 Reason: Tests must not depend on external services.
         Real SMS would cost money and be unreliable in CI.
+
+## 018 — Notification foundation built before feature work
+Date: 2026-04-09
+Decision: Push notification infrastructure built as a
+standalone sprint before complaint management.
+Reason: Gate entry notifications are core product value.
+Retrofitting into already-built features costs 3-4x more.
+Build pipe once, plug in per feature.
+
+## 019 — Public complaints anonymous to other residents
+Date: 2026-04-09
+Decision: Public complaints show title, category, status
+to all residents but hide complainant identity.
+Admin always sees full details.
+Reason: Transparency about society issues builds trust.
+Exposing who complained about whom creates conflict.
+Anonymous public complaints give information without
+enabling targeted harassment.
+
+## 020 — No reopen — new complaint instead
+Date: 2026-04-09
+Decision: Resolved complaints cannot be reopened.
+Resident raises new complaint if issue persists.
+Reason: Clean history. Each complaint is a discrete event.
+No complex state management needed.
+
+## 021 — Images on creation only
+Date: 2026-04-09
+Decision: Images attached only when raising complaint.
+Cannot add after submission.
+Reason: Evidence should be captured at time of complaint.
+Post-submission images create ambiguity about timing.
+Simplifies backend and mobile logic significantly.
+
+## 022 — Cloudinary for image storage
+Date: 2026-04-09
+Decision: Cloudinary free tier for complaint images.
+Reason: 25GB free storage sufficient for V1.
+Simple SDK. Mobile upload directly to Cloudinary.
+URLs stored in DB — no binary data in PostgreSQL.
