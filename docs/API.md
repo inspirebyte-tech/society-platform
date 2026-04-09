@@ -270,6 +270,33 @@ expiry — future Redis blacklist will fix this.
 401 no_token → no Authorization header
 ```
 
+### POST /auth/device-token
+Register device push notification token.
+
+**Auth:** Required (any logged in user)
+
+**Request:**
+```json
+{
+  "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+  "platform": "ANDROID"
+}
+```
+
+**Response 200:**
+```json
+{
+  "data": { "registered": true }
+}
+```
+
+**Errors:**
+```
+400 missing_field    → token or platform not provided
+400 invalid_platform → platform not IOS or ANDROID
+401 no_token         → not logged in
+```
+
 ---
 
 ## Standard Error Format
