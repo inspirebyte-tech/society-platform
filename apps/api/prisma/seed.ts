@@ -40,13 +40,6 @@ async function main() {
     { name: 'occupancy.remove', module: 'property', description: 'Remove unit occupancy' },
     { name: 'occupancy.view',   module: 'property', description: 'View occupancy records' },
 
-    // Complaints
-    { name: 'complaint.create',        module: 'complaints', description: 'Raise a complaint' },
-    { name: 'complaint.view_own',      module: 'complaints', description: 'View own complaints' },
-    { name: 'complaint.view_all',      module: 'complaints', description: 'View all society complaints' },
-    { name: 'complaint.update_status', module: 'complaints', description: 'Update complaint status' },
-    { name: 'complaint.broadcast',     module: 'complaints', description: 'Broadcast complaint to all residents' },
-
     // Announcements
     { name: 'announcement.create', module: 'announcements', description: 'Create announcements' },
     { name: 'announcement.view',   module: 'announcements', description: 'View announcements' },
@@ -85,6 +78,15 @@ async function main() {
 
     // Co-resident
     { name: 'co_resident.invite', module: 'co_resident', description: 'Invite a co-resident to your flat' },
+
+    // Complaint
+    { name: 'complaint.create',      module: 'complaints', description: 'Raise a complaint' },
+    { name: 'complaint.view_own',    module: 'complaints', description: 'View own complaints' },
+    { name: 'complaint.view_all',    module: 'complaints', description: 'View all complaints in society' },
+    { name: 'complaint.resolve_own', module: 'complaints', description: 'Resolve own complaint' },
+    { name: 'complaint.resolve_any', module: 'complaints', description: 'Resolve any complaint' },
+    { name: 'complaint.reject',      module: 'complaints', description: 'Reject a complaint with reason' },
+
   ]
 
   for (const p of permissions) {
@@ -102,17 +104,15 @@ async function main() {
     Builder: [
       'society.create', 'society.update', 'society.view',
       'node.create', 'node.update', 'node.delete', 'node.view',
-      'member.view', 'member.remove',
+      'member.view', 'member.remove', 'member.reactivate',
       'invitation.create', 'invitation.cancel', 'invitation.view',
       'ownership.assign', 'ownership.remove', 'ownership.view',
       'occupancy.assign', 'occupancy.remove', 'occupancy.view',
-      'complaint.create', 'complaint.view_all',
-      'complaint.update_status', 'complaint.broadcast',
+      'complaint.view_all', 'complaint.resolve_any', 'complaint.reject',
       'announcement.create', 'announcement.view',
       'visitor.view_live', 'visitor.view_emergency',
       'emergency.declare', 'emergency.view',
-      'role.create', 'role.assign', 'role.view',
-      'member.reactivate'
+      'role.create', 'role.assign', 'role.view'
     ],
 
     Admin: [
@@ -122,19 +122,19 @@ async function main() {
       'invitation.create', 'invitation.cancel', 'invitation.view',
       'ownership.assign', 'ownership.remove', 'ownership.view',
       'occupancy.assign', 'occupancy.remove', 'occupancy.view',
-      'complaint.view_all', 'complaint.update_status', 'complaint.broadcast',
       'announcement.create', 'announcement.view',
       'visitor.view_live', 'visitor.view_emergency',
       'service.create', 'service.view',
       'poll.create', 'poll.vote', 'poll.view',
       'emergency.declare', 'emergency.view',
       'asset.create', 'asset.book', 'asset.view', 'asset.manage_booking',
-      'role.create', 'role.assign', 'role.view'
+      'role.create', 'role.assign', 'role.view',
+      'complaint.view_all', 'complaint.resolve_any', 'complaint.reject'
     ],
 
     Resident: [
       'society.view',
-      'complaint.create', 'complaint.view_own',
+      'complaint.create', 'complaint.view_own', 'complaint.resolve_own',
       'announcement.view',
       'visitor.approve', 'visitor.view_own',
       'service.view', 'service.manage_personal',
@@ -146,7 +146,7 @@ async function main() {
 
     'Co-resident': [
       'society.view',
-      'complaint.create', 'complaint.view_own',
+      'complaint.create', 'complaint.view_own', 'complaint.resolve_own',
       'announcement.view',
       'visitor.approve', 'visitor.view_own',
       'service.view',
