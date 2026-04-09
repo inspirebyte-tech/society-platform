@@ -184,6 +184,33 @@ PATCH  /societies/:id/members/:memberId/deactivate   → remove access
 PATCH  /societies/:id/members/:memberId/moveout      → mark moved out
 PATCH  /societies/:id/members/:memberId/reactivate   → restore access
 
+### Complaint Endpoints
+
+POST /societies/:id/complaints
+  Body: title, description, category, visibility, images[]
+  Auth: Resident, Co-resident only
+  Returns: complaint id, status, createdAt
+
+GET /societies/:id/complaints
+  Query: status, category, page, limit
+  Admin sees all. Resident sees own + public.
+  raisedBy null on others' public complaints.
+
+GET /societies/:id/complaints/:complaintId
+  Admin: any complaint
+  Resident: own + public only
+  Private from others → 404
+
+PATCH /societies/:id/complaints/:complaintId
+  Body: status (RESOLVED/REJECTED), rejectionReason
+  Admin: resolve or reject any
+  Resident: resolve own only
+
+### Notification Setup
+  POST /auth/device-token
+  Body: { token: "ExponentPushToken[...]", platform: "ANDROID" }
+  Call after login — register device for push notifications
+  
 ---
 
 ## Screens To Build — Priority Order
@@ -267,6 +294,22 @@ Fields: phone number, role dropdown
 Role options: Admin, Resident, Gatekeeper, Co-resident
 Shows pending invitations list below form
 Wireframe: approved ✓
+
+### Complaint Screens Needed
+  RaiseComplaintScreen
+    Fields: title, description, category picker,
+            visibility toggle, image picker (max 5)
+    
+  ComplaintListScreen
+    Filter chips: All / Open / Resolved / Rejected
+    My complaints section
+    Public complaints section
+    FAB to raise new complaint
+    
+  ComplaintDetailScreen
+    Full details, images
+    Resolve button (if open + can resolve)
+    Reject flow (admin only, with reason picker)
 
 ### Phase 2 — Member Management
 
