@@ -49,7 +49,8 @@ interface FormErrors {
   type?: string
 }
 
-export function CreateSocietyScreen({ navigation }: Props) {
+export function CreateSocietyScreen({ route, navigation }: Props) {
+  const source = route.params?.source
   const { loadUser } = useAuth()
   const [form, setForm] = useState<FormState>({
     name: '',
@@ -102,7 +103,11 @@ export function CreateSocietyScreen({ navigation }: Props) {
       await saveSessionToken(session.token)
       await saveCurrentOrg(society.id)
       await loadUser()
-      navigation.replace('Dashboard', { societyId: society.id })
+      if (source === 'dashboard') {
+        navigation.replace('SwitchSociety')
+      } else {
+        navigation.replace('Dashboard', { societyId: society.id })
+      }
     } catch (e) {
       const code = getApiErrorCode(e)
       const details = getApiErrorDetails(e)

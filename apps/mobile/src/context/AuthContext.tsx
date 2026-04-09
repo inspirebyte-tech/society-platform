@@ -49,16 +49,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setState((s) => ({ ...s, isLoading: false, isAuthenticated: false }))
         return
       }
-      const [data, orgId] = await Promise.all([
+      const [data, storedOrgId] = await Promise.all([
         getMe(),
         SecureStore.getItemAsync('current_org_id'),
       ])
       const permissions = data.memberships.flatMap((m: Membership) => m.permissions)
+
+      // Validate stored org — discard if user no longer has that membership
+      const orgIdValid = storedOrgId
+        ? data.memberships.some((m: Membership) => m.org.id === storedOrgId)
+        : false
+      if (storedOrgId && !orgIdValid) {
+        await SecureStore.deleteItemAsync('current_org_id')
+      }
+      const currentOrgId = orgIdValid ? storedOrgId : null
+
       setState({
         user: data.user,
         memberships: data.memberships,
         permissions,
-        currentOrgId: orgId,
+        currentOrgId,
         isLoading: false,
         isAuthenticated: true,
       })

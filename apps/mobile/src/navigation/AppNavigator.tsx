@@ -7,11 +7,13 @@ import { AddNodeScreen } from '../screens/society/AddNodeScreen'
 import { InviteMemberScreen } from '../screens/society/InviteMemberScreen'
 import { MemberListScreen } from '../screens/members/MemberListScreen'
 import { MemberDetailScreen } from '../screens/members/MemberDetailScreen'
+import { SwitchSocietyScreen } from '../screens/society/SwitchSocietyScreen'
 import { Colors } from '../constants/colors'
 
 export type AppStackParamList = {
-  CreateSociety: undefined
+  CreateSociety: { source?: 'dashboard' }
   Dashboard: { societyId: string }
+  SwitchSociety: undefined
   Structure: { societyId: string }
   AddNode: { societyId: string; parentId?: string; parentName?: string }
   InviteMember: { societyId: string }
@@ -49,6 +51,7 @@ export function AppNavigator({ initialSocietyId }: AppNavigatorProps) {
       <Stack.Screen name="InviteMember" component={InviteMemberScreen} options={{ title: 'Invite Member' }} />
       <Stack.Screen name="MemberList" component={MemberListScreen} options={{ title: 'Members' }} />
       <Stack.Screen name="MemberDetail" component={MemberDetailScreen} options={({ route }) => ({ title: route.params.memberName })} />
+      <Stack.Screen name="SwitchSociety" component={SwitchSocietyScreen} options={{ title: 'Switch Society' }} />
     </Stack.Navigator>
   )
 }

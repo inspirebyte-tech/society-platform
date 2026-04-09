@@ -6,6 +6,7 @@ import {
   RefreshControl,
   Pressable,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
@@ -45,12 +46,30 @@ export function DashboardScreen({ route, navigation }: Props) {
     await Promise.all([load(), loadUser()])
   }, [load, loadUser])
 
+  const canCreateSociety = permissions.includes('society.create')
+
+  useEffect(() => {
+    if (!canCreateSociety) return
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('CreateSociety', { source: 'dashboard' })}
+          hitSlop={12}
+          style={styles.headerButton}
+        >
+          <Text style={styles.headerButtonText}>+</Text>
+        </TouchableOpacity>
+      ),
+    })
+  }, [canCreateSociety, navigation])
+
   // Permission gates — as per MOBILE_CONTEXT.md
   const canViewStructure = permissions.includes('node.view')
   const canInvite = permissions.includes('invitation.create')
   const canViewMembers = permissions.includes('member.view')
+  const canSwitchSociety = memberships.length > 1
 
-  const hasAnyAction = canViewStructure || canInvite || canViewMembers
+  const hasAnyAction = canViewStructure || canInvite || canViewMembers || canSwitchSociety
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />
@@ -145,6 +164,14 @@ export function DashboardScreen({ route, navigation }: Props) {
                   label="View Members"
                   subtitle="Active residents and staff"
                   onPress={() => navigation.navigate('MemberList', { societyId })}
+                />
+              ) : null}
+              {canSwitchSociety ? (
+                <ActionRow
+                  icon="🔀"
+                  label="Switch Society"
+                  subtitle="You belong to multiple societies"
+                  onPress={() => navigation.navigate('SwitchSociety')}
                 />
               ) : null}
             </View>
@@ -356,5 +383,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.subtle,
     fontWeight: '500',
+  },
+
+  // Header
+  headerButton: {
+    marginRight: 4,
+    padding: 4,
+  },
+  headerButtonText: {
+    fontSize: 26,
+    color: Colors.primary,
+    fontWeight: '400',
+    lineHeight: 30,
   },
 })

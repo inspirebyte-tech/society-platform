@@ -64,14 +64,20 @@ export function LoginOTPScreen({ route, navigation }: Props) {
       const data = await verifyOtp(phone, otpCode)
       await saveTokens(data.token, data.refreshToken)
 
-      if (data.requiresOrgSelection) {
+      if (data.isNewUser) {
+        // Profile incomplete — collect name before going anywhere
+        navigation.navigate('SetName', {
+          requiresOrgSelection: data.requiresOrgSelection ?? false,
+          memberships: data.memberships ?? [],
+          currentOrgId: data.currentOrg?.id,
+        })
+      } else if (data.requiresOrgSelection) {
         navigation.navigate('SelectSociety', { memberships: data.memberships })
       } else {
         if (data.currentOrg?.id) {
           await saveCurrentOrg(data.currentOrg.id)
         }
         await loadUser()
-        // RootNavigator sees isAuthenticated=true and routes accordingly
       }
     } catch (e) {
       const code = getApiErrorCode(e)

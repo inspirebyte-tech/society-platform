@@ -21,6 +21,11 @@ export async function getMe() {
   return res.data.data
 }
 
+export async function updateProfile(name: string) {
+  const res = await api.patch('/auth/profile', { name })
+  return res.data.data
+}
+
 export async function refreshToken(refreshToken: string) {
   const res = await api.post('/auth/refresh', { refreshToken })
   return res.data.data

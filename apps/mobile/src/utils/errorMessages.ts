@@ -1,6 +1,7 @@
 const ERROR_MAP: Record<string, string> = {
   // Auth
   missing_field: 'Please fill in all required fields.',
+  invalid_name: 'Name must be at least 2 characters.',
   invalid_phone_format: 'Enter a valid 10-digit mobile number.',
   otp_rate_limit_exceeded: 'Too many attempts. Please try again after an hour.',
   invalid_otp: 'Incorrect OTP. Please check and try again.',
