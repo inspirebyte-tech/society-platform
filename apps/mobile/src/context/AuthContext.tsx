@@ -26,7 +26,7 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  loadUser: () => Promise<void>
+  loadUser: (showLoading?: boolean) => Promise<void>
   signOut: () => Promise<void>
   hasPermission: (permission: string) => boolean
 }
@@ -43,7 +43,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: false,
   })
 
-  const loadUser = useCallback(async () => {
+  const loadUser = useCallback(async (showLoading = false) => {
+    // showLoading: true → briefly shows LoadingSpinner during navigator switch
+    // (use when called after login/name-save to prevent AuthNavigator→AppNavigator flash)
+    // showLoading: false (default) → silent refresh, used for pull-to-refresh from screens
+    if (showLoading) {
+      setState((s) => ({ ...s, isLoading: true }))
+    }
     try {
       const token = await getStoredToken()
       if (!token) {

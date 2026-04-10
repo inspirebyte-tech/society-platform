@@ -287,11 +287,15 @@ const styles = StyleSheet.create({
   wrapper: { backgroundColor: Colors.background },
 
   // Filter chips
-  chipBar: { flexShrink: 0 },
+  chipBar: {
+    flexGrow: 0,   // don't expand to fill flex parent
+    flexShrink: 0,
+  },
   chips: {
     paddingHorizontal: Spacing.screenPadding,
     paddingVertical: 12,
     gap: 8,
+    alignItems: 'center', // keep chips at their intrinsic height, not stretched
   },
   chip: {
     paddingHorizontal: 16,

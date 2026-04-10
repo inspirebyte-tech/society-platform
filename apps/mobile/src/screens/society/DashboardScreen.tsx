@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   Pressable,
   StyleSheet,
   TouchableOpacity,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
@@ -14,9 +16,14 @@ import { Card } from '../../components/Card'
 import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { EmptyState } from '../../components/EmptyState'
 import { Toast } from '../../components/Toast'
+import { TextInput } from '../../components/TextInput'
+import { Button } from '../../components/Button'
 import { AppStackParamList } from '../../navigation/AppNavigator'
 import { useAuth } from '../../hooks/useAuth'
 import { useSociety } from '../../hooks/useSociety'
+import { updateProfile } from '../../services/auth'
+import { getApiErrorCode } from '../../services/api'
+import { getErrorMessage } from '../../utils/errorMessages'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 
@@ -31,12 +38,49 @@ const SOCIETY_TYPE_LABEL: Record<string, string> = {
 
 export function DashboardScreen({ route, navigation }: Props) {
   const { societyId } = route.params
-  const { permissions, isLoading: authLoading, loadUser, signOut, memberships } = useAuth()
+  const { permissions, isLoading: authLoading, loadUser, signOut, memberships, user } = useAuth()
   const { society, isLoading: societyLoading, error, load } = useSociety(societyId)
 
   const isLoading = authLoading || societyLoading
 
   const role = memberships.find((m) => m.org.id === societyId)?.role ?? null
+
+  // Profile sheet state
+  const [showProfile, setShowProfile] = useState(false)
+  const [profileName, setProfileName] = useState('')
+  const [profileError, setProfileError] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
+
+  function openProfile() {
+    setProfileName(user?.name ?? '')
+    setProfileError('')
+    setShowProfile(true)
+  }
+
+  async function handleSaveName() {
+    const trimmed = profileName.trim()
+    if (trimmed.length < 2) {
+      setProfileError('Name must be at least 2 characters.')
+      return
+    }
+    setIsSaving(true)
+    try {
+      await updateProfile(trimmed)
+      await loadUser()
+      setShowProfile(false)
+      setToast({ message: 'Name updated.', type: 'success' })
+    } catch (e) {
+      const code = getApiErrorCode(e)
+      if (code === 'missing_field' || code === 'invalid_name') {
+        setProfileError(getErrorMessage(code))
+      } else {
+        setProfileError(getErrorMessage(code))
+      }
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   useEffect(() => {
     load()
@@ -48,6 +92,22 @@ export function DashboardScreen({ route, navigation }: Props) {
 
   const canCreateSociety = permissions.includes('society.create')
 
+  // Profile avatar in header left — always visible
+  useEffect(() => {
+    const initial = (user?.name ?? '?').trim().charAt(0).toUpperCase()
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity onPress={openProfile} hitSlop={12} style={styles.headerAvatarBtn}>
+          <View style={styles.headerAvatar}>
+            <Text style={styles.headerAvatarText}>{initial}</Text>
+          </View>
+        </TouchableOpacity>
+      ),
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.name, navigation])
+
+  // "+" to create another society — builders only
   useEffect(() => {
     if (!canCreateSociety) return
     navigation.setOptions({
@@ -195,6 +255,59 @@ export function DashboardScreen({ route, navigation }: Props) {
           </Pressable>
         </View>
       </ScrollView>
+
+      {/* ── Profile sheet ── */}
+      <Modal
+        visible={showProfile}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowProfile(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowProfile(false)}>
+          <View style={profileStyles.overlay} />
+        </TouchableWithoutFeedback>
+
+        <View style={profileStyles.sheet}>
+          <View style={profileStyles.handle} />
+
+          <View style={profileStyles.body}>
+            <Text style={profileStyles.title}>Edit Name</Text>
+            {user ? (
+              <Text style={profileStyles.phoneHint}>{user.phone}</Text>
+            ) : null}
+            <TextInput
+              label="Full Name"
+              value={profileName}
+              onChangeText={(v) => { setProfileName(v); setProfileError('') }}
+              error={profileError}
+              autoCapitalize="words"
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleSaveName}
+              maxLength={80}
+            />
+          </View>
+
+          <View style={profileStyles.actions}>
+            <Button label="Save" onPress={handleSaveName} loading={isSaving} />
+            <Button
+              label="Cancel"
+              variant="secondary"
+              onPress={() => setShowProfile(false)}
+              disabled={isSaving}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {toast ? (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          visible={!!toast}
+          onHide={() => setToast(null)}
+        />
+      ) : null}
     </ScreenWrapper>
   )
 }
@@ -405,5 +518,64 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '400',
     lineHeight: 30,
+  },
+
+  // Header avatar (profile button)
+  headerAvatarBtn: {
+    marginLeft: 4,
+    padding: 4,
+  },
+  headerAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerAvatarText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.surface,
+  },
+})
+
+// ─── Profile sheet styles ─────────────────────────────────────────────────────
+
+const profileStyles = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
+  sheet: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 36,
+  },
+  handle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.border,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  body: {
+    paddingHorizontal: Spacing.screenPadding,
+    paddingVertical: 20,
+    gap: 12,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  phoneHint: {
+    fontSize: 13,
+    color: Colors.subtle,
+    marginTop: -6,
+  },
+  actions: {
+    paddingHorizontal: Spacing.screenPadding,
+    gap: 10,
   },
 })
