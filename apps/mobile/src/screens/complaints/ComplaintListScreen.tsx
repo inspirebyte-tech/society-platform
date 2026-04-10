@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Platform,
 } from 'react-native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { useFocusEffect } from '@react-navigation/native'
@@ -64,22 +65,6 @@ export function ComplaintListScreen({ route, navigation }: Props) {
     }
   }, [])
 
-  // Header right: "+" button if user can create
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: canCreate
-        ? () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('RaiseComplaint', { societyId })}
-              hitSlop={12}
-              style={styles.headerBtn}
-            >
-              <Text style={styles.headerBtnText}>+</Text>
-            </TouchableOpacity>
-          )
-        : undefined,
-    })
-  }, [canCreate, navigation, societyId])
 
   const load = useCallback(
     async (page: number, reset: boolean) => {
@@ -241,6 +226,17 @@ export function ComplaintListScreen({ route, navigation }: Props) {
         style={styles.list}
       />
 
+      {/* FAB — raise complaint */}
+      {canCreate ? (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('RaiseComplaint', { societyId })}
+          style={styles.fab}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.fabText}>+</Text>
+        </TouchableOpacity>
+      ) : null}
+
       {toast ? (
         <Toast
           message={toast.message}
@@ -396,7 +392,28 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 17, fontWeight: '600', color: Colors.text },
   emptySub: { fontSize: 14, color: Colors.subtle, textAlign: 'center' },
 
-  // Header button
-  headerBtn: { marginRight: 4, padding: 4 },
-  headerBtnText: { fontSize: 26, color: Colors.primary, fontWeight: '400', lineHeight: 30 },
+  // FAB
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: Platform.OS === 'ios' ? 36 : 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  fabText: {
+    fontSize: 28,
+    color: Colors.surface,
+    fontWeight: '400',
+    lineHeight: 34,
+    marginTop: -2,
+  },
 })
