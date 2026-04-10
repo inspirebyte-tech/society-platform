@@ -4,6 +4,9 @@ import { Platform } from 'react-native'
 import api from './api'
 
 export async function registerDeviceToken(): Promise<void> {
+  // expo-notifications does not support Expo Go (SDK 53+). Skip silently in dev.
+  if (__DEV__) return
+
   try {
     const { status: existing } = await Notifications.getPermissionsAsync()
     let finalStatus = existing
