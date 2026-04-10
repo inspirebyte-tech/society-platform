@@ -8,6 +8,9 @@ import { InviteMemberScreen } from '../screens/society/InviteMemberScreen'
 import { MemberListScreen } from '../screens/members/MemberListScreen'
 import { MemberDetailScreen } from '../screens/members/MemberDetailScreen'
 import { SwitchSocietyScreen } from '../screens/society/SwitchSocietyScreen'
+import { ComplaintListScreen } from '../screens/complaints/ComplaintListScreen'
+import { RaiseComplaintScreen } from '../screens/complaints/RaiseComplaintScreen'
+import { ComplaintDetailScreen } from '../screens/complaints/ComplaintDetailScreen'
 import { Colors } from '../constants/colors'
 
 export type AppStackParamList = {
@@ -19,6 +22,9 @@ export type AppStackParamList = {
   InviteMember: { societyId: string }
   MemberList: { societyId: string }
   MemberDetail: { societyId: string; memberId: string; memberName: string }
+  ComplaintList: { societyId: string }
+  RaiseComplaint: { societyId: string }
+  ComplaintDetail: { societyId: string; complaintId: string; title: string }
 }
 
 const Stack = createNativeStackNavigator<AppStackParamList>()
@@ -52,6 +58,9 @@ export function AppNavigator({ initialSocietyId }: AppNavigatorProps) {
       <Stack.Screen name="MemberList" component={MemberListScreen} options={{ title: 'Members' }} />
       <Stack.Screen name="MemberDetail" component={MemberDetailScreen} options={({ route }) => ({ title: route.params.memberName })} />
       <Stack.Screen name="SwitchSociety" component={SwitchSocietyScreen} options={{ title: 'Switch Society' }} />
+      <Stack.Screen name="ComplaintList" component={ComplaintListScreen} options={{ title: 'Complaints' }} />
+      <Stack.Screen name="RaiseComplaint" component={RaiseComplaintScreen} options={{ title: 'Raise Complaint' }} />
+      <Stack.Screen name="ComplaintDetail" component={ComplaintDetailScreen} options={({ route }) => ({ title: route.params.title })} />
     </Stack.Navigator>
   )
 }

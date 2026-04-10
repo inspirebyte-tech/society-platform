@@ -68,8 +68,10 @@ export function DashboardScreen({ route, navigation }: Props) {
   const canInvite = permissions.includes('invitation.create')
   const canViewMembers = permissions.includes('member.view')
   const canSwitchSociety = memberships.length > 1
+  const canViewComplaints =
+    permissions.includes('complaint.create') || permissions.includes('complaint.view_own')
 
-  const hasAnyAction = canViewStructure || canInvite || canViewMembers || canSwitchSociety
+  const hasAnyAction = canViewStructure || canInvite || canViewMembers || canSwitchSociety || canViewComplaints
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />
@@ -164,6 +166,14 @@ export function DashboardScreen({ route, navigation }: Props) {
                   label="View Members"
                   subtitle="Active residents and staff"
                   onPress={() => navigation.navigate('MemberList', { societyId })}
+                />
+              ) : null}
+              {canViewComplaints ? (
+                <ActionRow
+                  icon="📋"
+                  label="Complaints"
+                  subtitle="View and raise complaints"
+                  onPress={() => navigation.navigate('ComplaintList', { societyId })}
                 />
               ) : null}
               {canSwitchSociety ? (

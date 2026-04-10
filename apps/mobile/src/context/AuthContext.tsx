@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import * as SecureStore from 'expo-secure-store'
 import { getMe, clearTokens, getStoredToken } from '../services/auth'
+import { registerDeviceToken } from '../services/notifications'
 
 interface User {
   id: string
@@ -72,6 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading: false,
         isAuthenticated: true,
       })
+
+      // Register push token — fire-and-forget, never blocks auth flow
+      registerDeviceToken()
     } catch {
       setState((s) => ({ ...s, isLoading: false, isAuthenticated: false }))
     }
