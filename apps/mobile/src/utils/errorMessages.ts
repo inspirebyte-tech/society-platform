@@ -41,6 +41,17 @@ const ERROR_MAP: Record<string, string> = {
   already_accepted: 'This invitation has already been accepted.',
   invitation_not_found: 'Invitation not found.',
 
+  // Complaints
+  invalid_category: 'Please select a valid category.',
+  invalid_visibility: 'Please select a visibility option.',
+  too_many_images: 'You can only attach up to 5 images.',
+  image_upload_failed: 'Image upload failed. Please try again.',
+  already_resolved: 'This complaint is already resolved.',
+  already_rejected: 'This complaint is already rejected.',
+  rejection_reason_required: 'Please provide a reason for rejection.',
+  cannot_resolve_others: 'You can only resolve your own complaints.',
+  complaint_not_found: 'Complaint not found.',
+
   // Members
   invalid_status: 'Invalid status filter.',
   cannot_deactivate_self: 'You cannot remove yourself.',

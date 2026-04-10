@@ -34,8 +34,16 @@ npm install @react-navigation/native-stack
 npm install react-native-screens react-native-safe-area-context
 npm install axios
 npm install expo-secure-store
+npx expo install expo-notifications
+npx expo install expo-image-picker
 npx expo start
 ```
+
+## Installed Packages (beyond create-expo-app)
+
+expo-secure-store      → token storage (session_token, refresh_token, device_token)
+expo-notifications     → push notification permission + Expo push token registration
+expo-image-picker      → photo selection for complaint image upload
 
 ---
 
@@ -98,6 +106,15 @@ Case 3: requiresOrgSelection = true
 → Show society selector
 → POST /auth/select-org to get session token
 → Go to Society Dashboard
+
+After any successful login (AuthContext.loadUser resolves):
+→ registerDeviceToken() called fire-and-forget
+→ Requests notification permission (silent if denied)
+→ If granted: GET Expo push token
+→ POST /auth/device-token { token, platform }
+→ Token cached in SecureStore key: 'device_token'
+→ Re-registers only if token has changed
+→ Never blocks or errors the auth flow
 
 ### Storing Tokens
 
@@ -188,23 +205,30 @@ PATCH  /societies/:id/members/:memberId/reactivate   → restore access
 
 POST /societies/:id/complaints
   Body: title, description, category, visibility, images[]
-  Auth: Resident, Co-resident only
+  Auth: Resident, Co-resident only (complaint.create permission)
+  images[]: base64 encoded strings (up to 5, Cloudinary upload on backend)
   Returns: complaint id, status, createdAt
 
 GET /societies/:id/complaints
-  Query: status, category, page, limit
-  Admin sees all. Resident sees own + public.
-  raisedBy null on others' public complaints.
+  Query: status (OPEN/RESOLVED/REJECTED), category, page (default 1), limit (default 20)
+  Admin/Builder: all complaints, raisedBy always shown
+  Resident/Co-resident: own + public complaints
+    raisedByMe: true/false flag on each item
+    raisedBy null on other residents' public complaints (anonymous)
+  Response shape: { complaints[], total, page, pages }
 
 GET /societies/:id/complaints/:complaintId
-  Admin: any complaint
+  Admin/Builder: any complaint
   Resident: own + public only
-  Private from others → 404
+  Private complaint from others → 404 complaint_not_found
+  Response includes: images[], raisedBy { name, phone }, resolvedBy, resolvedAt, rejectionReason
 
 PATCH /societies/:id/complaints/:complaintId
-  Body: status (RESOLVED/REJECTED), rejectionReason
-  Admin: resolve or reject any
-  Resident: resolve own only
+  Resolve → Body: { status: "RESOLVED" }
+    Admin: resolve any    Resident: resolve own only (cannot_resolve_others if not theirs)
+  Reject  → Body: { status: "REJECTED", rejectionReason: "..." }
+    Admin only (insufficient_permissions for residents)
+  Errors: already_resolved, already_rejected, rejection_reason_required
 
 ### Notification Setup
   POST /auth/device-token
@@ -295,21 +319,61 @@ Role options: Admin, Resident, Gatekeeper, Co-resident
 Shows pending invitations list below form
 Wireframe: approved ✓
 
-### Complaint Screens Needed
-  RaiseComplaintScreen
-    Fields: title, description, category picker,
-            visibility toggle, image picker (max 5)
-    
-  ComplaintListScreen
-    Filter chips: All / Open / Resolved / Rejected
-    My complaints section
-    Public complaints section
-    FAB to raise new complaint
-    
-  ComplaintDetailScreen
-    Full details, images
-    Resolve button (if open + can resolve)
-    Reject flow (admin only, with reason picker)
+### Complaint Screens
+
+**Screen: ComplaintListScreen**
+
+Route: /complaint-list
+Connects to: GET /societies/:id/complaints
+  Query params: status (OPEN/RESOLVED/REJECTED), page, limit
+Filter chips: All / Open / Resolved / Rejected
+Resident view: two sections — MY COMPLAINTS / PUBLIC COMPLAINTS
+  (split client-side using raisedByMe flag from API)
+Admin view: single flat list, raisedBy name shown on each row
+Header right: "+" button — only if complaint.create permission
+Pull to refresh + paginated load-more (20 per page)
+useFocusEffect: reloads whenever screen gains focus
+  (handles returning from RaiseComplaint and ComplaintDetail)
+Tap row → ComplaintDetailScreen
+
+**Screen: RaiseComplaintScreen**
+
+Route: /raise-complaint
+Connects to: POST /societies/:id/complaints
+Fields:
+  title (required)
+  description (multiline, required)
+  category (BottomSheetPicker, required — 19 categories)
+  visibility toggle: Private (default) / Public
+    Private: only admins see it
+    Public: visible to all residents
+  image picker (optional, max 5, expo-image-picker)
+    images converted to base64 (quality 0.7) at pick time
+    sent as images[] in request body
+On success: toast → goBack() after 1.5s
+
+**Screen: ComplaintDetailScreen**
+
+Route: /complaint-detail
+Connects to:
+  GET  /societies/:id/complaints/:id   (load + pull-to-refresh)
+  PATCH /societies/:id/complaints/:id  (resolve / reject)
+Layout:
+  Status badge (OPEN amber / RESOLVED green / REJECTED red)
+  Title, category tag, visibility tag
+  Description
+  Horizontal image scroll — tap for full-screen modal viewer
+  Meta card: raised by (admin only), date raised
+  Resolved card (green): resolved by + date (if RESOLVED)
+  Rejected card (red): rejection reason text (if REJECTED)
+  Bottom action bar (only when OPEN and user can act):
+    Resident (own complaint): Mark Resolved button
+    Admin: Mark Resolved + Reject buttons
+    RESOLVED / REJECTED: no action bar
+Resolve flow: confirmation sheet → PATCH { status: "RESOLVED" }
+Reject flow (admin): bottom sheet with 4 predefined reasons
+  + "Other" option shows free-text input
+  → PATCH { status: "REJECTED", rejectionReason: "..." }
 
 ### Phase 2 — Member Management
 
@@ -346,6 +410,9 @@ AddNode
 InviteMember
 MemberList
 MemberDetail
+ComplaintList   → { societyId }
+RaiseComplaint  → { societyId }
+ComplaintDetail → { societyId, complaintId, title }
 
 ---
 
@@ -353,16 +420,19 @@ MemberDetail
 
 Builder:
 Can see: everything
-Dashboard actions: Manage Structure, Invite Member, View Members
+Dashboard actions: Manage Structure, Invite Member, View Members, Complaints
 Extra: Create Society
 
 Admin:
-Dashboard actions: Manage Structure, Invite Member, View Members
+Dashboard actions: Manage Structure, Invite Member, View Members, Complaints
 Cannot: Create Society, Reactivate members
 
 Resident:
-Dashboard: limited view
+Dashboard actions: Complaints (complaint.create or complaint.view_own permission)
 Cannot: see member list, manage structure, invite
+
+Dashboard Complaints action is shown if user has complaint.create OR complaint.view_own permission.
+Residents and co-residents have complaint.create; admins/builders see it via member.view check.
 
 Gatekeeper:
 Only gate-related features (future)

@@ -38,8 +38,9 @@ export function SetNameScreen({ route, navigation }: Props) {
         if (currentOrgId) {
           await saveCurrentOrg(currentOrgId)
         }
-        await loadUser()
-        // RootNavigator switches to AppNavigator automatically
+        // showLoading=true: covers AuthNavigator→AppNavigator swap with spinner,
+        // preventing the flash between SetNameScreen and the first app screen
+        await loadUser(true)
       }
     } catch (e) {
       const code = getApiErrorCode(e)

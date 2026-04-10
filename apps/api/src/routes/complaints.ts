@@ -57,6 +57,7 @@ router.post(
         try {
           imageUrls = await uploadMultipleImages(images)
         } catch (uploadError) {
+          console.error('Cloudinary upload error:', uploadError)
           return sendError(res, 'image_upload_failed', 400)
         }
       }
