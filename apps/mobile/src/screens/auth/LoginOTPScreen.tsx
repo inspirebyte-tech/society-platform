@@ -77,7 +77,7 @@ export function LoginOTPScreen({ route, navigation }: Props) {
         if (data.currentOrg?.id) {
           await saveCurrentOrg(data.currentOrg.id)
         }
-        await loadUser()
+        await loadUser(true)
       }
     } catch (e) {
       const code = getApiErrorCode(e)

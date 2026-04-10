@@ -27,7 +27,7 @@ export function SelectSocietyScreen({ route }: Props) {
       const data = await selectOrg(orgId)
       await saveSessionToken(data.token)
       await saveCurrentOrg(orgId)
-      await loadUser()
+      await loadUser(true)
     } catch (e) {
       const code = getApiErrorCode(e)
       setToast({ message: getErrorMessage(code), type: 'error' })

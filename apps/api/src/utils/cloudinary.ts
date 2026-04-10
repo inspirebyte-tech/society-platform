@@ -10,7 +10,13 @@ export const uploadImage = async (
   base64Image: string,
   folder: string = 'complaints'
 ): Promise<string> => {
-  const result = await cloudinary.uploader.upload(base64Image, {
+  // expo-image-picker returns raw base64 without the data URI prefix.
+  // Cloudinary requires "data:image/jpeg;base64,..." — prepend if missing.
+  const dataUri = base64Image.startsWith('data:')
+    ? base64Image
+    : `data:image/jpeg;base64,${base64Image}`
+
+  const result = await cloudinary.uploader.upload(dataUri, {
     folder: `vaastio/${folder}`,
     resource_type: 'image',
     allowed_formats: ['jpg', 'jpeg', 'png'],
