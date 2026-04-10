@@ -129,7 +129,9 @@ export function DashboardScreen({ route, navigation }: Props) {
   const canViewMembers = permissions.includes('member.view')
   const canSwitchSociety = memberships.length > 1
   const canViewComplaints =
-    permissions.includes('complaint.create') || permissions.includes('complaint.view_own')
+    permissions.includes('complaint.create') ||
+    permissions.includes('complaint.view_own') ||
+    permissions.includes('complaint.view_all')
 
   const hasAnyAction = canViewStructure || canInvite || canViewMembers || canSwitchSociety || canViewComplaints
 
