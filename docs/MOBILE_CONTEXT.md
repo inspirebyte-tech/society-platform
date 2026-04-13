@@ -319,6 +319,33 @@ Role options: Admin, Resident, Gatekeeper, Co-resident
 Shows pending invitations list below form
 Wireframe: approved ✓
 
+### AssignUnitScreen
+Triggered from MemberDetailScreen for Admin/Builder.
+- Shows structure tree of all UNIT nodes
+- Admin picks a flat
+- Chooses ownershipType and occupancyType
+- POST /societies/:id/units/:nodeId/ownership
+- POST /societies/:id/units/:nodeId/occupancy
+
+### UnitDetailScreen
+Triggered from StructureScreen when tapping a UNIT node.
+- Shows owners, current occupants, occupancy history
+- Add/end ownership and occupancy
+- GET /societies/:id/units/:nodeId
+
+### UnitInventoryScreen
+Admin/Builder view of all flats.
+- Filter: All / Occupied / Vacant
+- GET /societies/:id/units
+
+### MyHomeScreen
+Resident/Co-resident view of own flat.
+- Flat name, path, BHK, floor, area
+- Ownership type
+- Co-owners and co-occupants
+- Occupancy history
+- GET /societies/:id/members/:memberId/units
+
 ### Complaint Screens
 
 **Screen: ComplaintListScreen**

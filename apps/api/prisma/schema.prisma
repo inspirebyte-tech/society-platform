@@ -197,25 +197,29 @@ enum NodeType {
 }
 
 model UnitOwnership {
-  id            String    @id @default(uuid())
+  id            String        @id @default(uuid())
+  orgId         String
   unitId        String
   personId      String
-  ownedFrom     DateTime
-  ownedUntil    DateTime?  // null = currently owns
+  ownedFrom     DateTime      @default(now())
+  ownedUntil    DateTime?
   ownershipType OwnershipType
+  isPrimary     Boolean       @default(false)
   transferDocRef String?
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime      @default(now())
 
   unit   PropertyNode @relation(fields: [unitId], references: [id])
   person Person       @relation(fields: [personId], references: [id])
 
-  @@map("unit_ownerships")
+  @@index([orgId, unitId])
+  @@index([orgId, personId])
   @@index([unitId, ownedUntil])
+  @@map("unit_ownerships")
 }
 
 enum OwnershipType {
-  SOLE
-  JOINT
+  PRIMARY_OWNER
+  CO_OWNER
 }
 // unit records for property
 model UnitOccupancy {
@@ -238,9 +242,10 @@ model UnitOccupancy {
 enum OccupancyType {
   OWNER_RESIDENT
   TENANT
-  FAMILY_MEMBER
+  FAMILY
   CARETAKER
 }
+
 // audit records 
 model AuditLog {
   id        String   @id @default(uuid())

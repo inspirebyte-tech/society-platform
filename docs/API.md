@@ -1187,3 +1187,261 @@ Update complaint status.
 403 cannot_resolve_others     → resident resolving others' complaint
 404 complaint_not_found       → complaint not found
 401 no_token                  → not logged in
+
+## Unit Assignment
+
+### GET /api/societies/:id/units
+List all units with occupancy status.
+
+**Auth:** Required
+**Permission:** unit.view_all
+
+**Query params:**
+- `status` — `vacant` | `occupied` | `all` (default: all)
+
+**Response 200:**
+```json
+{
+  "data": {
+    "units": [
+      {
+        "id": "uuid",
+        "name": "Flat 4B",
+        "code": "4B",
+        "path": "Tower A → Wing 1",
+        "metadata": {},
+        "isVacant": false,
+        "primaryOwner": "Arjun Mehta",
+        "primaryOccupant": "Arjun Mehta",
+        "occupancyType": "OWNER_RESIDENT"
+      }
+    ],
+    "total": 48,
+    "occupied": 36,
+    "vacant": 12
+  }
+}
+```
+
+---
+
+### GET /api/societies/:id/units/:nodeId
+Get full unit detail — owners, occupants, history.
+
+**Auth:** Required
+**Permission:** unit.view_all OR unit.view_own (own flat only)
+
+**Response 200:**
+```json
+{
+  "data": {
+    "id": "uuid",
+    "name": "Flat 4B",
+    "code": "4B",
+    "path": "Tower A → Wing 1",
+    "floor": 4,
+    "bhk": "2BHK",
+    "area": 950,
+    "isVacant": false,
+    "owners": [
+      {
+        "id": "uuid",
+        "name": "Arjun Mehta",
+        "phone": "+919222222222",
+        "ownershipType": "PRIMARY_OWNER",
+        "isPrimary": true,
+        "ownedFrom": "datetime"
+      }
+    ],
+    "currentOccupants": [
+      {
+        "id": "uuid",
+        "name": "Arjun Mehta",
+        "phone": "+919222222222",
+        "occupancyType": "OWNER_RESIDENT",
+        "isPrimary": true,
+        "occupiedFrom": "datetime"
+      }
+    ],
+    "occupancyHistory": [
+      {
+        "name": "Priya Shah",
+        "occupancyType": "TENANT",
+        "occupiedFrom": "datetime",
+        "occupiedUntil": "datetime"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### POST /api/societies/:id/units/:nodeId/ownership
+Assign ownership of a unit to a member.
+
+**Auth:** Required
+**Permission:** unit.assign
+
+**Request:**
+```json
+{
+  "userId": "uuid",
+  "ownershipType": "PRIMARY_OWNER",
+  "isPrimary": true
+}
+```
+
+**Ownership types:** PRIMARY_OWNER, CO_OWNER
+
+**Response 201:**
+```json
+{
+  "data": {
+    "id": "uuid",
+    "flatName": "Flat 4B",
+    "member": { "name": "Arjun Mehta", "phone": "+919222222222" },
+    "ownershipType": "PRIMARY_OWNER",
+    "isPrimary": true,
+    "ownedFrom": "datetime"
+  }
+}
+```
+
+**Errors:**
+400 missing_field          → userId or ownershipType missing
+400 invalid_ownership_type → not PRIMARY_OWNER or CO_OWNER
+400 not_a_unit             → nodeId is not a UNIT type node
+400 already_has_primary    → flat already has a primary owner
+404 node_not_found         → flat not found in this society
+404 member_not_found       → userId not a member of this society
+403 insufficient_permissions
+
+---
+
+### DELETE /api/societies/:id/units/:nodeId/ownership/:ownershipId
+End ownership (sets ownedUntil = today).
+
+**Auth:** Required
+**Permission:** unit.assign
+
+**Response 200:**
+```json
+{
+  "data": {
+    "message": "ownership_ended",
+    "ownedUntil": "datetime"
+  }
+}
+```
+
+**Errors:**
+400 already_ended       → ownership already ended
+404 ownership_not_found → record not found
+
+---
+
+### POST /api/societies/:id/units/:nodeId/occupancy
+Assign occupancy of a unit to a member.
+
+**Auth:** Required
+**Permission:** unit.assign
+
+**Request:**
+```json
+{
+  "userId": "uuid",
+  "occupancyType": "OWNER_RESIDENT",
+  "isPrimary": true
+}
+```
+
+**Occupancy types:** OWNER_RESIDENT, TENANT, FAMILY, CARETAKER
+
+**Response 201:**
+```json
+{
+  "data": {
+    "id": "uuid",
+    "flatName": "Flat 4B",
+    "member": { "name": "Arjun Mehta", "phone": "+919222222222" },
+    "occupancyType": "OWNER_RESIDENT",
+    "isPrimary": true,
+    "occupiedFrom": "datetime"
+  }
+}
+```
+
+**Errors:**
+400 missing_field          → userId or occupancyType missing
+400 invalid_occupancy_type → not a valid occupancy type
+400 not_a_unit             → nodeId is not a UNIT type node
+400 already_has_primary    → flat already has a primary occupant
+400 already_occupying      → member already occupying this flat
+404 node_not_found
+404 member_not_found
+403 insufficient_permissions
+
+---
+
+### DELETE /api/societies/:id/units/:nodeId/occupancy/:occupancyId
+End occupancy (sets occupiedUntil = today).
+
+**Auth:** Required
+**Permission:** unit.assign
+
+**Response 200:**
+```json
+{
+  "data": {
+    "message": "occupancy_ended",
+    "occupiedUntil": "datetime"
+  }
+}
+```
+
+**Errors:**
+400 already_ended        → occupancy already ended
+404 occupancy_not_found  → record not found
+
+---
+
+### GET /api/societies/:id/members/:memberId/units
+Get all units linked to a member. Used for My Home screen.
+
+**Auth:** Required
+**Permission:** unit.view_all OR unit.view_own (own membership only)
+
+**Response 200:**
+```json
+{
+  "data": {
+    "ownerships": [
+      {
+        "flatId": "uuid",
+        "flatName": "Flat 4B",
+        "path": "Tower A → Wing 1",
+        "ownershipType": "PRIMARY_OWNER",
+        "isPrimary": true,
+        "ownedFrom": "datetime",
+        "coOwners": [
+          { "name": "Meera Mehta", "ownershipType": "CO_OWNER" }
+        ]
+      }
+    ],
+    "occupancies": [
+      {
+        "flatId": "uuid",
+        "flatName": "Flat 4B",
+        "path": "Tower A → Wing 1",
+        "occupancyType": "OWNER_RESIDENT",
+        "isPrimary": true,
+        "occupiedFrom": "datetime",
+        "coOccupants": [
+          { "name": "Meera Mehta", "occupancyType": "FAMILY" }
+        ]
+      }
+    ]
+  }
+}
+```

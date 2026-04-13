@@ -87,6 +87,10 @@ async function main() {
     { name: 'complaint.resolve_any', module: 'complaints', description: 'Resolve any complaint' },
     { name: 'complaint.reject',      module: 'complaints', description: 'Reject a complaint with reason' },
 
+    // Units
+    { name: 'unit.assign',    module: 'units', description: 'Assign ownership and occupancy to units' },
+    { name: 'unit.view_all',  module: 'units', description: 'View all units and assignments in society' },
+    { name: 'unit.view_own',  module: 'units', description: 'View own unit details' },
   ]
 
   for (const p of permissions) {
@@ -112,7 +116,8 @@ async function main() {
       'announcement.create', 'announcement.view',
       'visitor.view_live', 'visitor.view_emergency',
       'emergency.declare', 'emergency.view',
-      'role.create', 'role.assign', 'role.view'
+      'role.create', 'role.assign', 'role.view',
+      'unit.assign', 'unit.view_all'
     ],
 
     Admin: [
@@ -129,7 +134,8 @@ async function main() {
       'emergency.declare', 'emergency.view',
       'asset.create', 'asset.book', 'asset.view', 'asset.manage_booking',
       'role.create', 'role.assign', 'role.view',
-      'complaint.view_all', 'complaint.resolve_any', 'complaint.reject'
+      'complaint.view_all', 'complaint.resolve_any', 'complaint.reject',
+      'unit.assign', 'unit.view_all'
     ],
 
     Resident: [
@@ -141,7 +147,8 @@ async function main() {
       'poll.vote', 'poll.view',
       'emergency.declare', 'emergency.view',
       'asset.book', 'asset.view',
-      'co_resident.invite'
+      'co_resident.invite',
+      'unit.view_own'
     ],
 
     'Co-resident': [
@@ -152,7 +159,8 @@ async function main() {
       'service.view',
       'poll.vote', 'poll.view',
       'emergency.declare', 'emergency.view',
-      'asset.book', 'asset.view'
+      'asset.book', 'asset.view',
+      'unit.view_own'
     ],
 
     Gatekeeper: [
@@ -353,10 +361,12 @@ async function main() {
   if (arjunPerson) {
     await prisma.unitOwnership.create({
       data: {
+        orgId: org.id,
         unitId: unit4B.id,
         personId: arjunPerson.id,
         ownedFrom: new Date('2022-01-01'),
-        ownershipType: 'SOLE'
+        ownershipType: 'PRIMARY_OWNER',
+        isPrimary: true
       }
     })
 
@@ -384,7 +394,7 @@ async function main() {
         unitId: unit4B.id,
         personId: meeraPerson.id,
         occupiedFrom: new Date('2022-01-01'),
-        occupancyType: 'FAMILY_MEMBER',
+        occupancyType: 'FAMILY',
         isPrimary: false
       }
     })
