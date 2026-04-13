@@ -111,7 +111,8 @@ router.get(
           isActive:      m.isActive
         }
 
-        if (m.isActive && !occupancy) {
+        const isResidentRole = ['Resident', 'Co-resident'].includes(m.role.name)
+        if (m.isActive && !occupancy && isResidentRole) {
           pendingSetup.push(memberData)
         } else {
           active.push(memberData)

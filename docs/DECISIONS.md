@@ -243,3 +243,45 @@ Notifications work correctly in production builds.
 Reason: Expo SDK 53 removed push notification support
 from Expo Go. Development build required for full testing.
 Will test when EAS build is set up.
+
+## 024 — ownedUntil added now for V2 readiness
+**Date:** 2026-04-13
+**Decision:** Add ownedUntil to unit_ownerships now even though
+ownership transfer UI is V2.
+**Reason:** Adding field later requires migration. Adding now
+costs nothing. Enables full ownership history from day one.
+
+## 025 — Ownership and occupancy are separate records
+**Date:** 2026-04-13
+**Decision:** Owner and occupant tracked independently.
+One person can own a flat but not live there.
+**Reason:** Reflects real Indian society reality — builder-owned
+rentals, tenant arrangements, and investment properties are common.
+
+## 026 — Deactivate does not end occupancy
+**Date:** 2026-04-13
+**Decision:** Deactivating a member removes app access only.
+Occupancy record untouched. Only explicit moveout ends occupancy.
+**Reason:** Deactivation is an app concern. Physical occupancy
+is a real world fact. These are independent concepts.
+
+## 027 — Multiple owners and occupants per flat
+**Date:** 2026-04-13
+**Decision:** No hard limit on ownership or occupancy records
+per flat. One marked isPrimary for display purposes.
+**Reason:** Joint ownership and family arrangements are standard
+in Indian residential societies.
+
+## 028 — Builder treated as any other owner
+**Date:** 2026-04-13
+**Decision:** Builder ownership recorded same as any member.
+No special UI treatment for builder-owned flats.
+**Reason:** Keeps architecture consistent. Admin can see all
+flats regardless of who owns them.
+
+## 029 — My Home shows primary flat on dashboard
+**Date:** 2026-04-13
+**Decision:** Dashboard shows primary flat details only.
+Full My Home screen shows all linked flats.
+**Reason:** Dashboard must stay clean. Members with multiple
+flats get full detail in My Home screen.
