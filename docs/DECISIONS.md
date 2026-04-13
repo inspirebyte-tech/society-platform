@@ -234,3 +234,12 @@ Decision: Cloudinary free tier for complaint images.
 Reason: 25GB free storage sufficient for V1.
 Simple SDK. Mobile upload directly to Cloudinary.
 URLs stored in DB — no binary data in PostgreSQL.
+
+## 023 — Push notifications not testable in Expo Go
+Date: 2026-04-10
+Decision: Skip push notification testing in Expo Go.
+Use __DEV__ guard to prevent errors in development.
+Notifications work correctly in production builds.
+Reason: Expo SDK 53 removed push notification support
+from Expo Go. Development build required for full testing.
+Will test when EAS build is set up.
