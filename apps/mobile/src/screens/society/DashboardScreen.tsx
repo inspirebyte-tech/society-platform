@@ -132,8 +132,16 @@ export function DashboardScreen({ route, navigation }: Props) {
     permissions.includes('complaint.create') ||
     permissions.includes('complaint.view_own') ||
     permissions.includes('complaint.view_all')
+  const canViewUnitInventory = permissions.includes('unit.view_all')
+  const canViewMyHome = permissions.includes('unit.view_own')
 
-  const hasAnyAction = canViewStructure || canInvite || canViewMembers || canSwitchSociety || canViewComplaints
+  // memberId for MyHome — find current user's membership in this society
+  const currentMembership = memberships.find((m) => m.org.id === societyId)
+  const currentMemberId = currentMembership?.id ?? null
+
+  const hasAnyAction =
+    canViewStructure || canInvite || canViewMembers || canSwitchSociety ||
+    canViewComplaints || canViewUnitInventory || canViewMyHome
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />
@@ -236,6 +244,22 @@ export function DashboardScreen({ route, navigation }: Props) {
                   label="Complaints"
                   subtitle="View and raise complaints"
                   onPress={() => navigation.navigate('ComplaintList', { societyId })}
+                />
+              ) : null}
+              {canViewUnitInventory ? (
+                <ActionRow
+                  icon="🏢"
+                  label="Unit Inventory"
+                  subtitle="All flats, owners, and occupants"
+                  onPress={() => navigation.navigate('UnitInventory', { societyId })}
+                />
+              ) : null}
+              {canViewMyHome && currentMemberId ? (
+                <ActionRow
+                  icon="🏠"
+                  label="My Home"
+                  subtitle="Your flat details and co-occupants"
+                  onPress={() => navigation.navigate('MyHome', { societyId, memberId: currentMemberId })}
                 />
               ) : null}
               {canSwitchSociety ? (

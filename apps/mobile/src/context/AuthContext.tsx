@@ -11,6 +11,7 @@ interface User {
 }
 
 interface Membership {
+  id: string
   org: { id: string; name: string }
   role: string
   permissions: string[]

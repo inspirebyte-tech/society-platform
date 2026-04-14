@@ -11,6 +11,10 @@ import { SwitchSocietyScreen } from '../screens/society/SwitchSocietyScreen'
 import { ComplaintListScreen } from '../screens/complaints/ComplaintListScreen'
 import { RaiseComplaintScreen } from '../screens/complaints/RaiseComplaintScreen'
 import { ComplaintDetailScreen } from '../screens/complaints/ComplaintDetailScreen'
+import { UnitInventoryScreen } from '../screens/units/UnitInventoryScreen'
+import { UnitDetailScreen } from '../screens/units/UnitDetailScreen'
+import { AssignUnitScreen } from '../screens/units/AssignUnitScreen'
+import { MyHomeScreen } from '../screens/units/MyHomeScreen'
 import { Colors } from '../constants/colors'
 
 export type AppStackParamList = {
@@ -25,6 +29,16 @@ export type AppStackParamList = {
   ComplaintList: { societyId: string }
   RaiseComplaint: { societyId: string }
   ComplaintDetail: { societyId: string; complaintId: string; title: string }
+  UnitInventory: { societyId: string }
+  UnitDetail: { societyId: string; unitId: string; unitName: string }
+  AssignUnit: {
+    societyId: string
+    memberId: string
+    memberName: string
+    prefillUnitId?: string
+    prefillUnitName?: string
+  }
+  MyHome: { societyId: string; memberId: string }
 }
 
 const Stack = createNativeStackNavigator<AppStackParamList>()
@@ -61,6 +75,10 @@ export function AppNavigator({ initialSocietyId }: AppNavigatorProps) {
       <Stack.Screen name="ComplaintList" component={ComplaintListScreen} options={{ title: 'Complaints' }} />
       <Stack.Screen name="RaiseComplaint" component={RaiseComplaintScreen} options={{ title: 'Raise Complaint' }} />
       <Stack.Screen name="ComplaintDetail" component={ComplaintDetailScreen} options={({ route }) => ({ title: route.params.title })} />
+      <Stack.Screen name="UnitInventory" component={UnitInventoryScreen} options={{ title: 'Units' }} />
+      <Stack.Screen name="UnitDetail" component={UnitDetailScreen} options={({ route }) => ({ title: route.params.unitName })} />
+      <Stack.Screen name="AssignUnit" component={AssignUnitScreen} options={{ title: 'Assign Unit' }} />
+      <Stack.Screen name="MyHome" component={MyHomeScreen} options={{ title: 'My Home' }} />
     </Stack.Navigator>
   )
 }

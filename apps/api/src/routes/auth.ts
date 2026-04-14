@@ -378,6 +378,7 @@ router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
         isProfileComplete: !!user.person?.fullName
       },
       memberships: user.memberships.map(m => ({
+        id: m.id,
         org: {
           id: m.org.id,
           name: m.org.name
