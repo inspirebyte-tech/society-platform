@@ -22,6 +22,7 @@ interface AuthState {
   memberships: Membership[]
   permissions: string[]
   currentOrgId: string | null
+  hasAnyMembership: boolean
   isLoading: boolean
   isAuthenticated: boolean
 }
@@ -40,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     memberships: [],
     permissions: [],
     currentOrgId: null,
+    hasAnyMembership: false,
     isLoading: true,
     isAuthenticated: false,
   })
@@ -77,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         memberships: data.memberships,
         permissions,
         currentOrgId,
+        hasAnyMembership: data.hasAnyMembership ?? false,
         isLoading: false,
         isAuthenticated: true,
       })
@@ -99,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       memberships: [],
       permissions: [],
       currentOrgId: null,
+      hasAnyMembership: false,
       isLoading: false,
       isAuthenticated: false,
     })

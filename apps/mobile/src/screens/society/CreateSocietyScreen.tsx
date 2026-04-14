@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native'
+import { View, Text, Pressable, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { TextInput } from '../../components/TextInput'
@@ -51,7 +51,7 @@ interface FormErrors {
 
 export function CreateSocietyScreen({ route, navigation }: Props) {
   const source = route.params?.source
-  const { loadUser } = useAuth()
+  const { loadUser, signOut } = useAuth()
   const [form, setForm] = useState<FormState>({
     name: '',
     address: '',
@@ -220,6 +220,10 @@ export function CreateSocietyScreen({ route, navigation }: Props) {
         style={styles.submitBtn}
       />
 
+      <TouchableOpacity onPress={signOut} hitSlop={12} style={styles.signOutRow}>
+        <Text style={styles.signOutText}>Sign out</Text>
+      </TouchableOpacity>
+
       <BottomSheetPicker
         visible={pickerOpen}
         title="Society Type"
@@ -313,5 +317,14 @@ const styles = StyleSheet.create({
   submitBtn: {
     marginTop: Spacing.sectionGap,
     marginBottom: 8,
+  },
+  signOutRow: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  signOutText: {
+    fontSize: 14,
+    color: Colors.subtle,
+    fontWeight: '500',
   },
 })
