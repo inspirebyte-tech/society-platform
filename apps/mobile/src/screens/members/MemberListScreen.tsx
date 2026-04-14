@@ -242,9 +242,13 @@ function MemberRow({ member, onPress, pending = false }: MemberRowProps) {
   const avatarColor = getAvatarColor(member.name)
   const initial = member.name.trim().charAt(0).toUpperCase()
 
-  const unitLine = member.unit
-    ? `${member.unit}${member.occupancyType ? ' · ' + (OCCUPANCY_LABEL[member.occupancyType] ?? member.occupancyType) : ''}`
-    : 'No unit assigned'
+  const isResidentRole = member.role === 'Resident' || member.role === 'Co-resident'
+
+  const unitLine = isResidentRole
+    ? (member.unit
+        ? `${member.unit}${member.occupancyType ? ' · ' + (OCCUPANCY_LABEL[member.occupancyType] ?? member.occupancyType) : ''}`
+        : 'No unit assigned')
+    : null
 
   return (
     <Pressable
@@ -264,9 +268,11 @@ function MemberRow({ member, onPress, pending = false }: MemberRowProps) {
             <Text style={[rowStyles.badgeText, { color: badge.text }]}>{member.role}</Text>
           </View>
         </View>
-        <Text style={[rowStyles.unit, pending && rowStyles.unitPending]} numberOfLines={1}>
-          {pending ? '⏳ ' : ''}{unitLine}
-        </Text>
+        {unitLine !== null ? (
+          <Text style={[rowStyles.unit, pending && rowStyles.unitPending]} numberOfLines={1}>
+            {pending ? '⏳ ' : ''}{unitLine}
+          </Text>
+        ) : null}
       </View>
 
       {/* Chevron */}
