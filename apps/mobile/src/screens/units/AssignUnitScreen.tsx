@@ -223,7 +223,7 @@ export function AssignUnitScreen({ route, navigation }: Props) {
         <View style={styles.searchBar}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Search flat name..."
+            placeholder="Search unit name..."
             placeholderTextColor={Colors.subtle}
             value={searchText}
             onChangeText={setSearchText}

@@ -149,7 +149,7 @@ export function UnitDetailScreen({ route, navigation }: Props) {
   }
 
   const meta: string[] = []
-  if (unit.bhk) meta.push(`${unit.bhk} BHK`)
+  if (unit.bhk) meta.push(`${unit.bhk}`)
   if (unit.floor != null) meta.push(`Floor ${unit.floor}`)
   if (unit.area) meta.push(`${unit.area} sq.ft`)
 

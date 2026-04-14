@@ -20,9 +20,11 @@ const getPersonId = async (userId: string): Promise<string | null> => {
 // ─────────────────────────────────────────────
 // Helper — verify node is a UNIT type
 // ─────────────────────────────────────────────
+const ASSIGNABLE_TYPES = ['UNIT', 'VILLA', 'FLOOR', 'PLOT'] as const
+
 const verifyUnit = async (nodeId: string, orgId: string) => {
   return prisma.propertyNode.findFirst({
-    where: { id: nodeId, orgId, nodeType: 'UNIT' }
+    where: { id: nodeId, orgId, nodeType: { in: [...ASSIGNABLE_TYPES] } }
   })
 }
 
@@ -58,7 +60,7 @@ router.get(
       const { status, tower } = req.query
 
       // Get all UNIT nodes in this society
-      const whereNode: any = { orgId, nodeType: 'UNIT' }
+      const whereNode: any = { orgId, nodeType: { in: [...ASSIGNABLE_TYPES] } }
       if (tower) {
         // Filter units under a specific tower
         const towerNode = await prisma.propertyNode.findFirst({
@@ -146,7 +148,7 @@ router.get(
       const canViewOwn = permissions.includes('unit.view_own')
 
       const unit = await prisma.propertyNode.findFirst({
-        where: { id: nodeId, orgId, nodeType: 'UNIT' },
+        where: { id: nodeId, orgId, nodeType: { in: [...ASSIGNABLE_TYPES] } },
         include: {
           ownerships: {
             include: { person: true },
