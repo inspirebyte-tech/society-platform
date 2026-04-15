@@ -277,6 +277,30 @@ router.post(
         }
       }
 
+      // Check for duplicate ownership (same person already owns this unit)
+      const existingOwners = await prisma.unitOwnership.findMany({
+        where: { unitId: nodeId, ownedUntil: null }
+      })
+
+      const alreadyOwner = existingOwners.some(o => o.personId === person.id)
+      if (alreadyOwner) {
+        return sendError(res, 'already_owner', 400, {
+          message: 'This member already has an active ownership record for this unit.'
+        })
+      }
+
+      // Prevent self-assigning to a flat that already has a different owner
+      if (userId === req.user!.userId && existingOwners.length > 0) {
+        const isOnlyThisPerson = existingOwners.every(
+          o => o.personId === person.id
+        )
+        if (!isOnlyThisPerson) {
+          return sendError(res, 'cannot_self_assign_occupied', 400, {
+            message: 'This unit already has an owner. You cannot assign yourself to it.'
+          })
+        }
+      }
+
       // Create ownership record
       const ownership = await prisma.unitOwnership.create({
         data: {
