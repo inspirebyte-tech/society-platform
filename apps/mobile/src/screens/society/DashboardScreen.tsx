@@ -13,11 +13,10 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { Card } from '../../components/Card'
+import { Button } from '../../components/Button'
 import { LoadingSpinner } from '../../components/LoadingSpinner'
-import { EmptyState } from '../../components/EmptyState'
 import { Toast } from '../../components/Toast'
 import { TextInput } from '../../components/TextInput'
-import { Button } from '../../components/Button'
 import { AppStackParamList } from '../../navigation/AppNavigator'
 import { useAuth } from '../../hooks/useAuth'
 import { useSociety } from '../../hooks/useSociety'
@@ -132,8 +131,16 @@ export function DashboardScreen({ route, navigation }: Props) {
     permissions.includes('complaint.create') ||
     permissions.includes('complaint.view_own') ||
     permissions.includes('complaint.view_all')
+  const canViewUnitInventory = permissions.includes('unit.view_all')
+  const canViewMyHome = permissions.includes('unit.view_own')
 
-  const hasAnyAction = canViewStructure || canInvite || canViewMembers || canSwitchSociety || canViewComplaints
+  // memberId for MyHome — find current user's membership in this society
+  const currentMembership = memberships.find((m) => m.org.id === societyId)
+  const currentMemberId = currentMembership?.id ?? null
+
+  const hasAnyAction =
+    canViewStructure || canInvite || canViewMembers || canSwitchSociety ||
+    canViewComplaints || canViewUnitInventory || canViewMyHome
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />
@@ -141,12 +148,14 @@ export function DashboardScreen({ route, navigation }: Props) {
 
   if (error || !society) {
     return (
-      <EmptyState
-        title="Could not load society"
-        subtitle={error ?? 'Something went wrong. Please try again.'}
-        actionLabel="Retry"
-        onAction={load}
-      />
+      <ScreenWrapper>
+        <View style={styles.errorState}>
+          <Text style={styles.errorTitle}>Could not load society</Text>
+          <Text style={styles.errorSubtitle}>{error ?? 'Something went wrong. Please try again.'}</Text>
+          <Button label="Retry" onPress={load} style={styles.errorBtn} />
+          <Button label="Sign out" variant="secondary" onPress={signOut} style={styles.errorBtn} />
+        </View>
+      </ScreenWrapper>
     )
   }
 
@@ -236,6 +245,22 @@ export function DashboardScreen({ route, navigation }: Props) {
                   label="Complaints"
                   subtitle="View and raise complaints"
                   onPress={() => navigation.navigate('ComplaintList', { societyId })}
+                />
+              ) : null}
+              {canViewUnitInventory ? (
+                <ActionRow
+                  icon="🏢"
+                  label="Unit Inventory"
+                  subtitle="All flats, owners, and occupants"
+                  onPress={() => navigation.navigate('UnitInventory', { societyId })}
+                />
+              ) : null}
+              {canViewMyHome && currentMemberId ? (
+                <ActionRow
+                  icon="🏠"
+                  label="My Home"
+                  subtitle="Your flat details and co-occupants"
+                  onPress={() => navigation.navigate('MyHome', { societyId, memberId: currentMemberId })}
                 />
               ) : null}
               {canSwitchSociety ? (
@@ -346,6 +371,32 @@ function ActionRow({ icon, label, subtitle, onPress }: ActionRowProps) {
 const styles = StyleSheet.create({
   wrapper: {
     backgroundColor: Colors.background,
+  },
+
+  // Error state
+  errorState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+    gap: 12,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  errorSubtitle: {
+    fontSize: 14,
+    color: Colors.subtle,
+    textAlign: 'center',
+    lineHeight: 21,
+    marginBottom: 4,
+  },
+  errorBtn: {
+    paddingHorizontal: 32,
+    alignSelf: 'stretch',
   },
   content: {
     padding: Spacing.screenPadding,

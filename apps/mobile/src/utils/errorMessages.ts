@@ -52,6 +52,10 @@ const ERROR_MAP: Record<string, string> = {
   cannot_resolve_others: 'You can only resolve your own complaints.',
   complaint_not_found: 'Complaint not found.',
 
+  // Units
+  already_owner: 'This member already has ownership of this unit.',
+  cannot_self_assign_occupied: 'This unit already has an owner. You cannot assign yourself to it.',
+
   // Members
   invalid_status: 'Invalid status filter.',
   cannot_deactivate_self: 'You cannot remove yourself.',

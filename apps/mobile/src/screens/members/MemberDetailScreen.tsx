@@ -102,6 +102,7 @@ export function MemberDetailScreen({ route, navigation }: Props) {
 
   const canRemove = permissions.includes('member.remove')
   const canReactivate = permissions.includes('member.reactivate')
+  const canAssignUnit = permissions.includes('unit.assign')
 
   const [member, setMember] = useState<MemberDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -297,10 +298,24 @@ export function MemberDetailScreen({ route, navigation }: Props) {
         ) : null}
 
         {/* ── Actions ── */}
-        {(canRemove || canReactivate) ? (
+        {(canRemove || canReactivate || canAssignUnit) ? (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Actions</Text>
             <View style={styles.actionButtons}>
+              {/* Assign Unit — admin/builder only */}
+              {canAssignUnit ? (
+                <Button
+                  label="Assign Unit"
+                  variant="primary"
+                  onPress={() =>
+                    navigation.navigate('AssignUnit', {
+                      societyId,
+                      memberId: member.userId,
+                      memberName: member.name,
+                    })
+                  }
+                />
+              ) : null}
               {/* Deactivate — active member only */}
               {canRemove && isActive ? (
                 <Button

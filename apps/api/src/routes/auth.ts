@@ -362,6 +362,9 @@ router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
               }
             }
           }
+        },
+        _count: {
+          select: { memberships: true }
         }
       }
     })
@@ -377,7 +380,9 @@ router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
         name: user.person?.fullName,
         isProfileComplete: !!user.person?.fullName
       },
+      hasAnyMembership: user._count.memberships > 0,
       memberships: user.memberships.map(m => ({
+        id: m.id,
         org: {
           id: m.org.id,
           name: m.org.name

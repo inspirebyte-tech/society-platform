@@ -292,7 +292,7 @@ describe('GET /societies/:id/units/:nodeId', () => {
       .post(`/api/societies/${orgId}/units/${flat4BId}/ownership`)
       .set('Authorization', `Bearer ${builderToken}`)
       .send({
-        userId: builderUserId,
+        userId: gatekeeperUserId,
         ownershipType: 'CO_OWNER',
         isPrimary: false
       })
@@ -300,7 +300,7 @@ describe('GET /societies/:id/units/:nodeId', () => {
     expect(res.status).toBe(201)
     expect(res.body.data.ownershipType).toBe('CO_OWNER')
     expect(res.body.data.isPrimary).toBe(false)
-    expect(res.body.data.member.name).toBe('Vikram Builder')
+    expect(res.body.data.member.name).toBe('Ramesh Gate')
 
     createdOwnershipId = res.body.data.id
   })
@@ -310,7 +310,7 @@ describe('GET /societies/:id/units/:nodeId', () => {
       .post(`/api/societies/${orgId}/units/${flat4BId}/ownership`)
       .set('Authorization', `Bearer ${builderToken}`)
       .send({
-        userId: builderUserId,
+        userId: gatekeeperUserId,
         ownershipType: 'PRIMARY_OWNER',
         isPrimary: true
       })
@@ -392,6 +392,34 @@ describe('GET /societies/:id/units/:nodeId', () => {
       })
 
     expect(res.status).toBe(401)
+  })
+
+  it('cannot assign same member twice — 400 already_owner', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${orgId}/units/${flat4BId}/ownership`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({
+          userId: arjunUserId,
+          ownershipType: 'CO_OWNER',
+          isPrimary: false
+        })
+
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBe('already_owner')
+    })
+
+  it('cannot self-assign to flat with existing different owner — 400', async () => {
+    const res = await request(app)
+      .post(`/api/societies/${orgId}/units/${flat4BId}/ownership`)
+      .set('Authorization', `Bearer ${builderToken}`)
+      .send({
+        userId: builderUserId,
+        ownershipType: 'CO_OWNER',
+        isPrimary: false
+      })
+
+    expect(res.status).toBe(400)
+    expect(res.body.error).toBe('cannot_self_assign_occupied')
   })
 })
 
@@ -634,7 +662,7 @@ describe('DELETE /societies/:id/units/:nodeId/ownership/:ownershipId', () => {
     const res = await request(app)
       .post(`/api/societies/${orgId}/units/${flat4BId}/ownership`)
       .set('Authorization', `Bearer ${builderToken}`)
-      .send({ userId: builderUserId, ownershipType: 'CO_OWNER', isPrimary: false })
+      .send({ userId: gatekeeperUserId, ownershipType: 'CO_OWNER', isPrimary: false })
     ownershipToDeleteId = res.body.data.id
   })
 
@@ -789,7 +817,7 @@ describe('History and vacancy tracking', () => {
     const assign = await request(app)
       .post(`/api/societies/${orgId}/units/${flat4BId}/ownership`)
       .set('Authorization', `Bearer ${builderToken}`)
-      .send({ userId: builderUserId, ownershipType: 'CO_OWNER', isPrimary: false })
+      .send({ userId: gatekeeperUserId, ownershipType: 'CO_OWNER', isPrimary: false })
 
     await request(app)
       .delete(`/api/societies/${orgId}/units/${flat4BId}/ownership/${assign.body.data.id}`)
