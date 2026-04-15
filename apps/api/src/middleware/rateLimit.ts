@@ -41,7 +41,7 @@ const createRateLimiter = (
 }
 
 // OTP specific — 3 requests per hour per IP
-export const otpRateLimit = process.env.NODE_ENV === 'test'
+export const otpRateLimit = (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development')
   ? (_req: Request, _res: Response, next: NextFunction) => next()
   : createRateLimiter(3, 60, 'otp_rate_limit_exceeded')
 
