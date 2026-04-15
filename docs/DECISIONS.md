@@ -285,3 +285,25 @@ flats regardless of who owns them.
 Full My Home screen shows all linked flats.
 **Reason:** Dashboard must stay clean. Members with multiple
 flats get full detail in My Home screen.
+
+## 030 — Ownership self-assignment rules
+**Date:** 2026-04-13
+**Decision:**
+Self-assignment to vacant flat allowed — builder needs to assign his own unsold flats, single admin needs
+to assign their own flat when no one else can.
+
+Self-assignment to flat with existing different owner blocked prevents rogue admin from silently adding
+themselves to occupied flats.
+
+Duplicate ownership by same person on same flat blocked. Occupancy self-assignment unrestricted for V1 —
+caretakers and family members legitimately added.
+
+**V2 additions planned (non-breaking):**
+- Push notification to existing owners when new owner/occupant added (additive — side effect only)
+- Builder approval for ownership assignments (additive — new status column + endpoint)
+- Document upload requirement for ownership (additive — transferDocRef already in schema, NOT SURE)
+
+**Why not fully block self-assignment:**
+Builder has no one above them to assign their flats.
+Single-admin societies have same problem.
+Audit log tracks all assignments with actorId.

@@ -618,6 +618,23 @@ Gatekeeper tries to view unit details:
 Resident tries to view another member's flat:
 → 403 insufficient_permissions
 
+### Ownership Security Rules
+Self-assign to vacant flat: ALLOWED
+  Builder assigns himself to unsold flats.
+  Single admin assigns himself when no one else can.
+
+Self-assign to flat with existing different owner: BLOCKED
+  error: cannot_self_assign_occupied
+  Prevents rogue admin silently adding themselves.
+
+Duplicate ownership same person same flat: BLOCKED
+  error: already_owner
+  Prevents data corruption from double assignment.
+
+Occupancy self-assignment: ALLOWED
+  No restriction — caretakers and family members
+  legitimately live in flats.
+  
 ---
 
 ## Files To Create
