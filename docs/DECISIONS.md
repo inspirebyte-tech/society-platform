@@ -287,7 +287,7 @@ Full My Home screen shows all linked flats.
 flats get full detail in My Home screen.
 
 ## 030 — Ownership self-assignment rules
-**Date:** 2026-04-13
+**Date:** 2026-04-15
 **Decision:**
 Self-assignment to vacant flat allowed — builder needs to assign his own unsold flats, single admin needs
 to assign their own flat when no one else can.
@@ -307,3 +307,57 @@ caretakers and family members legitimately added.
 Builder has no one above them to assign their flats.
 Single-admin societies have same problem.
 Audit log tracks all assignments with actorId.
+
+**Known V1 gap — occupancy self-assign:**
+Builder/Admin can self-assign as occupant (CARETAKER, OWNER_RESIDENT etc) to any flat including occupied ones. This is intentional for V1 — occupancy is more fluid than ownership. Ownership is the legally sensitive record.
+V2: add same self-assign restriction to occupancy if pilot feedback indicates abuse.
+
+**Known V1 gaps with severity:**
+
+MEDIUM (mitigated by audit log):
+- Admin can end any ownership/occupancy silently
+  Affected party not notified
+  V2: push notifications on ownership changes
+
+LOW (acceptable for V1):
+- Occupancy self-assign not restricted
+- No document verification for ownership
+- No primary owner replacement prompt
+- No rate limiting on unit endpoints
+- AssignUnitScreen doesn't show existing assignment
+
+All gaps tracked. Audit log captures all changes
+with actorId. No critical or high severity gaps
+remaining for V1 pilot.
+
+## 031 — V1 trust model for unit management
+**Date:** **Date:** 2026-04-15
+
+V1 operates on a delegated trust model:
+  Builder has ultimate authority
+  Admin operates with builder's trust
+  Residents have read-only access to own flat
+
+This mirrors real Indian society management where
+the RWA secretary (admin) has physical access to
+all records. Vaastio digitizes this model.
+
+Known architectural limitation:
+  Owner cannot manage their own flat (read-only)
+  All changes go through admin/builder
+  This creates unnecessary admin dependency
+  
+V2: Add unit.manage_own permission for PRIMARY_OWNER
+  Allows owner to manage co-owners and occupants
+  of their own flat without admin intervention
+
+Abuse mitigation for V1:
+  All changes audit logged with actorId
+  Rogue changes visible to affected resident
+  in their My Home screen immediately
+  Builder can review and reverse any change
+
+Critical gap before scale:
+  Push notifications for ownership/occupancy changes
+  Must be implemented before >50 flat deployments
+  Residents currently rely on active app checking
