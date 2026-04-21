@@ -71,6 +71,8 @@ export function MemberListScreen({ route, navigation }: Props) {
   const [filter, setFilter] = useState<FilterOption>('All')
   const [active, setActive] = useState<Member[]>([])
   const [pending, setPending] = useState<Member[]>([])
+  const [inactive, setInactive] = useState<Member[]>([])
+  const [inactiveExpanded, setInactiveExpanded] = useState(false)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null)
@@ -80,9 +82,13 @@ export function MemberListScreen({ route, navigation }: Props) {
       if (!silent) setLoading(true)
       try {
         const params = filter !== 'All' ? { role: filter } : undefined
-        const data = await listMembers(societyId, params)
+        const [data, inactiveData] = await Promise.all([
+          listMembers(societyId, params),
+          listMembers(societyId, { ...params, status: 'inactive' as const }),
+        ])
         setActive(data.active ?? [])
         setPending(data.pendingSetup ?? [])
+        setInactive(inactiveData.active ?? [])
       } catch (e) {
         const code = getApiErrorCode(e)
         setToast({ message: getErrorMessage(code), type: 'error' })
@@ -115,7 +121,7 @@ export function MemberListScreen({ route, navigation }: Props) {
 
   if (loading) return <LoadingSpinner fullScreen />
 
-  const hasAnything = active.length > 0 || pending.length > 0
+  const hasAnything = active.length > 0 || pending.length > 0 || inactive.length > 0
   const noActiveMessage =
     filter !== 'All' ? `No ${filter} members.` : 'No active members.'
 
@@ -184,6 +190,29 @@ export function MemberListScreen({ route, navigation }: Props) {
           </>
         ) : null}
 
+        {/* ── Inactive section — collapsed by default ── */}
+        {inactive.length > 0 ? (
+          <>
+            <CollapsibleSectionHeader
+              title="Inactive"
+              count={inactive.length}
+              expanded={inactiveExpanded}
+              onPress={() => setInactiveExpanded(v => !v)}
+              style={styles.thirdSectionHeader}
+            />
+            {inactiveExpanded ? (
+              <View style={styles.section}>
+                {inactive.map((member, index) => (
+                  <React.Fragment key={member.membershipId}>
+                    <MemberRow member={member} onPress={() => goToDetail(member)} inactive />
+                    {index < inactive.length - 1 ? <View style={styles.divider} /> : null}
+                  </React.Fragment>
+                ))}
+              </View>
+            ) : null}
+          </>
+        ) : null}
+
         {/* Both empty (after filtering) */}
         {!hasAnything ? (
           <SectionEmpty message={`No ${filter === 'All' ? '' : filter + ' '}members found.`} />
@@ -231,29 +260,61 @@ function SectionEmpty({ message }: { message: string }) {
   )
 }
 
+function CollapsibleSectionHeader({
+  title,
+  count,
+  expanded,
+  onPress,
+  style,
+}: {
+  title: string
+  count: number
+  expanded: boolean
+  onPress: () => void
+  style?: object
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [sectionStyles.header, pressed && sectionStyles.headerPressed, style]}
+    >
+      <Text style={sectionStyles.title}>{title.toUpperCase()}</Text>
+      <View style={sectionStyles.countBadge}>
+        <Text style={sectionStyles.countText}>{count}</Text>
+      </View>
+      <Text style={sectionStyles.expandChevron}>{expanded ? '∧' : '∨'}</Text>
+    </Pressable>
+  )
+}
+
 interface MemberRowProps {
   member: Member
   onPress: () => void
   pending?: boolean
+  inactive?: boolean
 }
 
-function MemberRow({ member, onPress, pending = false }: MemberRowProps) {
-  const badge = ROLE_BADGE[member.role] ?? { text: Colors.subtle, bg: Colors.border }
-  const avatarColor = getAvatarColor(member.name)
+function MemberRow({ member, onPress, pending = false, inactive = false }: MemberRowProps) {
+  const badge = inactive
+    ? { text: Colors.subtle, bg: Colors.border }
+    : ROLE_BADGE[member.role] ?? { text: Colors.subtle, bg: Colors.border }
+  const avatarColor = inactive ? Colors.subtle : getAvatarColor(member.name)
   const initial = member.name.trim().charAt(0).toUpperCase()
 
   const isResidentRole = member.role === 'Resident' || member.role === 'Co-resident'
 
-  const unitLine = isResidentRole
-    ? (member.unit
-        ? `${member.unit}${member.occupancyType ? ' · ' + (OCCUPANCY_LABEL[member.occupancyType] ?? member.occupancyType) : ''}`
-        : 'No unit assigned')
-    : null
+  const unitLine = inactive
+    ? (member.unit ?? null)
+    : isResidentRole
+      ? (member.unit
+          ? `${member.unit}${member.occupancyType ? ' · ' + (OCCUPANCY_LABEL[member.occupancyType] ?? member.occupancyType) : ''}`
+          : 'No unit assigned')
+      : null
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [rowStyles.row, pressed && rowStyles.rowPressed]}
+      style={({ pressed }) => [rowStyles.row, inactive && rowStyles.rowInactive, pressed && rowStyles.rowPressed]}
     >
       {/* Avatar */}
       <View style={[rowStyles.avatar, { backgroundColor: avatarColor }]}>
@@ -263,7 +324,7 @@ function MemberRow({ member, onPress, pending = false }: MemberRowProps) {
       {/* Info */}
       <View style={rowStyles.info}>
         <View style={rowStyles.nameLine}>
-          <Text style={rowStyles.name} numberOfLines={1}>{member.name}</Text>
+          <Text style={[rowStyles.name, inactive && rowStyles.nameInactive]} numberOfLines={1}>{member.name}</Text>
           <View style={[rowStyles.badge, { backgroundColor: badge.bg }]}>
             <Text style={[rowStyles.badgeText, { color: badge.text }]}>{member.role}</Text>
           </View>
@@ -334,6 +395,9 @@ const styles = StyleSheet.create({
   secondSectionHeader: {
     marginTop: Spacing.sectionGap,
   },
+  thirdSectionHeader: {
+    marginTop: Spacing.sectionGap,
+  },
 })
 
 const sectionStyles = StyleSheet.create({
@@ -370,6 +434,15 @@ const sectionStyles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     color: Colors.subtle,
+  },
+  headerPressed: {
+    opacity: 0.6,
+  },
+  expandChevron: {
+    marginLeft: 'auto' as const,
+    fontSize: 12,
+    color: Colors.subtle,
+    fontWeight: '700' as const,
   },
 })
 
@@ -437,5 +510,11 @@ const rowStyles = StyleSheet.create({
     color: Colors.subtle,
     flexShrink: 0,
     lineHeight: 26,
+  },
+  rowInactive: {
+    opacity: 0.55,
+  },
+  nameInactive: {
+    color: Colors.subtle,
   },
 })
