@@ -27,6 +27,12 @@
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "482ccdae-8d10-49d6-b9c6-cd140036a1b0"
+      }
+    },
+    "owner": "mohitgauniyal"
   }
 }
