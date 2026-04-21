@@ -361,3 +361,8 @@ Critical gap before scale:
   Push notifications for ownership/occupancy changes
   Must be implemented before >50 flat deployments
   Residents currently rely on active app checking
+
+## Decision 032 — Gatekeeper needs society.view
+**Date:** **Date:** 2026-04-21
+Simple one liner — gatekeeper needs to view
+society data to load dashboard
