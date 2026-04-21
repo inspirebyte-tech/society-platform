@@ -366,3 +366,14 @@ Critical gap before scale:
 **Date:** **Date:** 2026-04-21
 Simple one liner — gatekeeper needs to view
 society data to load dashboard
+
+## Decision 033 — Auth flow visual design
+**Date: 21 April 2026**
+Decision: All auth screens use split layout —
+indigo gradient header + white rounded card.
+Montserrat font throughout auth flow.
+Pattern inspired by premium fintech apps.
+Reason: App targets builders and admins —
+premium feel builds trust.
+Welcome screen skipped for returning users
+(token exists → goes straight to dashboard).
