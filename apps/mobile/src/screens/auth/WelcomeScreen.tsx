@@ -2,7 +2,8 @@ import React from 'react'
 import { View, Text, Image, Pressable, StyleSheet, StatusBar } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useFonts, Montserrat_800ExtraBold } from '@expo-google-fonts/montserrat'
+import { Ionicons } from '@expo/vector-icons'
+import { useFonts, Montserrat_300Light, Montserrat_600SemiBold } from '@expo-google-fonts/montserrat'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { AuthStackParamList } from '../../navigation/AuthNavigator'
 
@@ -10,11 +11,16 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Welcome'>
 
 const BRAND = '#4338ca'
 
+const FEATURES: React.ComponentProps<typeof Ionicons>['name'][] = [
+  'business-outline',
+  'people-outline',
+  'chatbubble-ellipses-outline',
+]
+
 export function WelcomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets()
-  const [fontsLoaded] = useFonts({ Montserrat_800ExtraBold })
+  const [fontsLoaded] = useFonts({ Montserrat_300Light, Montserrat_600SemiBold })
 
-  // Hold until Montserrat is ready — native splash still showing
   if (!fontsLoaded) return null
 
   return (
@@ -30,17 +36,26 @@ export function WelcomeScreen({ navigation }: Props) {
         />
         <Text style={styles.appName}>Vaastio</Text>
         <Text style={styles.tagline}>Where societies start organised.</Text>
-        <Text style={styles.subline}>Built for every person in a society.</Text>
+
+        {/* ── Icon bubbles ── */}
+        <View style={styles.bubblesRow}>
+          {FEATURES.map((icon) => (
+            <View key={icon} style={styles.bubble}>
+              <Ionicons name={icon} size={24} color="#fff" />
+            </View>
+          ))}
+        </View>
       </View>
 
-      {/* ── Bottom card ── */}
-      <View style={[styles.card, { paddingBottom: Math.max(insets.bottom, 24) + 16 }]}>
+      {/* ── Bottom button ── */}
+      <View style={[styles.bottom, { marginBottom: Math.max(insets.bottom, 48) }]}>
         <Pressable
           style={({ pressed }) => [styles.btnPrimary, pressed && styles.btnPrimaryPressed]}
           onPress={() => navigation.navigate('LoginPhone')}
         >
           <Text style={styles.btnPrimaryText}>Get Started</Text>
         </Pressable>
+        <Text style={styles.terms}>By continuing you agree to our Terms of Service</Text>
       </View>
     </LinearGradient>
   )
@@ -68,10 +83,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   appName: {
-    fontSize: 44,
+    fontSize: 48,
     color: '#fff',
-    letterSpacing: 1.2,
-    fontFamily: 'Montserrat_800ExtraBold',
+    letterSpacing: 4,
+    fontFamily: 'Montserrat_300Light',
   },
   tagline: {
     fontSize: 16,
@@ -80,41 +95,48 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
     lineHeight: 24,
   },
-  subline: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.55)',
-    textAlign: 'center',
-    letterSpacing: 0.1,
-    marginTop: -2,
+  // ── Icon bubbles ──
+  bubblesRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+    marginTop: 20,   // gap:12 + marginTop:20 = 32px from tagline
   },
-
-  // ── Bottom card ──
-  card: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingTop: 36,
-    paddingHorizontal: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.07,
-    shadowRadius: 20,
-    elevation: 14,
-  },
-  btnPrimary: {
-    backgroundColor: BRAND,
-    borderRadius: 14,
-    height: 54,
+  bubble: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+  // ── Bottom button ──
+  bottom: {
+    paddingHorizontal: 32,
+    gap: 14,
+  },
+  btnPrimary: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 50,
+    paddingVertical: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.6)',
+  },
   btnPrimaryPressed: {
-    opacity: 0.85,
+    backgroundColor: 'rgba(255,255,255,0.22)',
   },
   btnPrimaryText: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 15,
+    fontFamily: 'Montserrat_600SemiBold',
     color: '#fff',
-    letterSpacing: 0.4,
+    letterSpacing: 0.5,
+  },
+  terms: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.35)',
+    textAlign: 'center',
   },
 })
