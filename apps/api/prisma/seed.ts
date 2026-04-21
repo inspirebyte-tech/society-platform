@@ -164,6 +164,7 @@ async function main() {
     ],
 
     Gatekeeper: [
+      'society.view',
       'visitor.log', 'visitor.view_live',
       'emergency.declare', 'emergency.view'
     ]
