@@ -20,7 +20,8 @@
         "backgroundColor": "#4338ca"
       },
       "edgeToEdgeEnabled": false,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.inspirebyte.vaastio"
     },
     "web": {
       "favicon": "./assets/favicon.png"
