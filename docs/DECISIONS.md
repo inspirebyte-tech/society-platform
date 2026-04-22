@@ -377,3 +377,21 @@ Reason: App targets builders and admins —
 premium feel builds trust.
 Welcome screen skipped for returning users
 (token exists → goes straight to dashboard).
+
+## Decision 034 — React version pinning for EAS monorepo
+**Date:** 22 April 2026
+**Decision:**
+Pin react and react-dom to exact version 19.1.0 in apps/mobile/package.json (no ^ caret).
+Add overrides block in root package.json to force single hoisted react version across all workspaces.
+
+**Why:**
+EAS runs npm ci on Linux from monorepo root.
+npm ci requires lockfile to exactly match package.json.
+react-native@0.81.5 renderer compiled against react@19.1.0.
+react-dom requires exactly matching react version.
+Caret ranges caused version mismatches between local Windows install and EAS Linux install.
+
+**Rule for future:**
+When adding new react-native packages that have peer dependency on react — check react-native's bundled renderer version first.
+Never use ^ for react or react-dom in this project.
+Always delete package-lock.json and reinstall after any react version change.
