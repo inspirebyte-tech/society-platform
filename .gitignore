@@ -39,3 +39,4 @@ yarn-error.log*
 *.pem
 .claude/
 apps/mobile/eas.json
+apps/mobile/google-services.json
