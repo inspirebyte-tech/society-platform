@@ -11,6 +11,7 @@ import unitsRouter from './routes/units'
 import { enforceTenantContext } from './middleware/tenantContext'
 import { errorHandler } from './middleware/error'
 import { apiRateLimit } from './middleware/rateLimit'
+import { initNotificationDispatcher } from './notifications/dispatcher'
 
 const app = express()
 
@@ -27,6 +28,9 @@ app.use('/api/societies', membersRouter)
 app.use('/api/auth', deviceTokensRouter)
 app.use('/api/societies', complaintsRouter)
 app.use('/api/societies', unitsRouter)
+
+// Initialize notification dispatcher
+initNotificationDispatcher()
 
 app.use(errorHandler)
 
