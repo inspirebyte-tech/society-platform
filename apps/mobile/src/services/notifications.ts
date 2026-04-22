@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications'
 import * as SecureStore from 'expo-secure-store'
 import { Platform } from 'react-native'
+import Constants from 'expo-constants'
 import api from './api'
 
 export async function registerDeviceToken(): Promise<void> {
@@ -16,7 +17,9 @@ export async function registerDeviceToken(): Promise<void> {
     // User denied — silent degradation, never block app
     if (finalStatus !== 'granted') return
 
-    const { data: pushToken } = await Notifications.getExpoPushTokenAsync()
+    const { data: pushToken } = await Notifications.getExpoPushTokenAsync({
+      projectId: Constants.expoConfig?.extra?.eas?.projectId,
+    })
 
     // Only re-register if token changed
     const stored = await SecureStore.getItemAsync('device_token')
