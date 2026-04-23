@@ -6,7 +6,6 @@ import {
   Image,
   Pressable,
   StyleSheet,
-  Alert,
   ActivityIndicator,
 } from 'react-native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
@@ -14,6 +13,7 @@ import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { Toast } from '../../components/Toast'
 import { Button } from '../../components/Button'
+import { ConfirmSheet } from '../../components/ConfirmSheet'
 import { AppStackParamList } from '../../navigation/AppNavigator'
 import { useAuth } from '../../hooks/useAuth'
 import {
@@ -55,8 +55,9 @@ export function AnnouncementDetailScreen({ route, navigation }: Props) {
 
   const [announcement, setAnnouncement] = useState<Announcement | null>(null)
   const [isLoading, setIsLoading]       = useState(true)
-  const [isPinning, setIsPinning]       = useState(false)
-  const [isDeleting, setIsDeleting]     = useState(false)
+  const [isPinning, setIsPinning]         = useState(false)
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false)
+  const [isDeleting, setIsDeleting]       = useState(false)
   const [toast, setToast]               = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null)
 
   const load = useCallback(async () => {
@@ -94,29 +95,19 @@ export function AnnouncementDetailScreen({ route, navigation }: Props) {
     }
   }
 
-  function handleDelete() {
-    Alert.alert(
-      'Delete Announcement',
-      'This cannot be undone. Are you sure?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            setIsDeleting(true)
-            try {
-              await deleteAnnouncement(societyId, announcementId)
-              navigation.goBack()
-            } catch (e) {
-              const code = getApiErrorCode(e)
-              setToast({ message: getErrorMessage(code), type: 'error' })
-              setIsDeleting(false)
-            }
-          },
-        },
-      ],
-    )
+  async function handleDeleteConfirm() {
+    setIsDeleting(true)
+    try {
+      await deleteAnnouncement(societyId, announcementId)
+      setShowDeleteSheet(false)
+      navigation.goBack()
+    } catch (e) {
+      const code = getApiErrorCode(e)
+      setShowDeleteSheet(false)
+      setToast({ message: getErrorMessage(code), type: 'error' })
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   if (isLoading) return <LoadingSpinner fullScreen />
@@ -189,20 +180,26 @@ export function AnnouncementDetailScreen({ route, navigation }: Props) {
             ) : null}
             {canDelete ? (
               <Pressable
-                onPress={handleDelete}
-                disabled={isDeleting}
+                onPress={() => setShowDeleteSheet(true)}
                 style={({ pressed }) => [styles.actionBtn, styles.actionBtnDestructive, pressed && styles.actionBtnPressed]}
               >
-                {isDeleting
-                  ? <ActivityIndicator size="small" color={Colors.surface} />
-                  : <Text style={styles.actionBtnDestructiveText}>Delete</Text>
-                }
+                <Text style={styles.actionBtnDestructiveText}>Delete</Text>
               </Pressable>
             ) : null}
           </View>
         ) : null}
 
       </ScrollView>
+
+      <ConfirmSheet
+        visible={showDeleteSheet}
+        title="Delete Announcement?"
+        message="This cannot be undone."
+        confirmLabel="Delete"
+        loading={isDeleting}
+        onConfirm={handleDeleteConfirm}
+        onClose={() => setShowDeleteSheet(false)}
+      />
 
       {toast ? (
         <Toast
