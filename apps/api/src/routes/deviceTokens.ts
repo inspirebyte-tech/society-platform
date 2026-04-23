@@ -2,7 +2,8 @@ import { Router, Response } from 'express'
 import { prisma } from '../lib/prisma'
 import { authenticate, AuthRequest } from '../middleware/auth'
 import { sendSuccess, sendError } from '../utils/response'
-import { cleanupOldTokens } from '../utils/notifications'
+import { cleanupOldTokens } from '../utils/expoPush'
+
 
 const router = Router()
 

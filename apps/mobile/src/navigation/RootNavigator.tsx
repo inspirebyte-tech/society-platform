@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
+import { navigationRef } from '../services/notifications'
 import { AuthNavigator } from './AuthNavigator'
 import { AppNavigator } from './AppNavigator'
 import { LoadingSpinner } from '../components/LoadingSpinner'
@@ -34,7 +35,7 @@ export function RootNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       {isAuthenticated
         ? <AppNavigator initialSocietyId={currentOrgId ?? undefined} />
         : <AuthNavigator />
