@@ -429,6 +429,38 @@ Reject flow (admin): bottom sheet with 4 predefined reasons
   + "Other" option shows free-text input
   → PATCH { status: "REJECTED", rejectionReason: "..." }
 
+
+### AnnouncementsListScreen
+Route: AnnouncementsList: { societyId }
+Access: All roles
+Nav: Dashboard → Announcements
+
+- Filter chips: All / General / Maintenance / Meeting / Emergency / Celebration
+- Pinned announcements show at top with 📌
+- Category color badges
+- FAB to create (admin/builder only)
+- Tap row → AnnouncementDetailScreen
+
+### AnnouncementDetailScreen
+Route: AnnouncementDetail: { societyId, announcementId }
+Access: All roles
+
+- Full body text
+- Image gallery
+- Category badge
+- Pin/Unpin button (admin/builder)
+- Delete with confirmation (admin/builder)
+
+### CreateAnnouncementScreen
+Route: CreateAnnouncement: { societyId }
+Access: Builder, Admin only
+
+- Title, body inputs
+- Category chip selector
+- Image picker (max 5)
+- POST /societies/:id/announcements
+
+
 ### Phase 2 — Member Management
 
 Screen: Member List
