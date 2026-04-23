@@ -53,10 +53,7 @@ router.post('/request-otp', otpRateLimit, async (req: AuthRequest, res: Response
     })
 
     // 5. send SMS
-    const smsResult = await sendOtp(normalizedPhone, otp)
-    if (!smsResult.success) {
-      return sendError(res, 'sms_failed', 500)
-    }
+    await sendOtp(normalizedPhone, otp)
 
     // 6. respond — never return OTP in response
     return sendSuccess(res, {

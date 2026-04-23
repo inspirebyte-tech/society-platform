@@ -93,7 +93,7 @@ export const notificationRules: Partial<Record<string, NotificationRule>> = {
     payload: (d) => ({
       title: d.societyName,
       body: d.title,
-      priority: 'high' as const,
+      priority: d.category === 'EMERGENCY' ? 'high' : 'default',
       data: {
         screen: 'Announcements',
         orgId: d.orgId,

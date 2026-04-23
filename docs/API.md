@@ -1445,3 +1445,65 @@ Get all units linked to a member. Used for My Home screen.
   }
 }
 ```
+
+
+## Announcements
+
+### POST /api/societies/:id/announcements
+Create announcement. Builder/Admin only.
+
+**Permission:** announcement.create
+
+**Request:**
+```json
+{
+  "title": "Water supply cut tomorrow",
+  "body": "Water supply will be cut from 9am to 12pm tomorrow for maintenance.",
+  "category": "MAINTENANCE",
+  "images": ["base64..."]
+}
+```
+
+**Categories:** GENERAL, MAINTENANCE, MEETING, EMERGENCY, CELEBRATION
+
+**Response 201:** announcement object with images and creator
+
+---
+
+### GET /api/societies/:id/announcements
+List all announcements. Pinned first, then newest.
+
+**Permission:** announcement.view
+
+**Query params:** category (optional filter)
+
+**Response 200:** { announcements: [...] }
+
+---
+
+### GET /api/societies/:id/announcements/:announcementId
+Get full announcement detail.
+
+**Permission:** announcement.view
+
+**Response 200:** full announcement with images and creator
+
+---
+
+### PATCH /api/societies/:id/announcements/:announcementId/pin
+Toggle pin. Max 3 pinned at a time.
+
+**Permission:** announcement.pin
+
+**Errors:**
+400 max_pinned_reached → already 3 pinned
+404 announcement_not_found
+
+---
+
+### DELETE /api/societies/:id/announcements/:announcementId
+Hard delete announcement and images.
+
+**Permission:** announcement.delete
+
+**Response 200:** { message: 'announcement_deleted' }

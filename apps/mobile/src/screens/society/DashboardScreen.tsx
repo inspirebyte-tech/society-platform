@@ -131,6 +131,7 @@ export function DashboardScreen({ route, navigation }: Props) {
     permissions.includes('complaint.create') ||
     permissions.includes('complaint.view_own') ||
     permissions.includes('complaint.view_all')
+  const canViewAnnouncements = permissions.includes('announcement.view')
   const canViewUnitInventory = permissions.includes('unit.view_all')
   const canViewMyHome = permissions.includes('unit.view_own')
 
@@ -139,8 +140,8 @@ export function DashboardScreen({ route, navigation }: Props) {
   const currentMemberId = currentMembership?.id ?? null
 
   const hasAnyAction =
-    canViewStructure || canInvite || canViewMembers || canSwitchSociety ||
-    canViewComplaints || canViewUnitInventory || canViewMyHome
+    canViewAnnouncements || canViewStructure || canInvite || canViewMembers ||
+    canSwitchSociety || canViewComplaints || canViewUnitInventory || canViewMyHome
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />
@@ -215,6 +216,14 @@ export function DashboardScreen({ route, navigation }: Props) {
           <View style={styles.actionsSection}>
             <Text style={styles.sectionTitle}>Quick Actions</Text>
             <View style={styles.actionsList}>
+              {canViewAnnouncements ? (
+                <ActionRow
+                  icon="📢"
+                  label="Announcements"
+                  subtitle="Society notices and updates"
+                  onPress={() => navigation.navigate('AnnouncementsList', { societyId })}
+                />
+              ) : null}
               {canViewStructure ? (
                 <ActionRow
                   icon="🏗"

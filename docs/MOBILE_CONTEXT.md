@@ -230,10 +230,20 @@ PATCH /societies/:id/complaints/:complaintId
     Admin only (insufficient_permissions for residents)
   Errors: already_resolved, already_rejected, rejection_reason_required
 
-### Notification Setup
-  POST /auth/device-token
-  Body: { token: "ExponentPushToken[...]", platform: "ANDROID" }
-  Call after login — register device for push notifications
+Token registered in AuthContext after login.
+Permission requested on first login via registerDeviceToken().
+Token stored in SecureStore — only re-registered when changed.
+
+Foreground handler: setupNotificationHandler() in App.tsx
+Shows notification banner even when app is open.
+
+Tap handler: handleNotificationResponse() in App.tsx
+Deep link map in notifications.ts — add new screens here.
+
+Current deep links:
+  ComplaintDetail → opens complaint with complaintId
+  Announcements → opens announcements list
+  Dashboard → opens dashboard
   
 ---
 
@@ -418,6 +428,38 @@ Resolve flow: confirmation sheet → PATCH { status: "RESOLVED" }
 Reject flow (admin): bottom sheet with 4 predefined reasons
   + "Other" option shows free-text input
   → PATCH { status: "REJECTED", rejectionReason: "..." }
+
+
+### AnnouncementsListScreen
+Route: AnnouncementsList: { societyId }
+Access: All roles
+Nav: Dashboard → Announcements
+
+- Filter chips: All / General / Maintenance / Meeting / Emergency / Celebration
+- Pinned announcements show at top with 📌
+- Category color badges
+- FAB to create (admin/builder only)
+- Tap row → AnnouncementDetailScreen
+
+### AnnouncementDetailScreen
+Route: AnnouncementDetail: { societyId, announcementId }
+Access: All roles
+
+- Full body text
+- Image gallery
+- Category badge
+- Pin/Unpin button (admin/builder)
+- Delete with confirmation (admin/builder)
+
+### CreateAnnouncementScreen
+Route: CreateAnnouncement: { societyId }
+Access: Builder, Admin only
+
+- Title, body inputs
+- Category chip selector
+- Image picker (max 5)
+- POST /societies/:id/announcements
+
 
 ### Phase 2 — Member Management
 
