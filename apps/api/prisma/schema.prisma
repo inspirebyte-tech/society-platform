@@ -29,6 +29,7 @@ model User {
   deviceTokens  DeviceToken[]
   complaintsRaised   Complaint[] @relation("ComplaintRaiser")
   complaintsResolved Complaint[] @relation("ComplaintResolver")
+  announcementsCreated Announcement[] @relation("AnnouncementCreator")
   
   @@map("users")
 }
@@ -73,6 +74,7 @@ model Organization {
   auditLogs      AuditLog[]
   invitations    Invitation[]
   complaints    Complaint[]
+  announcements Announcement[]
 
   @@map("organizations")
 }
@@ -354,6 +356,37 @@ model ComplaintImage {
   @@map("complaint_images")
 }
 
+model Announcement {
+  id          String               @id @default(uuid())
+  orgId       String
+  title       String
+  body        String
+  category    AnnouncementCategory @default(GENERAL)
+  isPinned    Boolean              @default(false)
+  createdBy   String
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  deletedAt   DateTime?
+
+  org         Organization         @relation(fields: [orgId], references: [id])
+  creator     User                 @relation("AnnouncementCreator", fields: [createdBy], references: [id])
+  images      AnnouncementImage[]
+
+  @@index([orgId])
+  @@index([orgId, isPinned])
+  @@map("announcements")
+}
+
+model AnnouncementImage {
+  id             String       @id @default(uuid())
+  announcementId String
+  imageUrl       String
+
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@map("announcement_images")
+}
+
 enum ComplaintCategory {
   WATER_SUPPLY
   ELECTRICITY
@@ -385,4 +418,12 @@ enum ComplaintStatus {
   OPEN
   RESOLVED
   REJECTED
+}
+
+enum AnnouncementCategory {
+  GENERAL
+  MAINTENANCE
+  MEETING
+  EMERGENCY
+  CELEBRATION
 }

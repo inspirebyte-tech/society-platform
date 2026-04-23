@@ -7,6 +7,7 @@ import invitationsRouter from './routes/invitations'
 import membersRouter from './routes/members'
 import deviceTokensRouter from './routes/deviceTokens'
 import complaintsRouter from './routes/complaints'
+import announcementsRouter from './routes/announcements'
 import unitsRouter from './routes/units'
 import { enforceTenantContext } from './middleware/tenantContext'
 import { errorHandler } from './middleware/error'
@@ -27,6 +28,7 @@ app.use('/api/societies', invitationsRouter)
 app.use('/api/societies', membersRouter)
 app.use('/api/auth', deviceTokensRouter)
 app.use('/api/societies', complaintsRouter)
+app.use('/api/societies', announcementsRouter)
 app.use('/api/societies', unitsRouter)
 
 // Initialize notification dispatcher
