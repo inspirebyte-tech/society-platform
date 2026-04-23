@@ -319,6 +319,23 @@ Role options: Admin, Resident, Gatekeeper, Co-resident
 Shows pending invitations list below form
 Wireframe: approved ✓
 
+### WelcomeScreen
+First screen for unauthenticated users.
+Route: Welcome (no params)
+Gradient background, logo, tagline, icon bubbles, Get Started button.
+Navigates to: LoginPhoneScreen
+
+### LoginPhoneScreen (updated)
+Premium split layout — gradient header + white card.
+Same functionality, redesigned UI.
+
+### LoginOTPScreen (updated)
+Same split layout. Shows phone number in header.
+OTP valid for 10 minutes hint added.
+
+### SetNameScreen (updated)
+Same split layout. No back button (mid-auth flow).
+
 ### AssignUnitScreen
 Triggered from MemberDetailScreen for Admin/Builder.
 - Shows structure tree of all UNIT nodes

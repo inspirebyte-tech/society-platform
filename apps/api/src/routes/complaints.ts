@@ -5,7 +5,7 @@ import { requirePermission } from '../middleware/permission'
 import { enforceTenantContext } from '../middleware/tenantContext'
 import { sendSuccess, sendError, sendNotFound } from '../utils/response'
 import { uploadMultipleImages } from '../utils/cloudinary'
-import { sendPushNotification } from '../utils/notifications'
+import { appEvents, Events } from '../events/emitter'
 
 const router = Router()
 
@@ -81,30 +81,16 @@ router.post(
       })
 
       // Notify all admins and builders
-      const adminMembers = await prisma.membership.findMany({
-        where: {
-          orgId,
-          isActive: true,
-          role: {
-            name: { in: ['Builder', 'Admin'] }
-          }
-        },
-        select: { userId: true }
-      })
-
       const raiser = await prisma.person.findFirst({
         where: { userId: req.user!.userId }
       })
-
-      const raiserName = raiser?.fullName || 'A resident'
-
-      for (const member of adminMembers) {
-        await sendPushNotification(
-          member.userId,
-          'New Complaint',
-          `${raiserName}: ${title}`
-        )
-      }
+      appEvents.emit(Events.COMPLAINT_CREATED, {
+        orgId,
+        complaintId: complaint.id,
+        title:       complaint.title,
+        raisedBy:    raiser?.fullName || 'A resident',
+        raisedByUserId: req.user!.userId,
+      })
 
       return sendSuccess(res, {
         id:         complaint.id,
@@ -363,39 +349,29 @@ router.patch(
 
       // Notify complainant if admin resolved/rejected
       if (userId !== complaint.raisedBy) {
-        const notifTitle = status === 'RESOLVED'
-          ? 'Complaint Resolved'
-          : 'Complaint Update'
-        const notifBody = status === 'RESOLVED'
-          ? 'Your complaint has been resolved'
-          : 'Your complaint was not accepted'
-
-        await sendPushNotification(complaint.raisedBy, notifTitle, notifBody)
-      }
-
-      // Notify admin if resident resolved own complaint
-      if (userId === complaint.raisedBy && status === 'RESOLVED') {
-        const adminMembers = await prisma.membership.findMany({
-          where: {
-            orgId,
-            isActive: true,
-            role: { name: { in: ['Builder', 'Admin'] } }
-          },
-          select: { userId: true }
+        const event = status === 'RESOLVED'
+          ? Events.COMPLAINT_RESOLVED
+          : Events.COMPLAINT_REJECTED
+        appEvents.emit(event, {
+          orgId,
+          complaintId: complaint.id,
+          title:       complaint.title,
+          raisedByUserId: complaint.raisedBy,
         })
-
+      }
+      // Notify admins if resident resolved own complaint
+      if (userId === complaint.raisedBy && status === 'RESOLVED') {
         const raiser = await prisma.person.findFirst({
           where: { userId }
         })
-        const raiserName = raiser?.fullName ?? 'A resident'
-
-        for (const member of adminMembers) {
-          await sendPushNotification(
-            member.userId,
-            'Complaint Closed',
-            `${raiserName} marked their complaint as resolved`
-          )
-        }
+        appEvents.emit(Events.COMPLAINT_RESOLVED, {
+          orgId,
+          complaintId: complaint.id,
+          title:       complaint.title,
+          raisedBy:    raiser?.fullName ?? 'A resident',
+          raisedByUserId: userId,
+          selfResolved: true,
+        })
       }
 
       return sendSuccess(res, {
