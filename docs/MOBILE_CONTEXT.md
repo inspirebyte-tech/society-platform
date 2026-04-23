@@ -230,10 +230,20 @@ PATCH /societies/:id/complaints/:complaintId
     Admin only (insufficient_permissions for residents)
   Errors: already_resolved, already_rejected, rejection_reason_required
 
-### Notification Setup
-  POST /auth/device-token
-  Body: { token: "ExponentPushToken[...]", platform: "ANDROID" }
-  Call after login — register device for push notifications
+Token registered in AuthContext after login.
+Permission requested on first login via registerDeviceToken().
+Token stored in SecureStore — only re-registered when changed.
+
+Foreground handler: setupNotificationHandler() in App.tsx
+Shows notification banner even when app is open.
+
+Tap handler: handleNotificationResponse() in App.tsx
+Deep link map in notifications.ts — add new screens here.
+
+Current deep links:
+  ComplaintDetail → opens complaint with complaintId
+  Announcements → opens announcements list
+  Dashboard → opens dashboard
   
 ---
 

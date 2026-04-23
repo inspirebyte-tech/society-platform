@@ -395,3 +395,33 @@ Caret ranges caused version mismatches between local Windows install and EAS Lin
 When adding new react-native packages that have peer dependency on react — check react-native's bundled renderer version first.
 Never use ^ for react or react-dom in this project.
 Always delete package-lock.json and reinstall after any react version change.
+
+## Decision 035 — Event-driven notification architecture
+**Date:** April 2026
+**Decision:** Notifications use event emitter pattern.
+Routes emit events. Dispatcher listens and sends.
+Rules file is the single source of truth for
+who gets notified and what message they receive.
+
+**Adding new notification:**
+  1. Add event name to events/emitter.ts
+  2. Add rule to notifications/rules.ts
+  3. Emit event from route
+
+**Why not direct calls:**
+  Direct calls couple business logic to notification logic.
+  Event-driven keeps routes clean and notification
+  behaviour changeable without touching routes.
+
+## Decision 036 — FCM V1 over Legacy for Android push
+**Date:** 23 April 2026
+**Decision:** Use FCM V1 (service account) not FCM Legacy (server key).
+Legacy deprecated by Google. V1 is more secure.
+Service account JSON stored as EAS secret — never in git.
+
+## Decision 037 — Single device token per user per device
+**Date:** April 2026
+**Decision:** Token stored in SecureStore on device.
+Only re-registered when token changes.
+Max 5 tokens per user (multiple devices supported).
+Token reassigned to new userId when user switches accounts on same device — expected behaviour.
