@@ -15,6 +15,9 @@ import { UnitInventoryScreen } from '../screens/units/UnitInventoryScreen'
 import { UnitDetailScreen } from '../screens/units/UnitDetailScreen'
 import { AssignUnitScreen } from '../screens/units/AssignUnitScreen'
 import { MyHomeScreen } from '../screens/units/MyHomeScreen'
+import { AnnouncementsListScreen } from '../screens/announcements/AnnouncementsListScreen'
+import { CreateAnnouncementScreen } from '../screens/announcements/CreateAnnouncementScreen'
+import { AnnouncementDetailScreen } from '../screens/announcements/AnnouncementDetailScreen'
 import { Colors } from '../constants/colors'
 
 export type AppStackParamList = {
@@ -39,6 +42,9 @@ export type AppStackParamList = {
     prefillUnitName?: string
   }
   MyHome: { societyId: string; memberId: string }
+  AnnouncementsList: { societyId: string }
+  CreateAnnouncement: { societyId: string }
+  AnnouncementDetail: { societyId: string; announcementId: string }
 }
 
 const Stack = createNativeStackNavigator<AppStackParamList>()
@@ -79,6 +85,9 @@ export function AppNavigator({ initialSocietyId }: AppNavigatorProps) {
       <Stack.Screen name="UnitDetail" component={UnitDetailScreen} options={({ route }) => ({ title: route.params.unitName })} />
       <Stack.Screen name="AssignUnit" component={AssignUnitScreen} options={{ title: 'Assign Unit' }} />
       <Stack.Screen name="MyHome" component={MyHomeScreen} options={{ title: 'My Home' }} />
+      <Stack.Screen name="AnnouncementsList" component={AnnouncementsListScreen} options={{ title: 'Announcements' }} />
+      <Stack.Screen name="CreateAnnouncement" component={CreateAnnouncementScreen} options={{ title: 'New Announcement' }} />
+      <Stack.Screen name="AnnouncementDetail" component={AnnouncementDetailScreen} options={{ title: 'Announcement' }} />
     </Stack.Navigator>
   )
 }

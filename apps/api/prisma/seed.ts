@@ -87,6 +87,12 @@ async function main() {
     { name: 'complaint.resolve_any', module: 'complaints', description: 'Resolve any complaint' },
     { name: 'complaint.reject',      module: 'complaints', description: 'Reject a complaint with reason' },
 
+    // Announcement
+    { name: 'announcement.create', module: 'announcements', description: 'Create announcements' },
+    { name: 'announcement.delete', module: 'announcements', description: 'Delete announcements' },
+    { name: 'announcement.pin',    module: 'announcements', description: 'Pin announcements' },
+    { name: 'announcement.view',   module: 'announcements', description: 'View announcements' },
+
     // Units
     { name: 'unit.assign',    module: 'units', description: 'Assign ownership and occupancy to units' },
     { name: 'unit.view_all',  module: 'units', description: 'View all units and assignments in society' },
@@ -117,7 +123,11 @@ async function main() {
       'visitor.view_live', 'visitor.view_emergency',
       'emergency.declare', 'emergency.view',
       'role.create', 'role.assign', 'role.view',
-      'unit.assign', 'unit.view_all'
+      'unit.assign', 'unit.view_all',
+      'announcement.create',
+      'announcement.delete', 
+      'announcement.pin',
+      'announcement.view'
     ],
 
     Admin: [
@@ -135,7 +145,11 @@ async function main() {
       'asset.create', 'asset.book', 'asset.view', 'asset.manage_booking',
       'role.create', 'role.assign', 'role.view',
       'complaint.view_all', 'complaint.resolve_any', 'complaint.reject',
-      'unit.assign', 'unit.view_all'
+      'unit.assign', 'unit.view_all',
+      'announcement.create',
+      'announcement.delete',
+      'announcement.pin', 
+      'announcement.view'     
     ],
 
     Resident: [
@@ -148,7 +162,7 @@ async function main() {
       'emergency.declare', 'emergency.view',
       'asset.book', 'asset.view',
       'co_resident.invite',
-      'unit.view_own'
+      'unit.view_own', 'announcement.view'
     ],
 
     'Co-resident': [
@@ -160,13 +174,15 @@ async function main() {
       'poll.vote', 'poll.view',
       'emergency.declare', 'emergency.view',
       'asset.book', 'asset.view',
-      'unit.view_own'
+      'unit.view_own',
+      'announcement.view'
     ],
 
     Gatekeeper: [
       'society.view',
       'visitor.log', 'visitor.view_live',
-      'emergency.declare', 'emergency.view'
+      'emergency.declare', 'emergency.view',
+      'announcement.view'
     ]
   }
 
@@ -202,11 +218,15 @@ async function main() {
         where: { name: permName }
       })
       if (permission) {
-        await prisma.rolePermission.create({
-          data: {
-            roleId: role.id,
-            permissionId: permission.id
-          }
+        await prisma.rolePermission.upsert({
+          where: {
+            roleId_permissionId: {
+              roleId: role.id,
+              permissionId: permission.id
+            }
+          },
+          update: {},
+          create: { roleId: role.id, permissionId: permission.id }
         })
       } else {
         console.warn(`Permission not found: ${permName}`)
