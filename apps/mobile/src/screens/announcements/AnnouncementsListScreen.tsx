@@ -94,6 +94,7 @@ export function AnnouncementsListScreen({ route, navigation }: Props) {
     const colors = CATEGORY_COLORS[item.category]
     return (
       <Pressable
+        onPress={() => navigation.navigate('AnnouncementDetail', { societyId, announcementId: item.id })}
         style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       >
         <View style={[styles.rowIcon, { backgroundColor: colors.bg }]}>
