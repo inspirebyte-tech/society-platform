@@ -26,7 +26,7 @@ export function WelcomeScreen({ navigation }: Props) {
   if (!fontsLoaded) return null
 
   return (
-    <LinearGradient colors={['#2f3e4e', '#3730a3']} style={styles.root}>
+    <LinearGradient colors={['#2f3e4e', '#4a5d73']} style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={BRAND} translucent={false} />
 
       {/* ── Brand area ── */}
