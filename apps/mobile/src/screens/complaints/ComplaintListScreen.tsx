@@ -21,6 +21,7 @@ import { listComplaints, ComplaintListItem, ComplaintStatus } from '../../servic
 import { CATEGORY_LABEL, CATEGORY_ICON, STATUS_LABEL, STATUS_COLORS } from '../../utils/complaintMeta'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Ionicons } from '@expo/vector-icons'
 
 type Props = NativeStackScreenProps<AppStackParamList, 'ComplaintList'>
 
@@ -146,7 +147,11 @@ export function ComplaintListScreen({ route, navigation }: Props) {
         style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       >
         <View style={styles.rowIcon}>
-          <Text style={styles.rowIconText}>{CATEGORY_ICON[c.category] ?? '📋'}</Text>
+          <Ionicons
+            name={CATEGORY_ICON[c.category] ?? 'document-text-outline'}
+            size={20}
+            color={Colors.primary}
+          />
         </View>
         <View style={styles.rowContent}>
           <View style={styles.rowTop}>
@@ -365,7 +370,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  rowIconText: { fontSize: 18 },
   rowContent: { flex: 1, gap: 4 },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   rowTitle: { flex: 1, fontSize: 15, fontWeight: '600', color: Colors.text },

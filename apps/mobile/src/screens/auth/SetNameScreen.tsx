@@ -21,7 +21,7 @@ import { Colors } from '../../constants/colors'
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SetName'>
 
-const BRAND = '#4338ca'
+const BRAND = '#2f3e4e'
 
 export function SetNameScreen({ route, navigation }: Props) {
   const { requiresOrgSelection, memberships, currentOrgId } = route.params
@@ -70,7 +70,7 @@ export function SetNameScreen({ route, navigation }: Props) {
   if (!fontsLoaded) return null
 
   return (
-    <LinearGradient colors={['#4338ca', '#3730a3']} style={styles.root}>
+    <LinearGradient colors={['#2f3e4e', '#3730a3']} style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={BRAND} translucent={false} />
 
       {/* ── Top: gradient header ── */}

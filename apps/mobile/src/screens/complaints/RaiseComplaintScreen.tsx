@@ -21,6 +21,7 @@ import { getApiErrorCode, getApiErrorDetails } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Ionicons } from '@expo/vector-icons'
 
 type Props = NativeStackScreenProps<AppStackParamList, 'RaiseComplaint'>
 
@@ -186,31 +187,74 @@ export function RaiseComplaintScreen({ route, navigation }: Props) {
 
       {/* Visibility toggle */}
       <View style={styles.field}>
-        <Text style={styles.fieldLabel}>Visibility</Text>
-        <View style={styles.visibilityRow}>
-          <Pressable
-            onPress={() => setVisibility('PRIVATE')}
-            style={[styles.visibilityCard, visibility === 'PRIVATE' && styles.visibilityCardActive]}
-          >
-            <Text style={styles.visibilityIcon}>🔒</Text>
-            <Text style={[styles.visibilityLabel, visibility === 'PRIVATE' && styles.visibilityLabelActive]}>
-              Private
-            </Text>
-            <Text style={styles.visibilityDesc}>Only admins can see this</Text>
-          </Pressable>
+            <Text style={styles.fieldLabel}>Visibility</Text>
 
-          <Pressable
-            onPress={() => setVisibility('PUBLIC')}
-            style={[styles.visibilityCard, visibility === 'PUBLIC' && styles.visibilityCardActive]}
-          >
-            <Text style={styles.visibilityIcon}>🌐</Text>
-            <Text style={[styles.visibilityLabel, visibility === 'PUBLIC' && styles.visibilityLabelActive]}>
-              Public
-            </Text>
-            <Text style={styles.visibilityDesc}>Visible to all residents</Text>
-          </Pressable>
-        </View>
-      </View>
+            <View style={styles.visibilityRow}>
+
+              {/* Private */}
+              <Pressable
+                onPress={() => setVisibility('PRIVATE')}
+                style={[
+                  styles.visibilityCard,
+                  visibility === 'PRIVATE' && styles.visibilityCardActive,
+                ]}
+              >
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={22}
+                  color={visibility === 'PRIVATE'
+                    ? Colors.primary
+                    : Colors.subtle}
+                  style={styles.visibilityIcon}
+                />
+
+                <Text
+                  style={[
+                    styles.visibilityLabel,
+                    visibility === 'PRIVATE' && styles.visibilityLabelActive,
+                  ]}
+                >
+                  Private
+                </Text>
+
+                <Text style={styles.visibilityDesc}>
+                  Only admins can see this
+                </Text>
+              </Pressable>
+
+              {/* Public */}
+              <Pressable
+                onPress={() => setVisibility('PUBLIC')}
+                style={[
+                  styles.visibilityCard,
+                  visibility === 'PUBLIC' && styles.visibilityCardActive,
+                ]}
+              >
+                <Ionicons
+                  name="globe-outline"
+                  size={22}
+                  color={visibility === 'PUBLIC'
+                    ? Colors.primary
+                    : Colors.subtle}
+                  style={styles.visibilityIcon}
+                />
+
+                <Text
+                  style={[
+                    styles.visibilityLabel,
+                    visibility === 'PUBLIC' && styles.visibilityLabelActive,
+                  ]}
+                >
+                  Public
+                </Text>
+
+                <Text style={styles.visibilityDesc}>
+                  Visible to all residents
+                </Text>
+              </Pressable>
+
+            </View>
+          </View>
 
       {/* Image picker */}
       <View style={styles.field}>
@@ -338,7 +382,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     backgroundColor: '#ede9fe',
   },
-  visibilityIcon: { fontSize: 22 },
+  visibilityIcon: { marginBottom: 6 },
   visibilityLabel: {
     fontSize: 14,
     fontWeight: '600',

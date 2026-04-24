@@ -20,6 +20,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { listAnnouncements, Announcement, AnnouncementCategory } from '../../services/announcements'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Ionicons } from '@expo/vector-icons'
 
 type Props = NativeStackScreenProps<AppStackParamList, 'AnnouncementsList'>
 
@@ -34,13 +35,16 @@ const FILTERS: { label: string; value: CategoryFilter }[] = [
   { label: 'Celebration', value: 'CELEBRATION' },
 ]
 
-const CATEGORY_ICON: Record<AnnouncementCategory, string> = {
-  GENERAL:     '📢',
-  MAINTENANCE: '🔧',
-  MEETING:     '👥',
-  EMERGENCY:   '🚨',
-  CELEBRATION: '🎉',
-}
+const CATEGORY_ICON: Record<
+  AnnouncementCategory,
+  keyof typeof Ionicons.glyphMap
+  > = {
+    GENERAL:     'megaphone-outline',
+    MAINTENANCE: 'construct-outline',
+    MEETING:     'people-outline',
+    EMERGENCY:   'warning-outline',
+    CELEBRATION: 'sparkles-outline',
+  }
 
 const CATEGORY_COLORS: Record<AnnouncementCategory, { bg: string; text: string; icon: string }> = {
   GENERAL:     { bg: '#f3f4f6', text: '#6b7280', icon: '#9ca3af' },
@@ -98,14 +102,24 @@ export function AnnouncementsListScreen({ route, navigation }: Props) {
         style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       >
         <View style={[styles.rowIcon, { backgroundColor: colors.bg }]}>
-          <Text style={styles.rowIconText}>{CATEGORY_ICON[item.category]}</Text>
+          <Ionicons
+            name={CATEGORY_ICON[item.category]}
+            size={20}
+            color={colors.icon}
+          />
         </View>
         <View style={styles.rowContent}>
           <View style={styles.rowTop}>
             <Text style={styles.rowTitle} numberOfLines={1}>
               {item.title}
             </Text>
-            {item.isPinned ? <Text style={styles.pinIcon}>📌</Text> : null}
+            {item.isPinned ? (
+                <Ionicons
+                  name="pin"
+                  size={14}
+                  color={Colors.subtle}
+                />
+              ) : null}
           </View>
           <Text style={styles.rowBody} numberOfLines={2}>
             {item.body}
@@ -262,7 +276,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  rowIconText: { fontSize: 18 },
   rowContent: { flex: 1, gap: 4 },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   rowTitle: { flex: 1, fontSize: 15, fontWeight: '600', color: Colors.text },
