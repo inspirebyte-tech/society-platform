@@ -27,15 +27,19 @@ import { getApiErrorCode } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Ionicons } from '@expo/vector-icons'
 
 type Props = NativeStackScreenProps<AppStackParamList, 'AnnouncementDetail'>
 
-const CATEGORY_ICON: Record<AnnouncementCategory, string> = {
-  GENERAL:     '📢',
-  MAINTENANCE: '🔧',
-  MEETING:     '👥',
-  EMERGENCY:   '🚨',
-  CELEBRATION: '🎉',
+const CATEGORY_ICON: Record<
+  AnnouncementCategory,
+  keyof typeof Ionicons.glyphMap
+> = {
+  GENERAL:     'megaphone-outline',
+  MAINTENANCE: 'construct-outline',
+  MEETING:     'people-outline',
+  EMERGENCY:   'warning-outline',
+  CELEBRATION: 'sparkles-outline',
 }
 
 const CATEGORY_COLORS: Record<AnnouncementCategory, { bg: string; text: string }> = {
@@ -122,7 +126,11 @@ export function AnnouncementDetailScreen({ route, navigation }: Props) {
         {/* Badges row */}
         <View style={styles.badgeRow}>
           <View style={[styles.categoryBadge, { backgroundColor: colors.bg }]}>
-            <Text style={styles.categoryIcon}>{CATEGORY_ICON[announcement.category]}</Text>
+            <Ionicons
+              name={CATEGORY_ICON[announcement.category]}
+              size={20}
+              color={Colors.primary}
+            />
             <Text style={[styles.categoryText, { color: colors.text }]}>
               {announcement.category.charAt(0) + announcement.category.slice(1).toLowerCase()}
             </Text>

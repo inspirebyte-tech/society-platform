@@ -9,7 +9,7 @@ export default {
     splash: {
       image: "./assets/splash.png",
       resizeMode: "cover",
-      backgroundColor: "#4338ca"
+      backgroundColor: "#2f3e4e"
     },
     ios: {
       supportsTablet: true
@@ -18,7 +18,7 @@ export default {
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
-        backgroundColor: "#4338ca"
+        backgroundColor: "#2f3e4e"
       },
       package: "com.inspirebyte.vaastio",
       edgeToEdgeEnabled: false,

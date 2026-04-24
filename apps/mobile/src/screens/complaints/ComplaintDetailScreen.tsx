@@ -25,6 +25,7 @@ import { getApiErrorCode } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Ionicons } from '@expo/vector-icons'
 
 type Props = NativeStackScreenProps<AppStackParamList, 'ComplaintDetail'>
 
@@ -168,14 +169,32 @@ export function ComplaintDetailScreen({ route }: Props) {
         {/* Category + Visibility tags */}
         <View style={styles.tagsRow}>
           <View style={styles.tag}>
-            <Text style={styles.tagText}>
-              {CATEGORY_ICON[complaint.category]}{'  '}{CATEGORY_LABEL[complaint.category]}
-            </Text>
+            <View style={styles.tagRow}>
+              <Ionicons
+                name={CATEGORY_ICON[complaint.category] ?? 'document-text-outline'}
+                size={16}
+                color={Colors.primary}
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.tagText}>
+                {CATEGORY_LABEL[complaint.category]}
+              </Text>
+            </View>
           </View>
           <View style={styles.tag}>
-            <Text style={styles.tagText}>
-              {complaint.visibility === 'PUBLIC' ? '🌐  Public' : '🔒  Private'}
-            </Text>
+            <View style={styles.tagRow}>
+              <Ionicons
+                name={complaint.visibility === 'PUBLIC'
+                  ? 'globe-outline'
+                  : 'lock-closed-outline'}
+                size={16}
+                color={Colors.primary}
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.tagText}>
+                {complaint.visibility === 'PUBLIC' ? 'Public' : 'Private'}
+              </Text>
+            </View>
           </View>
         </View>
 

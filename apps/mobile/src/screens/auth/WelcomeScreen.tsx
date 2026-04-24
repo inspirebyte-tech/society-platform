@@ -9,7 +9,7 @@ import { AuthStackParamList } from '../../navigation/AuthNavigator'
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Welcome'>
 
-const BRAND = '#4338ca'
+const BRAND = '#2f3e4e'
 
 const FEATURES: React.ComponentProps<typeof Ionicons>['name'][] = [
   'business-outline',
@@ -26,13 +26,13 @@ export function WelcomeScreen({ navigation }: Props) {
   if (!fontsLoaded) return null
 
   return (
-    <LinearGradient colors={['#4338ca', '#3730a3']} style={styles.root}>
+    <LinearGradient colors={['#2f3e4e', '#3730a3']} style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={BRAND} translucent={false} />
 
       {/* ── Brand area ── */}
       <View style={[styles.top, { paddingTop: insets.top + 24 }]}>
         <Image
-          source={require('../../../assets/icon.png')}
+          source={require('../../../assets/logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -81,7 +81,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 92,
     height: 116,
-    tintColor: '#fff',
     marginBottom: 4,
   },
   appName: {

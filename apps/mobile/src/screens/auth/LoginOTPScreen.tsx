@@ -25,7 +25,7 @@ import { Colors } from '../../constants/colors'
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginOTP'>
 
 const OTP_LENGTH = 6
-const BRAND = '#4338ca'
+const BRAND = '#2f3e4e'
 
 export function LoginOTPScreen({ route, navigation }: Props) {
   const { phone } = route.params
@@ -125,7 +125,7 @@ export function LoginOTPScreen({ route, navigation }: Props) {
   if (!fontsLoaded) return null
 
   return (
-    <LinearGradient colors={['#4338ca', '#3730a3']} style={styles.root}>
+    <LinearGradient colors={['#2f3e4e', '#3730a3']} style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={BRAND} translucent={false} />
 
       {/* ── Top: gradient header ── */}
