@@ -25,6 +25,7 @@ import { getApiErrorCode } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
+import { Ionicons } from '@expo/vector-icons'
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Dashboard'>
 
@@ -218,7 +219,7 @@ export function DashboardScreen({ route, navigation }: Props) {
             <View style={styles.actionsList}>
               {canViewAnnouncements ? (
                 <ActionRow
-                  icon="📢"
+                  icon="megaphone-outline"
                   label="Announcements"
                   subtitle="Society notices and updates"
                   onPress={() => navigation.navigate('AnnouncementsList', { societyId })}
@@ -226,7 +227,7 @@ export function DashboardScreen({ route, navigation }: Props) {
               ) : null}
               {canViewStructure ? (
                 <ActionRow
-                  icon="🏗"
+                  icon="business-outline"
                   label="Manage Structure"
                   subtitle="Towers, wings, and units"
                   onPress={() => navigation.navigate('Structure', { societyId })}
@@ -234,7 +235,7 @@ export function DashboardScreen({ route, navigation }: Props) {
               ) : null}
               {canInvite ? (
                 <ActionRow
-                  icon="✉️"
+                  icon="mail-outline"
                   label="Invite Member"
                   subtitle="Send invitation via SMS"
                   onPress={() => navigation.navigate('InviteMember', { societyId })}
@@ -242,7 +243,7 @@ export function DashboardScreen({ route, navigation }: Props) {
               ) : null}
               {canViewMembers ? (
                 <ActionRow
-                  icon="👥"
+                  icon="people-outline"
                   label="View Members"
                   subtitle="Active residents and staff"
                   onPress={() => navigation.navigate('MemberList', { societyId })}
@@ -250,7 +251,7 @@ export function DashboardScreen({ route, navigation }: Props) {
               ) : null}
               {canViewComplaints ? (
                 <ActionRow
-                  icon="📋"
+                  icon="warning-outline"
                   label="Complaints"
                   subtitle="View and raise complaints"
                   onPress={() => navigation.navigate('ComplaintList', { societyId })}
@@ -258,7 +259,7 @@ export function DashboardScreen({ route, navigation }: Props) {
               ) : null}
               {canViewUnitInventory ? (
                 <ActionRow
-                  icon="🏢"
+                  icon="clipboard-outline"
                   label="Unit Inventory"
                   subtitle="All flats, owners, and occupants"
                   onPress={() => navigation.navigate('UnitInventory', { societyId })}
@@ -266,7 +267,7 @@ export function DashboardScreen({ route, navigation }: Props) {
               ) : null}
               {canViewMyHome && currentMemberId ? (
                 <ActionRow
-                  icon="🏠"
+                  icon="home-outline"
                   label="My Home"
                   subtitle="Your flat details and co-occupants"
                   onPress={() => navigation.navigate('MyHome', { societyId, memberId: currentMemberId })}
@@ -274,7 +275,7 @@ export function DashboardScreen({ route, navigation }: Props) {
               ) : null}
               {canSwitchSociety ? (
                 <ActionRow
-                  icon="🔀"
+                  icon="swap-horizontal-outline"
                   label="Switch Society"
                   subtitle="You belong to multiple societies"
                   onPress={() => navigation.navigate('SwitchSociety')}
@@ -351,25 +352,31 @@ export function DashboardScreen({ route, navigation }: Props) {
 // ─── Action Row ──────────────────────────────────────────────────────────────
 
 interface ActionRowProps {
-  icon: string
-  label: string
-  subtitle: string
-  onPress: () => void
+  icon: keyof typeof Ionicons.glyphMap
 }
 
 function ActionRow({ icon, label, subtitle, onPress }: ActionRowProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.actionRow, pressed && styles.actionRowPressed]}
+      style={({ pressed }) => [
+        styles.actionRow,
+        pressed && styles.actionRowPressed,
+      ]}
     >
       <View style={styles.actionIcon}>
-        <Text style={styles.actionIconText}>{icon}</Text>
+        <Ionicons
+          name={icon}
+          size={20}
+          color={Colors.primary}
+        />
       </View>
+
       <View style={styles.actionText}>
         <Text style={styles.actionLabel}>{label}</Text>
         <Text style={styles.actionSubtitle}>{subtitle}</Text>
       </View>
+
       <Text style={styles.actionChevron}>›</Text>
     </Pressable>
   )
