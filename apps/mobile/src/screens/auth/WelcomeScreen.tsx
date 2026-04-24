@@ -14,7 +14,9 @@ const BRAND = '#4338ca'
 const FEATURES: React.ComponentProps<typeof Ionicons>['name'][] = [
   'business-outline',
   'people-outline',
-  'chatbubble-ellipses-outline',
+  'warning-outline',
+  'notifications-outline',
+  'megaphone-outline'
 ]
 
 export function WelcomeScreen({ navigation }: Props) {
@@ -41,7 +43,7 @@ export function WelcomeScreen({ navigation }: Props) {
         <View style={styles.bubblesRow}>
           {FEATURES.map((icon) => (
             <View key={icon} style={styles.bubble}>
-              <Ionicons name={icon} size={24} color="#fff" />
+              <Ionicons name={icon} size={22} color="#fff" />
             </View>
           ))}
         </View>
@@ -103,8 +105,8 @@ const styles = StyleSheet.create({
     marginTop: 20,   // gap:12 + marginTop:20 = 32px from tagline
   },
   bubble: {
-    width: 52,
-    height: 52,
+    width: 48,
+    height: 48,
     borderRadius: 26,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
