@@ -24,7 +24,7 @@ import { Colors } from '../../constants/colors'
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginPhone'>
 
-const BRAND = '#4338ca'
+const BRAND = '#2f3e4e'
 
 export function LoginPhoneScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets()
@@ -62,7 +62,7 @@ export function LoginPhoneScreen({ navigation }: Props) {
   if (!fontsLoaded) return null
 
   return (
-    <LinearGradient colors={['#4338ca', '#3730a3']} style={styles.root}>
+    <LinearGradient colors={['#2f3e4e', '#3730a3']} style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={BRAND} translucent={false} />
 
       {/* ── Top: gradient header ── */}
