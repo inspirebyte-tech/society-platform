@@ -32,7 +32,7 @@ export function WelcomeScreen({ navigation }: Props) {
       {/* ── Brand area ── */}
       <View style={[styles.top, { paddingTop: insets.top + 24 }]}>
         <Image
-          source={require('../../../assets/icon.png')}
+          source={require('../../../assets/logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -81,7 +81,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 92,
     height: 116,
-    tintColor: '#fff',
     marginBottom: 4,
   },
   appName: {
