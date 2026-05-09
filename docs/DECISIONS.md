@@ -425,3 +425,40 @@ Service account JSON stored as EAS secret — never in git.
 Only re-registered when token changes.
 Max 5 tokens per user (multiple devices supported).
 Token reassigned to new userId when user switches accounts on same device — expected behaviour.
+
+## Decision 038 — No timeout auto-allow
+**Date:** 9 May 2026
+  Entry stays PENDING indefinitely until gatekeeper acts.
+  No automatic state changes.
+  Gatekeeper is always responsible for final decision.
+  If resident doesn't respond: gatekeeper calls on phone,
+  then manually marks ALLOWED or TURNED_AWAY.
+  All manual overrides are logged with gatekeeper's userId.
+
+## Decision 039 — Pre-approval is single-use
+**Date:** 9 May 2026
+  Each pre-approval can only be used once.
+  For recurring visitors (painting contractor this week):
+  Resident marks them as FREQUENT instead.
+  Keeps pre-approval clean and auditable.
+
+## Decision 040 — Frequent visitor: gatekeeper decides
+**Date:** 9 May 2026
+  When frequent visitor arrives, gatekeeper sees FREQUENT badge.
+  Gatekeeper can allow directly without notifying resident.
+  OR can still notify — their choice.
+  Resident controls who is marked frequent.
+  Resident can revoke frequent status anytime.
+
+## Decision 041 — Visitor record is society-scoped
+**Date:** 9 May 2026
+  Same person visiting twice = one visitor record, many entries.
+  Gatekeeper searches before creating to avoid duplicates.
+  Visitor record stores photo from most recent visit.
+
+## Decision 042 — All occupants notified for approval
+**Date:** 9 May 2026
+  When visitor arrives for Flat 4B:
+  All active occupants (Arjun + Meera) get notified.
+  First to respond wins — PENDING → APPROVED/DENIED.
+  Second responder sees entry already decided.
