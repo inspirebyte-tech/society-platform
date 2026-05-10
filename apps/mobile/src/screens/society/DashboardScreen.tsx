@@ -140,9 +140,15 @@ export function DashboardScreen({ route, navigation }: Props) {
   const currentMembership = memberships.find((m) => m.org.id === societyId)
   const currentMemberId = currentMembership?.id ?? null
 
+  const canLogVisitor = permissions.includes('visitor.log')
+  const canViewActiveVisitors = permissions.includes('visitor.view_live')
+  const canViewEntryLog = permissions.includes('visitor.view_log')
+  const canManageMyVisitors = permissions.includes('visitor.pre_approve') || permissions.includes('visitor.approve') || permissions.includes('visitor.view_own')
+
   const hasAnyAction =
     canViewAnnouncements || canViewStructure || canInvite || canViewMembers ||
-    canSwitchSociety || canViewComplaints || canViewUnitInventory || canViewMyHome
+    canSwitchSociety || canViewComplaints || canViewUnitInventory || canViewMyHome ||
+    canLogVisitor || canViewActiveVisitors || canViewEntryLog || canManageMyVisitors
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />
@@ -263,6 +269,38 @@ export function DashboardScreen({ route, navigation }: Props) {
                   label="Unit Inventory"
                   subtitle="All flats, owners, and occupants"
                   onPress={() => navigation.navigate('UnitInventory', { societyId })}
+                />
+              ) : null}
+              {canLogVisitor ? (
+                <ActionRow
+                  icon="person-add-outline"
+                  label="Log Visitor"
+                  subtitle="Register new walk-in or delivery"
+                  onPress={() => navigation.navigate('LogVisitor', { societyId })}
+                />
+              ) : null}
+              {canViewActiveVisitors ? (
+                <ActionRow
+                  icon="radio-outline"
+                  label="Active Visitors"
+                  subtitle="Visitors currently inside"
+                  onPress={() => navigation.navigate('ActiveVisitors', { societyId })}
+                />
+              ) : null}
+              {canViewEntryLog ? (
+                <ActionRow
+                  icon="list-outline"
+                  label="Entry Log"
+                  subtitle="History of all visitors"
+                  onPress={() => navigation.navigate('EntryLog', { societyId })}
+                />
+              ) : null}
+              {canManageMyVisitors ? (
+                <ActionRow
+                  icon="people-circle-outline"
+                  label="My Visitors"
+                  subtitle="Pre-approvals and recent visits"
+                  onPress={() => navigation.navigate('MyVisitors', { societyId })}
                 />
               ) : null}
               {canViewMyHome && currentMemberId ? (
