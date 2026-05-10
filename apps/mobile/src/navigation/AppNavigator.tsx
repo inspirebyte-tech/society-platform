@@ -18,6 +18,11 @@ import { MyHomeScreen } from '../screens/units/MyHomeScreen'
 import { AnnouncementsListScreen } from '../screens/announcements/AnnouncementsListScreen'
 import { CreateAnnouncementScreen } from '../screens/announcements/CreateAnnouncementScreen'
 import { AnnouncementDetailScreen } from '../screens/announcements/AnnouncementDetailScreen'
+import { LogVisitorScreen } from '../screens/visitors/LogVisitorScreen'
+import { ActiveVisitorsScreen } from '../screens/visitors/ActiveVisitorsScreen'
+import { EntryLogScreen } from '../screens/visitors/EntryLogScreen'
+import { VisitorApprovalScreen } from '../screens/visitors/VisitorApprovalScreen'
+import { MyVisitorsScreen } from '../screens/visitors/MyVisitorsScreen'
 import { Colors } from '../constants/colors'
 
 export type AppStackParamList = {
@@ -45,7 +50,11 @@ export type AppStackParamList = {
   AnnouncementsList: { societyId: string }
   CreateAnnouncement: { societyId: string }
   AnnouncementDetail: { societyId: string; announcementId: string }
-}
+  LogVisitor: { societyId: string }
+  ActiveVisitors: { societyId: string }
+  EntryLog: { societyId: string }
+  VisitorApproval: { societyId: string; entryId: string }
+  MyVisitors: { societyId: string }
 
 const Stack = createNativeStackNavigator<AppStackParamList>()
 
@@ -88,6 +97,11 @@ export function AppNavigator({ initialSocietyId }: AppNavigatorProps) {
       <Stack.Screen name="AnnouncementsList" component={AnnouncementsListScreen} options={{ title: 'Announcements' }} />
       <Stack.Screen name="CreateAnnouncement" component={CreateAnnouncementScreen} options={{ title: 'New Announcement' }} />
       <Stack.Screen name="AnnouncementDetail" component={AnnouncementDetailScreen} options={{ title: 'Announcement' }} />
+      <Stack.Screen name="LogVisitor" component={LogVisitorScreen} options={{ title: 'Log Visitor' }} />
+      <Stack.Screen name="ActiveVisitors" component={ActiveVisitorsScreen} options={{ title: 'Active Visitors' }} />
+      <Stack.Screen name="EntryLog" component={EntryLogScreen} options={{ title: 'Visitor Log' }} />
+      <Stack.Screen name="VisitorApproval" component={VisitorApprovalScreen} options={{ title: '', headerShown: false }} />
+      <Stack.Screen name="MyVisitors" component={MyVisitorsScreen} options={{ title: 'My Visitors' }} />
     </Stack.Navigator>
   )
 }

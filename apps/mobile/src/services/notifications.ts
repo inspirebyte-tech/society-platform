@@ -62,6 +62,21 @@ const DEEP_LINK_MAP: Record<string, (data: any) => void> = {
       navigationRef.navigate('Dashboard' as never)
     }
   },
+  'VisitorApproval': (data) => {
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('VisitorApproval' as never, {
+        societyId: data.orgId,
+        entryId: data.entryId,
+      } as never)
+    }
+  },
+  'ActiveVisitors': (data) => {
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('ActiveVisitors' as never, {
+        societyId: data.orgId,
+      } as never)
+    }
+  },
 }
 
 // ─────────────────────────────────────────────
