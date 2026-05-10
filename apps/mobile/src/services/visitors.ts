@@ -137,3 +137,8 @@ export async function markFrequent(societyId: string, visitorId: string, unitId:
 export async function removeFrequent(societyId: string, visitorId: string): Promise<void> {
   await api.delete(`/societies/${societyId}/visitors/${visitorId}/frequent`)
 }
+
+export async function getFrequentVisitors(societyId: string): Promise<Visitor[]> {
+  const res = await api.get(`/societies/${societyId}/visitors/frequent`)
+  return res.data.data.visitors
+}

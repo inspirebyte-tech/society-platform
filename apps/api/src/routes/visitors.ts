@@ -865,6 +865,64 @@ router.delete(
 )
 
 // ─────────────────────────────────────────────
+// GET /api/societies/:id/visitors/frequent
+// List frequent visitors for my units
+// ─────────────────────────────────────────────
+router.get(
+  '/:id/visitors/frequent',
+  authenticate,
+  enforceTenantContext,
+  requirePermission('visitor.mark_frequent'),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { id: orgId } = req.params
+      const userId = req.user!.userId
+
+      // Get units where user is active occupant
+      const myOccupancies = await prisma.unitOccupancy.findMany({
+        where: {
+          person: { userId },
+          occupiedUntil: null
+        },
+        select: { unitId: true }
+      })
+      
+      const myUnitIds = myOccupancies.map(o => o.unitId)
+
+      if (myUnitIds.length === 0) {
+        return sendSuccess(res, { visitors: [] })
+      }
+
+      const visitors = await prisma.visitor.findMany({
+        where: {
+          orgId,
+          isFrequent: true,
+          frequentForUnitId: { in: myUnitIds }
+        },
+        include: { frequentForUnit: true },
+        orderBy: { updatedAt: 'desc' }
+      })
+
+      return sendSuccess(res, {
+        visitors: visitors.map(v => ({
+          id: v.id,
+          name: v.name,
+          mobile: v.mobile,
+          type: v.type,
+          photoUrl: v.photoUrl,
+          frequentForUnitId: v.frequentForUnitId,
+          frequentFlatName: v.frequentForUnit?.name ?? null
+        }))
+      })
+
+    } catch (error) {
+      console.error('GET /visitors/frequent error:', error)
+      return sendError(res, 'server_error', 500)
+    }
+  }
+)
+
+// ─────────────────────────────────────────────
 // POST /api/societies/:id/visitors/:visitorId/frequent
 // Mark visitor as frequent
 // ─────────────────────────────────────────────
