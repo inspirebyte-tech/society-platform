@@ -6,6 +6,23 @@ import { enforceTenantContext } from '../middleware/tenantContext'
 import { sendSuccess, sendError, sendNotFound } from '../utils/response'
 import { appEvents, Events } from '../events/emitter'
 
+const formatEntry = (entry: any) => ({
+  id: entry.id,
+  visitorId: entry.visitorId,
+  visitorName: entry.visitor?.name ?? null,
+  visitorType: entry.visitor?.type ?? null,
+  visitorPhoto: entry.visitor?.photoUrl ?? null,
+  flatName: entry.flatName ?? null,
+  purpose: entry.purpose ?? null,
+  status: entry.status,
+  loggedByName: entry.logger?.person?.fullName ?? null,
+  notifiedAt: entry.notifiedAt?.toISOString() ?? null,
+  respondedAt: entry.respondedAt?.toISOString() ?? null,
+  enteredAt: entry.enteredAt?.toISOString() ?? null,
+  exitedAt: entry.exitedAt?.toISOString() ?? null,
+  createdAt: entry.createdAt.toISOString(),
+})
+
 const router = Router()
 
 // ─────────────────────────────────────────────
@@ -234,7 +251,7 @@ router.post(
           entryId: entry.id
         })
 
-        return sendSuccess(res, entry, 201)
+        return sendSuccess(res, formatEntry(entry), 201)
       }
 
       // Branch B: Walk-in
@@ -251,7 +268,7 @@ router.post(
           },
           include: { visitor: true }
         })
-        return sendSuccess(res, entry, 201)
+        return sendSuccess(res, formatEntry(entry), 201)
       }
 
       // Walk-in to a specific unit - notify active occupants
@@ -289,7 +306,7 @@ router.post(
         })
       }
 
-      return sendSuccess(res, entry, 201)
+      return sendSuccess(res, formatEntry(entry), 201)
 
     } catch (error) {
       console.error('POST /visitors/:id/entries error:', error)
@@ -319,21 +336,18 @@ router.get(
           exitedAt: null
         },
         include: {
-          visitor: { select: { name: true, type: true, photoUrl: true } }
+          visitor: { select: { name: true, type: true, photoUrl: true } },
+          logger: {
+            include: {
+              person: true
+            }
+         }
         },
         orderBy: { enteredAt: 'desc' }
       })
 
       return sendSuccess(res, {
-        entries: entries.map(e => ({
-          id: e.id,
-          visitorName: e.visitor.name,
-          visitorType: e.visitor.type,
-          visitorPhoto: e.visitor.photoUrl,
-          flatName: e.flatName,
-          status: e.status,
-          enteredAt: e.enteredAt
-        }))
+        entries: entries.map(formatEntry)
       })
     } catch (error) {
       console.error('GET /entries/active error:', error)
@@ -418,17 +432,7 @@ router.get(
       })
 
       return sendSuccess(res, {
-        entries: entries.map(e => ({
-          id: e.id,
-          visitorName: e.visitor.name,
-          visitorType: e.visitor.type,
-          flatName: e.flatName,
-          status: e.status,
-          loggedByName: e.logger.person?.fullName ?? 'Gatekeeper',
-          createdAt: e.createdAt,
-          enteredAt: e.enteredAt,
-          exitedAt: e.exitedAt
-        }))
+        entries: entries.map(formatEntry)
       })
 
     } catch (error) {
