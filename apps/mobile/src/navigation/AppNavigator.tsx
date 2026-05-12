@@ -55,6 +55,7 @@ export type AppStackParamList = {
   EntryLog: { societyId: string }
   VisitorApproval: { societyId: string; entryId: string }
   MyVisitors: { societyId: string }
+}
 
 const Stack = createNativeStackNavigator<AppStackParamList>()
 

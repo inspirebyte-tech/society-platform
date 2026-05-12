@@ -99,6 +99,7 @@ export const handleNotificationResponse = (
 export const setupNotificationHandler = (): void => {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
+      shouldShowBanner: true,
       shouldShowAlert: true,
       shouldPlaySound: true,
       shouldSetBadge: false,
