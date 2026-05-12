@@ -190,7 +190,8 @@ async function main() {
       'visitor.log', 'visitor.view_live',
       'emergency.declare', 'emergency.view',
       'announcement.view',
-      'visitor.view_log'
+      'visitor.view_log',
+      'unit.view_all'
     ]
   }
 
