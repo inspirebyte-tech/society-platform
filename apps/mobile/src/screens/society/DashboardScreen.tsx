@@ -133,7 +133,10 @@ export function DashboardScreen({ route, navigation }: Props) {
     permissions.includes('complaint.view_own') ||
     permissions.includes('complaint.view_all')
   const canViewAnnouncements = permissions.includes('announcement.view')
-  const canViewUnitInventory = permissions.includes('unit.view_all')
+  // unit.view_all is also granted to Gatekeepers (for flat picker in LogVisitor).
+  // Unit Inventory tile should only show for management roles (Builder/Admin) who
+  // also have unit.assign — Gatekeepers do not have that permission.
+  const canViewUnitInventory = permissions.includes('unit.view_all') && permissions.includes('unit.assign')
   const canViewMyHome = permissions.includes('unit.view_own')
 
   // memberId for MyHome — find current user's membership in this society
