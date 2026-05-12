@@ -16,7 +16,8 @@ const FEATURES: React.ComponentProps<typeof Ionicons>['name'][] = [
   'people-outline',
   'warning-outline',
   'notifications-outline',
-  'megaphone-outline'
+  'megaphone-outline',
+  'shield-checkmark-outline'
 ]
 
 export function WelcomeScreen({ navigation }: Props) {
@@ -30,7 +31,7 @@ export function WelcomeScreen({ navigation }: Props) {
       <StatusBar barStyle="light-content" backgroundColor={BRAND} translucent={false} />
 
       {/* ── Brand area ── */}
-      <View style={[styles.top, { paddingTop: insets.top + 24 }]}>
+      <View style={[styles.top, { paddingTop: insets.top + 44 }]}>
         <Image
           source={require('../../../assets/logo.png')}
           style={styles.logo}
@@ -99,15 +100,17 @@ const styles = StyleSheet.create({
   // ── Icon bubbles ──
   bubblesRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 20,
-    marginTop: 20,   // gap:12 + marginTop:20 = 32px from tagline
+    gap: 18,
+    marginTop: 24,
+    maxWidth: 220,
   },
   bubble: {
     width: 48,
     height: 48,
     borderRadius: 26,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.10)',
     alignItems: 'center',
     justifyContent: 'center',
   },
