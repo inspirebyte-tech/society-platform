@@ -90,8 +90,8 @@ export function LogVisitorScreen({ route, navigation }: Props) {
   // Load Units once
   useEffect(() => {
     listUnits(societyId)
-      .then(res => setUnits(res.units.filter(u => !u.isVacant))) // Only show non-vacant units? Actually, allow all units just in case, but usually non-vacant.
-      .catch(() => {})
+      .then(res => setUnits(res.units))
+      .catch((e) => console.error('Failed to load units:', e))
   }, [societyId])
 
   // Debounced Search

@@ -30,7 +30,8 @@ import {
   Visitor,
   VisitorEntry,
 } from '../../services/visitors'
-import { listUnits, UnitListItem } from '../../services/units'
+import { getMemberUnits } from '../../services/units'
+import { useAuth } from '../../hooks/useAuth'
 import { getApiErrorCode } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
 import { Colors } from '../../constants/colors'
@@ -39,7 +40,7 @@ import { Spacing } from '../../constants/spacing'
 type Props = NativeStackScreenProps<AppStackParamList, 'MyVisitors'>
 type TabType = 'PRE_APPROVALS' | 'FREQUENT' | 'RECENT'
 
-export function MyVisitorsScreen({ route }: Props) {
+export function MyVisitorsScreen({ route, navigation }: Props) {
   const { societyId } = route.params
 
   const [activeTab, setActiveTab] = useState<TabType>('PRE_APPROVALS')
@@ -51,7 +52,10 @@ export function MyVisitorsScreen({ route }: Props) {
   const [preApprovals, setPreApprovals] = useState<PreApproval[]>([])
   const [frequentVisitors, setFrequentVisitors] = useState<Visitor[]>([])
   const [recentVisits, setRecentVisits] = useState<VisitorEntry[]>([])
-  const [units, setUnits] = useState<UnitListItem[]>([])
+  const [units, setUnits] = useState<{ id: string; name: string }[]>([])
+
+  const { memberships } = useAuth()
+  const currentMemberId = memberships.find((m) => m.org.id === societyId)?.id
 
   // Pre-approval Form State
   const [showAddForm, setShowAddForm] = useState(false)
@@ -64,10 +68,22 @@ export function MyVisitorsScreen({ route }: Props) {
 
   // Load Units once for the form
   useEffect(() => {
-    listUnits(societyId)
-      .then(res => setUnits(res.units))
-      .catch(() => {})
-  }, [societyId])
+    if (currentMemberId) {
+      getMemberUnits(societyId, currentMemberId)
+        .then(res => {
+          const myFlats = new Map<string, { id: string; name: string }>()
+          res.occupancies.forEach(o => myFlats.set(o.flatId, { id: o.flatId, name: o.flatName }))
+          res.ownerships.forEach(o => myFlats.set(o.flatId, { id: o.flatId, name: o.flatName }))
+          
+          const uniqueFlats = Array.from(myFlats.values())
+          setUnits(uniqueFlats)
+          if (uniqueFlats.length === 1) {
+            setSelectedUnitId(uniqueFlats[0].id)
+          }
+        })
+        .catch(() => {})
+    }
+  }, [societyId, currentMemberId])
 
   const loadData = useCallback(async (isPullToRefresh = false) => {
     try {
@@ -239,7 +255,10 @@ export function MyVisitorsScreen({ route }: Props) {
   )
 
   const renderRecentItem = ({ item }: { item: VisitorEntry }) => (
-    <View style={styles.card}>
+    <Pressable
+      style={styles.card}
+      onPress={() => navigation.navigate('VisitorApproval', { societyId, entryId: item.id })}
+    >
       <View style={styles.cardHeader}>
         <View style={styles.infoContainer}>
           <Text style={styles.visitorName}>{item.visitorName}</Text>
@@ -250,11 +269,16 @@ export function MyVisitorsScreen({ route }: Props) {
           </View>
           <Text style={styles.dateText}>{new Date(item.createdAt).toLocaleDateString()}</Text>
         </View>
-        <View style={[styles.badge, { backgroundColor: Colors.border }]}>
-          <Text style={[styles.badgeText, { color: Colors.text }]}>{item.status}</Text>
+        <View style={[styles.badge, { backgroundColor: item.status === 'PENDING' ? '#fef08a' : Colors.border }]}>
+          <Text style={[styles.badgeText, { color: item.status === 'PENDING' ? '#854d0e' : Colors.text }]}>{item.status}</Text>
         </View>
       </View>
-    </View>
+      {item.status === 'PENDING' && (
+        <View style={styles.cardActions}>
+          <Text style={{ fontSize: 13, color: Colors.primary, fontWeight: '600' }}>Review Request ›</Text>
+        </View>
+      )}
+    </Pressable>
   )
 
   return (
@@ -276,12 +300,19 @@ export function MyVisitorsScreen({ route }: Props) {
             
             <View style={styles.field}>
               <Text style={styles.fieldLabel}>For Flat *</Text>
-              <Pressable onPress={() => setShowUnitPicker(true)} style={styles.pickerTrigger}>
-                <Text style={[styles.pickerText, !selectedUnitId && styles.pickerPlaceholder]}>
-                  {selectedUnitId ? units.find(u => u.id === selectedUnitId)?.name : 'Select a flat'}
-                </Text>
-                <Text style={styles.pickerChevron}>›</Text>
-              </Pressable>
+              {units.length === 1 ? (
+                <View style={[styles.pickerTrigger, { backgroundColor: Colors.background, opacity: 0.7 }]}>
+                  <Text style={styles.pickerText}>{units[0].name}</Text>
+                  <Ionicons name="lock-closed" size={16} color={Colors.subtle} />
+                </View>
+              ) : (
+                <Pressable onPress={() => setShowUnitPicker(true)} style={styles.pickerTrigger}>
+                  <Text style={[styles.pickerText, !selectedUnitId && styles.pickerPlaceholder]}>
+                    {selectedUnitId ? units.find(u => u.id === selectedUnitId)?.name : 'Select a flat'}
+                  </Text>
+                  <Text style={styles.pickerChevron}>›</Text>
+                </Pressable>
+              )}
             </View>
 
             <TextInput label="Note for Gatekeeper (Optional)" value={formNote} onChangeText={setFormNote} placeholder="e.g. Amazon delivery" />

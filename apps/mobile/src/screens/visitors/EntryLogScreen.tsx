@@ -141,7 +141,7 @@ export function EntryLogScreen({ route }: Props) {
   }
 
   return (
-    <ScreenWrapper style={styles.wrapper}>
+    <ScreenWrapper style={styles.wrapper} scroll={false}>
       {/* Filters */}
       <View style={styles.filtersContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsScroll}>

@@ -127,7 +127,7 @@ export function ActiveVisitorsScreen({ route }: Props) {
   }
 
   return (
-    <ScreenWrapper style={styles.wrapper}>
+    <ScreenWrapper style={styles.wrapper} scroll={false}>
       {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={Colors.primary} />
