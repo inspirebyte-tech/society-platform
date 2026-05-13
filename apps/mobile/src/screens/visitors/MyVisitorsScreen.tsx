@@ -10,6 +10,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from 'react-native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { Ionicons } from '@expo/vector-icons'
@@ -348,9 +349,13 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
           )}
 
           {activeTab === 'PRE_APPROVALS' && !showAddForm && (
-            <View style={styles.fabContainer}>
-              <Button label="Add Pre-Approval" onPress={() => setShowAddForm(true)} />
-            </View>
+            <TouchableOpacity
+              style={styles.fab}
+              onPress={() => setShowAddForm(true)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="add" size={30} color={Colors.surface} />
+            </TouchableOpacity>
           )}
         </>
       )}
@@ -415,7 +420,24 @@ const styles = StyleSheet.create({
   deleteBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   deleteBtnText: { fontSize: 13, color: Colors.error, fontWeight: '500' },
 
-  fabContainer: { position: 'absolute', bottom: Spacing.screenPadding, left: Spacing.screenPadding, right: Spacing.screenPadding },
+  // FAB
+  fab: {
+    position: 'absolute',
+    right: 24,
+    bottom: Platform.OS === 'ios' ? 40 : 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 10,
+  },
 
   formContainer: { padding: Spacing.screenPadding, gap: Spacing.sectionGap, paddingBottom: 40 },
   formHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
