@@ -291,7 +291,7 @@ export function WelcomeScreen({ navigation }: Props) {
         style={StyleSheet.absoluteFill}
       />
 
-      <View style={[styles.top, { paddingTop: insets.top + 140 }]}>
+      <View style={[styles.top, { paddingTop: insets.top + 120 }]}>
         <Image
           source={require('../../../assets/logo.png')}
           style={styles.logo}
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     height: 80,
     overflow: 'hidden',
     marginBottom: 5,
-    marginTop: 10,
+    marginTop: 15,
   },
   archRow: {
     flexDirection: 'row',
