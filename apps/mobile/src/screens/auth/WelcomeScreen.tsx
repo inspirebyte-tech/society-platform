@@ -35,7 +35,7 @@ export function WelcomeScreen({ navigation }: Props) {
       />
 
       {/* ── Brand area ── */}
-      <View style={[styles.top, { paddingTop: insets.top + 80 }]}>
+      <View style={[styles.top, { paddingTop: insets.top + 140 }]}>
         <Image
           source={require('../../../assets/logo.png')}
           style={styles.logo}
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     alignItems: 'center',
-    marginBottom: 60,
+    marginBottom: 40,
   },
   appName: {
     fontSize: 30,
