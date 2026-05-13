@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 90,
     height: 110,
-    marginBottom: 75,
+    marginBottom: 25,
     opacity: 0.95,
   },
   textContainer: {
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 30,
     color: '#fff',
-    letterSpacing: 4, // Wide spacing for luxury aesthetic
+    letterSpacing: 1, // Wide spacing for luxury aesthetic
     fontFamily: 'Montserrat_300Light',
     marginBottom: 12,
   },
