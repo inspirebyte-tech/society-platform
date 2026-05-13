@@ -25,14 +25,21 @@ export function WelcomeScreen({ navigation }: Props) {
 
   // Master driver: 0 to 1
   const waveAnim = useRef(new Animated.Value(0)).current
+  const scrollAnim = useRef(new Animated.Value(0)).current
+  const entranceAnim = useRef(new Animated.Value(0)).current
 
   // Assign a unique starting offset to each icon
   const offsets = React.useMemo(() => FEATURES.map(() => Math.random()), [])
 
-  const scrollAnim = useRef(new Animated.Value(0)).current
-
   useEffect(() => {
-    // Master loop for the 8-second shimmer
+    // 1: Blueprint Build-In (One-time entrance)
+    Animated.timing(entranceAnim, {
+      toValue: 1,
+      duration: 2500,
+      useNativeDriver: true,
+    }).start()
+
+    // 2: Master loop for the 8-second shimmer
     Animated.loop(
       Animated.timing(waveAnim, {
         toValue: 1,
@@ -41,7 +48,7 @@ export function WelcomeScreen({ navigation }: Props) {
       })
     ).start()
 
-    // Slow, infinite scroll for the architecture (40 seconds per loop)
+    // 3: Slow, infinite scroll for the architecture (40 seconds per loop)
     Animated.loop(
       Animated.timing(scrollAnim, {
         toValue: 1,
@@ -61,222 +68,199 @@ export function WelcomeScreen({ navigation }: Props) {
       SLATE_LIGHT + '60', // Slate Light (Reflective)
     ];
 
+    const getBuildStyle = (index: number) => {
+      const start = index * 0.1;
+      const end = Math.min(start + 0.3, 1);
+      
+      return {
+        opacity: entranceAnim.interpolate({
+          inputRange: [start, end],
+          outputRange: [0, 1],
+          extrapolate: 'clamp'
+        }),
+        transform: [
+          {
+            scaleY: entranceAnim.interpolate({
+              inputRange: [start, end],
+              outputRange: [0, 1],
+              extrapolate: 'clamp'
+            })
+          },
+          {
+            translateY: entranceAnim.interpolate({
+              inputRange: [start, end],
+              outputRange: [20, 0], // Subtle rise from the ground
+              extrapolate: 'clamp'
+            })
+          }
+        ]
+      };
+    };
+
     return (
       <>
-        {/* 1: Modern Residential Tower - 8 Stories */}
-        <Animated.View style={[styles.archBuilding, { height: 60, width: 26, opacity: waveAnim.interpolate({ inputRange: [0, 0.1, 0.25, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
-          {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
-            <View key={i} style={{ position: 'absolute', top: `${i * 12}%`, left: '8%', width: '84%', height: '11%', borderTopWidth: 0.7, borderColor: 'rgba(255,255,255,0.4)' }} />
-          ))}
-          {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
-            <View key={`w${i}`} style={{ position: 'absolute', top: `${i * 12 + 2}%`, left: '12%', width: 5, height: 3, backgroundColor: Math.random() > 0.4 ? LIGHTS[Math.floor(Math.random() * 3)] : 'transparent', borderRadius: 1 }} />
-          ))}
-          {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
-            <View key={`w2${i}`} style={{ position: 'absolute', top: `${i * 12 + 2}%`, right: '12%', width: 5, height: 3, backgroundColor: Math.random() > 0.4 ? LIGHTS[Math.floor(Math.random() * 3)] : 'transparent', borderRadius: 1 }} />
-          ))}
+        {/* 1: Modern Residential Tower */}
+        <Animated.View style={getBuildStyle(0)}>
+          <Animated.View style={[styles.archBuilding, { height: 60, width: 26, opacity: waveAnim.interpolate({ inputRange: [0, 0.1, 0.25, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
+            {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
+              <View key={i} style={{ position: 'absolute', top: `${i * 12}%`, left: '8%', width: '84%', height: '11%', borderTopWidth: 0.7, borderColor: 'rgba(255,255,255,0.4)' }} />
+            ))}
+            {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
+              <View key={`w${i}`} style={{ position: 'absolute', top: `${i * 12 + 2}%`, left: '12%', width: 5, height: 3, backgroundColor: Math.random() > 0.4 ? LIGHTS[Math.floor(Math.random() * 3)] : 'transparent', borderRadius: 1 }} />
+            ))}
+            {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
+              <View key={`w2${i}`} style={{ position: 'absolute', top: `${i * 12 + 2}%`, right: '12%', width: 5, height: 3, backgroundColor: Math.random() > 0.4 ? LIGHTS[Math.floor(Math.random() * 3)] : 'transparent', borderRadius: 1 }} />
+            ))}
+          </Animated.View>
         </Animated.View>
 
-        {/* 2: Contemporary Apartment Block - 6 Stories */}
-        <Animated.View style={[styles.archBuilding, { height: 50, width: 38, opacity: waveAnim.interpolate({ inputRange: [0, 0.2, 0.35, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
-          {[0, 1, 2, 3, 4, 5].map(i => (
-            <View key={i} style={{ position: 'absolute', top: `${i * 16.67}%`, left: 0, right: 0, height: 0.6, backgroundColor: 'rgba(255,255,255,0.35)' }} />
-          ))}
-          {Array.from({ length: 6 }).map((_, row) =>
-            Array.from({ length: 3 }).map((_, col) => (
-              <View
-                key={`${row}-${col}`}
-                style={{
-                  position: 'absolute',
-                  top: `${row * 16.67 + 3}%`,
-                  left: `${col * 32 + 5}%`,
-                  width: 6,
-                  height: 4,
-                  backgroundColor: Math.random() > 0.5 ? LIGHTS[Math.floor(Math.random() * 3)] : 'transparent',
-                  borderRadius: 0.5,
-                }}
-              />
-            ))
-          )}
+        {/* 2: Contemporary Apartment Block */}
+        <Animated.View style={getBuildStyle(1)}>
+          <Animated.View style={[styles.archBuilding, { height: 50, width: 38, opacity: waveAnim.interpolate({ inputRange: [0, 0.2, 0.35, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
+            {[0, 1, 2, 3, 4, 5].map(i => (
+              <View key={i} style={{ position: 'absolute', top: `${i * 16.67}%`, left: 0, right: 0, height: 0.6, backgroundColor: 'rgba(255,255,255,0.35)' }} />
+            ))}
+            {Array.from({ length: 6 }).map((_, row) =>
+              Array.from({ length: 3 }).map((_, col) => (
+                <View
+                  key={`${row}-${col}`}
+                  style={{
+                    position: 'absolute',
+                    top: `${row * 16.67 + 3}%`,
+                    left: `${col * 32 + 5}%`,
+                    width: 6,
+                    height: 4,
+                    backgroundColor: Math.random() > 0.5 ? LIGHTS[Math.floor(Math.random() * 3)] : 'transparent',
+                    borderRadius: 0.5,
+                  }}
+                />
+              ))
+            )}
+          </Animated.View>
         </Animated.View>
 
-        {/* 3: Classic Villa with Pitched Roof */}
-        <Animated.View style={[styles.archBuilding, { height: 35, width: 44, opacity: waveAnim.interpolate({ inputRange: [0, 0.3, 0.45, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
-
-          {/* Left Pitch - Starts from left, slanted up to center */}
-          <View style={{
-            position: 'absolute',
-            top: -8,
-            left: -2,
-            width: '55%',
-            height: 1.5,
-            backgroundColor: 'rgba(255,255,255,0.6)',
-            transform: [{ rotate: '-20deg' }]
-          }} />
-
-          {/* Right Pitch - Starts from right, slanted up to center */}
-          <View style={{
-            position: 'absolute',
-            top: -8,
-            right: -2,
-            width: '55%',
-            height: 1.5,
-            backgroundColor: 'rgba(255,255,255,0.6)',
-            transform: [{ rotate: '20deg' }]
-          }} />
-
-          {/* Main Structure */}
-          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderWidth: 0.8, borderColor: 'rgba(255,255,255,0.45)' }} />
-
-          {/* Door */}
-          <View style={{ position: 'absolute', bottom: 0, left: '50%', marginLeft: -4, width: 8, height: 14, borderWidth: 0.7, borderColor: 'rgba(255,255,255,0.4)', borderBottomWidth: 0 }} />
-
-          {/* Windows */}
-          <View style={{ position: 'absolute', top: 8, left: 6, width: 8, height: 6, borderWidth: 0.6, borderColor: 'rgba(255,255,255,0.4)', backgroundColor: Math.random() > 0.3 ? LIGHTS[1] : 'transparent' }} />
-          <View style={{ position: 'absolute', top: 8, right: 6, width: 8, height: 6, borderWidth: 0.6, borderColor: 'rgba(255,255,255,0.4)', backgroundColor: Math.random() > 0.3 ? LIGHTS[1] : 'transparent' }} />
+        {/* 3: Classic Villa */}
+        <Animated.View style={getBuildStyle(2)}>
+          <Animated.View style={[styles.archBuilding, { height: 35, width: 44, opacity: waveAnim.interpolate({ inputRange: [0, 0.3, 0.45, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
+            <View style={{ position: 'absolute', top: -8, left: -2, width: '55%', height: 1.5, backgroundColor: 'rgba(255,255,255,0.6)', transform: [{ rotate: '-20deg' }] }} />
+            <View style={{ position: 'absolute', top: -8, right: -2, width: '55%', height: 1.5, backgroundColor: 'rgba(255,255,255,0.6)', transform: [{ rotate: '20deg' }] }} />
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderWidth: 0.8, borderColor: 'rgba(255,255,255,0.45)' }} />
+            <View style={{ position: 'absolute', bottom: 0, left: '50%', marginLeft: -4, width: 8, height: 14, borderWidth: 0.7, borderColor: 'rgba(255,255,255,0.4)', borderBottomWidth: 0 }} />
+            <View style={{ position: 'absolute', top: 8, left: 6, width: 8, height: 6, borderWidth: 0.6, borderColor: 'rgba(255,255,255,0.4)', backgroundColor: Math.random() > 0.3 ? LIGHTS[1] : 'transparent' }} />
+            <View style={{ position: 'absolute', top: 8, right: 6, width: 8, height: 6, borderWidth: 0.6, borderColor: 'rgba(255,255,255,0.4)', backgroundColor: Math.random() > 0.3 ? LIGHTS[1] : 'transparent' }} />
+          </Animated.View>
         </Animated.View>
 
         {/* 4: Skyscraper Tower */}
-        <Animated.View style={[styles.archBuilding, { height: 58, width: 18, opacity: waveAnim.interpolate({ inputRange: [0, 0.4, 0.55, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
-            <View key={i} style={{ position: 'absolute', top: `${i * 10}%`, left: 0, right: 0, height: 0.7, backgroundColor: 'rgba(255,255,255,0.4)' }} />
-          ))}
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
-            <View key={`l${i}`} style={{ position: 'absolute', top: `${i * 10 + 2}%`, left: '15%', width: 4, height: 3, backgroundColor: Math.random() > 0.4 ? LIGHTS[0] : 'transparent', borderRadius: 0.5 }} />
-          ))}
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
-            <View key={`r${i}`} style={{ position: 'absolute', top: `${i * 10 + 2}%`, right: '15%', width: 4, height: 3, backgroundColor: Math.random() > 0.4 ? LIGHTS[0] : 'transparent', borderRadius: 0.5 }} />
-          ))}
+        <Animated.View style={getBuildStyle(3)}>
+          <Animated.View style={[styles.archBuilding, { height: 58, width: 18, opacity: waveAnim.interpolate({ inputRange: [0, 0.4, 0.55, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
+              <View key={i} style={{ position: 'absolute', top: `${i * 10}%`, left: 0, right: 0, height: 0.7, backgroundColor: 'rgba(255,255,255,0.4)' }} />
+            ))}
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
+              <View key={`l${i}`} style={{ position: 'absolute', top: `${i * 10 + 2}%`, left: '15%', width: 4, height: 3, backgroundColor: Math.random() > 0.4 ? LIGHTS[0] : 'transparent', borderRadius: 0.5 }} />
+            ))}
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
+              <View key={`r${i}`} style={{ position: 'absolute', top: `${i * 10 + 2}%`, right: '15%', width: 4, height: 3, backgroundColor: Math.random() > 0.4 ? LIGHTS[0] : 'transparent', borderRadius: 0.5 }} />
+            ))}
+          </Animated.View>
         </Animated.View>
 
         {/* 5: Modern Flat-Top */}
-        <Animated.View style={[styles.archBuilding, { height: 40, width: 32, opacity: waveAnim.interpolate({ inputRange: [0, 0.5, 0.65, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
-          <View style={{ position: 'absolute', top: -3, left: '10%', right: '10%', height: 2, backgroundColor: 'rgba(255,255,255,0.4)' }} />
-          {[0, 1, 2, 3].map(i => (
-            <View key={i} style={{ position: 'absolute', top: `${i * 25}%`, left: 0, right: 0, height: 0.7, backgroundColor: 'rgba(255,255,255,0.35)' }} />
-          ))}
-          {Array.from({ length: 4 }).map((_, row) =>
-            Array.from({ length: 2 }).map((_, col) => (
-              <View
-                key={`${row}-${col}`}
-                style={{
-                  position: 'absolute',
-                  top: `${row * 25 + 4}%`,
-                  left: `${col === 0 ? 10 : 65}%`,
-                  width: 7,
-                  height: 5,
-                  backgroundColor: Math.random() > 0.5 ? LIGHTS[Math.floor(Math.random() * 3)] : 'transparent',
-                  borderRadius: 0.5,
-                }}
-              />
-            ))
-          )}
+        <Animated.View style={getBuildStyle(4)}>
+          <Animated.View style={[styles.archBuilding, { height: 40, width: 32, opacity: waveAnim.interpolate({ inputRange: [0, 0.5, 0.65, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
+            <View style={{ position: 'absolute', top: -3, left: '10%', right: '10%', height: 2, backgroundColor: 'rgba(255,255,255,0.4)' }} />
+            {[0, 1, 2, 3].map(i => (
+              <View key={i} style={{ position: 'absolute', top: `${i * 25}%`, left: 0, right: 0, height: 0.7, backgroundColor: 'rgba(255,255,255,0.35)' }} />
+            ))}
+            {Array.from({ length: 4 }).map((_, row) =>
+              Array.from({ length: 2 }).map((_, col) => (
+                <View
+                  key={`${row}-${col}`}
+                  style={{
+                    position: 'absolute',
+                    top: `${row * 25 + 4}%`,
+                    left: `${col === 0 ? 10 : 65}%`,
+                    width: 7,
+                    height: 5,
+                    backgroundColor: Math.random() > 0.5 ? LIGHTS[Math.floor(Math.random() * 3)] : 'transparent',
+                    borderRadius: 0.5,
+                  }}
+                />
+              ))
+            )}
+          </Animated.View>
         </Animated.View>
 
         {/* 6: Twin Tower Complex */}
-        <Animated.View style={{
-          flexDirection: 'row',
-          alignItems: 'flex-end',
-          height: 60, // Total container height
-          opacity: waveAnim.interpolate({
-            inputRange: [0, 0.6, 0.75, 1],
-            outputRange: [0.3, 0.85, 0.3, 0.3]
-          })
-        }}>
-          {/* Left Tower (Taller) */}
-          <View style={[styles.archBuilding, { height: 55, width: 14, borderBottomWidth: 0.8 }]}>
-            {/* Flat modern roof with a small "antenna" or ledge */}
-            <View style={{ position: 'absolute', top: -4, left: 0, width: 8, height: 1, backgroundColor: 'rgba(255,255,255,0.5)' }} />
-
-            {/* Windows - Staggered */}
-            {[0, 1, 2, 3, 4].map(i => (
-              <View key={i} style={{
-                position: 'absolute',
-                top: `${i * 18 + 8}%`,
-                left: 3,
-                width: 3,
-                height: 4,
-                backgroundColor: i % 2 === 0 ? 'rgba(255,255,255,0.15)' : 'transparent',
-                borderRadius: 0.5
-              }} />
-            ))}
-          </View>
-
-          {/* Right Tower (Shorter & Wider) */}
-          <View style={[styles.archBuilding, { height: 38, width: 18, borderLeftWidth: 0, borderBottomWidth: 0.8 }]}>
-            {/* Connecting Bridge at a specific floor */}
-            <View style={{
-              position: 'absolute',
-              top: '40%',
-              left: -4,
-              width: 4,
-              height: 2,
-              backgroundColor: 'rgba(255,255,255,0.3)',
-              zIndex: 10
-            }} />
-
-            {/* Large "Balcony" Windows */}
-            {[0, 1, 2].map(i => (
-              <View key={i} style={{
-                position: 'absolute',
-                top: `${i * 28 + 10}%`,
-                right: 3,
-                width: 8,
-                height: 1.5,
-                backgroundColor: 'rgba(255,255,255,0.25)'
-              }} />
-            ))}
-
-            {/* Base Door for the complex */}
-            <View style={{ position: 'absolute', bottom: 0, right: 4, width: 6, height: 8, borderWidth: 0.6, borderColor: 'rgba(255,255,255,0.4)', borderBottomWidth: 0 }} />
-          </View>
+        <Animated.View style={getBuildStyle(5)}>
+          <Animated.View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 60, opacity: waveAnim.interpolate({ inputRange: [0, 0.6, 0.75, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }}>
+            <View style={[styles.archBuilding, { height: 55, width: 14, borderBottomWidth: 0.8 }]}>
+              <View style={{ position: 'absolute', top: -4, left: 0, width: 8, height: 1, backgroundColor: 'rgba(255,255,255,0.5)' }} />
+              {[0, 1, 2, 3, 4].map(i => (
+                <View key={i} style={{ position: 'absolute', top: `${i * 18 + 8}%`, left: 3, width: 3, height: 4, backgroundColor: i % 2 === 0 ? 'rgba(255,255,255,0.15)' : 'transparent', borderRadius: 0.5 }} />
+              ))}
+            </View>
+            <View style={[styles.archBuilding, { height: 38, width: 18, borderLeftWidth: 0, borderBottomWidth: 0.8 }]}>
+              <View style={{ position: 'absolute', top: '40%', left: -4, width: 4, height: 2, backgroundColor: 'rgba(255,255,255,0.3)', zIndex: 10 }} />
+              {[0, 1, 2].map(i => (
+                <View key={i} style={{ position: 'absolute', top: `${i * 28 + 10}%`, right: 3, width: 8, height: 1.5, backgroundColor: 'rgba(255,255,255,0.25)' }} />
+              ))}
+              <View style={{ position: 'absolute', bottom: 0, right: 4, width: 6, height: 8, borderWidth: 0.6, borderColor: 'rgba(255,255,255,0.4)', borderBottomWidth: 0 }} />
+            </View>
+          </Animated.View>
         </Animated.View>
 
         {/* 7: Large Residential Complex */}
-        <Animated.View style={[styles.archBuilding, { height: 48, width: 46, opacity: waveAnim.interpolate({ inputRange: [0, 0.7, 0.85, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
-          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.4)' }} />
-          {[0, 1, 2, 3, 4].map(i => (
-            <View key={i} style={{ position: 'absolute', top: `${i * 20}%`, left: 0, right: 0, height: 0.7, backgroundColor: 'rgba(255,255,255,0.35)' }} />
-          ))}
-          {Array.from({ length: 5 }).map((_, row) =>
-            Array.from({ length: 4 }).map((_, col) => (
-              <View
-                key={`${row}-${col}`}
-                style={{
-                  position: 'absolute',
-                  top: `${row * 20 + 2.5}%`,
-                  left: `${col * 23 + 4}%`,
-                  width: 5,
-                  height: 3.5,
-                  backgroundColor: Math.random() > 0.6 ? LIGHTS[Math.floor(Math.random() * 3)] : 'transparent',
-                  borderRadius: 0.4,
-                }}
-              />
-            ))
-          )}
+        <Animated.View style={getBuildStyle(6)}>
+          <Animated.View style={[styles.archBuilding, { height: 48, width: 46, opacity: waveAnim.interpolate({ inputRange: [0, 0.7, 0.85, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.4)' }} />
+            {[0, 1, 2, 3, 4].map(i => (
+              <View key={i} style={{ position: 'absolute', top: `${i * 20}%`, left: 0, right: 0, height: 0.7, backgroundColor: 'rgba(255,255,255,0.35)' }} />
+            ))}
+            {Array.from({ length: 5 }).map((_, row) =>
+              Array.from({ length: 4 }).map((_, col) => (
+                <View
+                  key={`${row}-${col}`}
+                  style={{
+                    position: 'absolute',
+                    top: `${row * 20 + 2.5}%`,
+                    left: `${col * 23 + 4}%`,
+                    width: 5,
+                    height: 3.5,
+                    backgroundColor: Math.random() > 0.6 ? LIGHTS[Math.floor(Math.random() * 3)] : 'transparent',
+                    borderRadius: 0.4,
+                  }}
+                />
+              ))
+            )}
+          </Animated.View>
         </Animated.View>
 
         {/* 8: Corner Building */}
-        <Animated.View style={[styles.archBuilding, { height: 42, width: 28, opacity: waveAnim.interpolate({ inputRange: [0, 0.8, 0.95, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
-          <View style={{ position: 'absolute', top: -4, left: '5%', right: '5%', height: 2.5, backgroundColor: 'rgba(255,255,255,0.45)' }} />
-          {[0, 1, 2, 3, 4].map(i => (
-            <View key={i} style={{ position: 'absolute', top: `${i * 20}%`, left: 0, right: 0, height: 0.8, backgroundColor: 'rgba(255,255,255,0.4)' }} />
-          ))}
-          {Array.from({ length: 5 }).map((_, row) =>
-            Array.from({ length: 2 }).map((_, col) => (
-              <View
-                key={`${row}-${col}`}
-                style={{
-                  position: 'absolute',
-                  top: `${row * 20 + 3}%`,
-                  left: `${col === 0 ? 12 : 65}%`,
-                  width: 8,
-                  height: 5,
-                  backgroundColor: Math.random() > 0.5 ? LIGHTS[Math.floor(Math.random() * 3)] : 'transparent',
-                  borderRadius: 0.5,
-                }}
-              />
-            ))
-          )}
+        <Animated.View style={getBuildStyle(7)}>
+          <Animated.View style={[styles.archBuilding, { height: 42, width: 28, opacity: waveAnim.interpolate({ inputRange: [0, 0.8, 0.95, 1], outputRange: [0.3, 0.85, 0.3, 0.3] }) }]}>
+            <View style={{ position: 'absolute', top: -4, left: '5%', right: '5%', height: 2.5, backgroundColor: 'rgba(255,255,255,0.45)' }} />
+            {[0, 1, 2, 3, 4].map(i => (
+              <View key={i} style={{ position: 'absolute', top: `${i * 20}%`, left: 0, right: 0, height: 0.8, backgroundColor: 'rgba(255,255,255,0.4)' }} />
+            ))}
+            {Array.from({ length: 5 }).map((_, row) =>
+              Array.from({ length: 2 }).map((_, col) => (
+                <View
+                  key={`${row}-${col}`}
+                  style={{
+                    position: 'absolute',
+                    top: `${row * 20 + 3}%`,
+                    left: `${col === 0 ? 12 : 65}%`,
+                    width: 8,
+                    height: 5,
+                    backgroundColor: Math.random() > 0.5 ? LIGHTS[Math.floor(Math.random() * 3)] : 'transparent',
+                    borderRadius: 0.5,
+                  }}
+                />
+              ))
+            )}
+          </Animated.View>
         </Animated.View>
       </>
     );
@@ -287,7 +271,7 @@ export function WelcomeScreen({ navigation }: Props) {
       <StatusBar barStyle="light-content" />
 
       <LinearGradient
-        colors={[SLATE_LIGHT, SLATE_DEEP]}
+        colors={[SLATE_DEEP, SLATE_LIGHT, SLATE_DEEP]}
         style={StyleSheet.absoluteFill}
       />
 
