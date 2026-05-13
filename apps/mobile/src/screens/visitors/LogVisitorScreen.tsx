@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
@@ -516,18 +517,14 @@ export function LogVisitorScreen({ route, navigation }: Props) {
             </View>
           )}
 
-          {!showCreate && (
-            <Button
-              label="Create New Visitor"
-              onPress={() => setShowCreate(true)}
-              variant="outline"
-              style={styles.createNewBtn}
-            />
-          )}
-
           {showCreate && (
             <View style={styles.createForm}>
-              <Text style={styles.formTitle}>New Visitor Details</Text>
+              <View style={styles.createFormHeader}>
+                <Text style={styles.formTitle}>New Visitor Details</Text>
+                <TouchableOpacity onPress={() => setShowCreate(false)}>
+                  <Ionicons name="close" size={20} color={Colors.subtle} />
+                </TouchableOpacity>
+              </View>
               <TextInput label="Name" value={createName} onChangeText={setCreateName} />
               <TextInput label="Mobile (Optional)" value={createMobile} onChangeText={setCreateMobile} keyboardType="phone-pad" />
               
@@ -555,6 +552,17 @@ export function LogVisitorScreen({ route, navigation }: Props) {
           )}
         </ScrollView>
       </View>
+
+      {/* FAB - Create New Visitor */}
+      {!showCreate && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => setShowCreate(true)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={30} color={Colors.surface} />
+        </TouchableOpacity>
+      )}
 
       {toast ? <Toast message={toast.message} type={toast.type} visible={!!toast} onHide={() => setToast(null)} /> : null}
     </ScreenWrapper>
@@ -586,7 +594,7 @@ const styles = StyleSheet.create({
   },
   resultsContainer: {
     paddingHorizontal: Spacing.screenPadding,
-    paddingBottom: 40,
+    paddingBottom: 100, // Extra padding for FAB
     gap: 20,
   },
   section: { gap: 10 },
@@ -615,7 +623,6 @@ const styles = StyleSheet.create({
   resultNote: { fontSize: 13, color: Colors.subtle, marginTop: 4, fontStyle: 'italic' },
   badgeGreen: { backgroundColor: '#dcfce7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   badgeGreenText: { color: Colors.success, fontSize: 10, fontWeight: '700' },
-  createNewBtn: { marginTop: 10 },
 
   // Create Form
   createForm: {
@@ -625,8 +632,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     gap: 12,
+    marginBottom: 20,
   },
-  formTitle: { fontSize: 16, fontWeight: '600', color: Colors.text, marginBottom: 4 },
+  createFormHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  formTitle: { fontSize: 16, fontWeight: '600', color: Colors.text },
   typeChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeChip: {
     flexDirection: 'row',
@@ -763,4 +777,23 @@ const styles = StyleSheet.create({
   statusActions: { flexDirection: 'row', gap: 12, width: '100%' },
   actionBtn: { flex: 1 },
   fullBtn: { width: '100%' },
+
+  // FAB
+  fab: {
+    position: 'absolute',
+    right: 24,
+    bottom: Platform.OS === 'ios' ? 40 : 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 10,
+  },
 })
