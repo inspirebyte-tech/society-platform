@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, Image, Pressable, StyleSheet, StatusBar } from 'react-native'
+import { View, Text, Image, Pressable, StyleSheet, StatusBar, Dimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
@@ -9,15 +9,13 @@ import { AuthStackParamList } from '../../navigation/AuthNavigator'
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Welcome'>
 
-const BRAND = '#2f3e4e'
+const { width } = Dimensions.get('window');
+const DEEP_NAVY = '#0F172A'; 
+const PLATINUM = 'rgba(255,255,255,0.85)';
 
 const FEATURES: React.ComponentProps<typeof Ionicons>['name'][] = [
-  'business-outline',
-  'people-outline',
-  'warning-outline',
-  'notifications-outline',
-  'megaphone-outline',
-  'shield-checkmark-outline'
+  'business-outline', 'people-outline', 'warning-outline', 
+  'notifications-outline', 'megaphone-outline', 'shield-checkmark-outline'
 ]
 
 export function WelcomeScreen({ navigation }: Props) {
@@ -27,120 +25,134 @@ export function WelcomeScreen({ navigation }: Props) {
   if (!fontsLoaded) return null
 
   return (
-    <LinearGradient colors={['#2f3e4e', '#4a5d73']} style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={BRAND} translucent={false} />
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" />
+      
+      {/* Background: Deep, expensive-looking radial fade */}
+      <LinearGradient 
+        colors={['#1e293b', '#0F172A', '#070a0f']} 
+        style={StyleSheet.absoluteFill} 
+      />
 
       {/* ── Brand area ── */}
-      <View style={[styles.top, { paddingTop: insets.top + 44 }]}>
+      <View style={[styles.top, { paddingTop: insets.top + 80 }]}>
         <Image
           source={require('../../../assets/logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
-        <Text style={styles.appName}>Vaastio</Text>
-        <Text style={styles.tagline}>Where societies start organised.</Text>
+        
+        <View style={styles.textContainer}>
+          <Text style={styles.appName}>V A A S T I O</Text>
+          <Text style={styles.tagline}>Where Societies Start Organized</Text>
+        </View>
 
-        {/* ── Icon bubbles ── */}
-        <View style={styles.bubblesRow}>
-          {FEATURES.map((icon) => (
-            <View key={icon} style={styles.bubble}>
-              <Ionicons name={icon} size={22} color="#fff" />
+        {/* ── Soft Circular Feature Grid ── */}
+        <View style={styles.gridContainer}>
+          {FEATURES.map((icon, index) => (
+            <View key={index} style={styles.iconCircle}>
+              <Ionicons name={icon} size={20} color="rgba(255,255,255,0.4)" />
             </View>
           ))}
         </View>
       </View>
 
-      {/* ── Bottom button ── */}
-      <View style={[styles.bottom, { marginBottom: Math.max(insets.bottom, 48) }]}>
+      {/* ── Bottom Action Area ── */}
+      <View style={[styles.bottom, { marginBottom: Math.max(insets.bottom, 60) }]}>
         <Pressable
-          style={({ pressed }) => [styles.btnPrimary, pressed && styles.btnPrimaryPressed]}
+          style={({ pressed }) => [
+            styles.btnPrimary, 
+            pressed && { backgroundColor: 'rgba(255,255,255,0.1)' }
+          ]}
           onPress={() => navigation.navigate('LoginPhone')}
         >
-          <Text style={styles.btnPrimaryText}>Get Started</Text>
+          <Text style={styles.btnPrimaryText}>GET STARTED</Text>
         </Pressable>
-        <Text style={styles.terms}>By continuing you agree to our Terms of Service</Text>
+        
+        <Text style={styles.terms}>
+          _
+        </Text>
       </View>
-    </LinearGradient>
+    </View>
   )
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: DEEP_NAVY,
   },
-
-  // ── Brand area ──
   top: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    gap: 12,
+    paddingHorizontal: 40,
   },
   logo: {
-    width: 92,
-    height: 116,
-    marginBottom: 4,
+    width: 90,
+    height: 110,
+    marginBottom: 75,
+    opacity: 0.95,
+  },
+  textContainer: {
+    alignItems: 'center',
+    marginBottom: 60,
   },
   appName: {
-    fontSize: 48,
+    fontSize: 30,
     color: '#fff',
-    letterSpacing: 4,
+    letterSpacing: 4, // Wide spacing for luxury aesthetic
     fontFamily: 'Montserrat_300Light',
+    marginBottom: 12,
   },
   tagline: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.72)',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.45)',
     textAlign: 'center',
-    letterSpacing: 0.1,
-    lineHeight: 24,
+    letterSpacing: 1.5,
+    fontFamily: 'Montserrat_300Light',
+    //fontStyle: 'italic', // Italic adds a "posh" editorial feel
   },
-  // ── Icon bubbles ──
-  bubblesRow: {
+  gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 18,
-    marginTop: 24,
-    maxWidth: 220,
+    width: width * 0.7,
+    gap: 25,
   },
-  bubble: {
+  iconCircle: {
     width: 48,
     height: 48,
-    borderRadius: 26,
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 24, // Soft circular icons
+    borderWidth: 0.8, 
+    borderColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.03)',
   },
-
-  // ── Bottom button ──
   bottom: {
-    paddingHorizontal: 32,
-    gap: 14,
+    paddingHorizontal: 45,
   },
   btnPrimary: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 50,
-    paddingVertical: 17,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: PLATINUM,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.6)',
-  },
-  btnPrimaryPressed: {
-    backgroundColor: 'rgba(255,255,255,0.22)',
+    borderRadius: 100, // Perfectly soft circular "pill" button
   },
   btnPrimaryText: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: 'Montserrat_600SemiBold',
     color: '#fff',
-    letterSpacing: 0.5,
+    letterSpacing: 3,
   },
   terms: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.35)',
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.3)',
     textAlign: 'center',
+    marginTop: 25,
+    letterSpacing: 1.2,
+    fontFamily: 'Montserrat_300Light',
   },
 })
