@@ -6,6 +6,7 @@ import {
   ScrollView,
   Pressable,
   Image,
+  TextInput as RNTextInput,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -437,15 +438,16 @@ export function LogVisitorScreen({ route, navigation }: Props) {
     <ScreenWrapper style={styles.wrapper}>
       <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
-          <Ionicons name="search" size={20} color={Colors.subtle} />
-          <TextInput
+          <Ionicons name="search" size={20} color={Colors.subtle} style={styles.searchIcon} />
+          <RNTextInput
             placeholder="Search by name or mobile"
+            placeholderTextColor={Colors.subtle}
             value={searchQuery}
             onChangeText={setSearchQuery}
             style={styles.searchInput}
             autoCorrect={false}
           />
-          {isSearching && <ActivityIndicator size="small" color={Colors.primary} />}
+          {isSearching && <ActivityIndicator size="small" color={Colors.primary} style={styles.searchSpinner} />}
         </View>
 
         <ScrollView contentContainerStyle={styles.resultsContainer} keyboardShouldPersistTaps="handled">
@@ -580,17 +582,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.surface,
     margin: Spacing.screenPadding,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.border,
+    height: 52,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  searchIcon: {
+    marginRight: 4,
   },
   searchInput: {
     flex: 1,
-    height: 48,
-    paddingHorizontal: 10,
-    fontSize: 16,
+    height: '100%',
+    fontSize: 15,
     color: Colors.text,
+    paddingHorizontal: 8,
+  },
+  searchSpinner: {
+    marginLeft: 8,
   },
   resultsContainer: {
     paddingHorizontal: Spacing.screenPadding,
