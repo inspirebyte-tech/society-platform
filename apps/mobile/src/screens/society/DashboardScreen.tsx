@@ -36,6 +36,64 @@ const SOCIETY_TYPE_LABEL: Record<string, string> = {
   PLOTTED: 'Plotted',
 }
 
+// ─── Action Components ───────────────────────────────────────────────────────
+
+interface ActionRowProps {
+  icon: keyof typeof Ionicons.glyphMap
+  label: string
+  onPress: () => void
+}
+
+function ActionRow({ icon, label, subtitle, onPress }: ActionRowProps & { subtitle: string }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.actionRow,
+        pressed && styles.actionRowPressed,
+      ]}
+    >
+      <View style={styles.actionIcon}>
+        <Ionicons
+          name={icon}
+          size={20}
+          color={Colors.primary}
+        />
+      </View>
+
+      <View style={styles.actionText}>
+        <Text style={styles.actionLabel}>{label}</Text>
+        <Text style={styles.actionSubtitle}>{subtitle}</Text>
+      </View>
+
+      <Text style={styles.actionChevron}>›</Text>
+    </Pressable>
+  )
+}
+
+function ActionGridItem({ icon, label, onPress }: ActionRowProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.gridItem,
+        pressed && styles.actionRowPressed,
+      ]}
+    >
+      <View style={styles.gridIcon}>
+        <Ionicons
+          name={icon}
+          size={22}
+          color={Colors.primary}
+        />
+      </View>
+      <Text style={styles.gridLabel} numberOfLines={1}>{label}</Text>
+    </Pressable>
+  )
+}
+
+// ─── Main Screen ─────────────────────────────────────────────────────────────
+
 export function DashboardScreen({ route, navigation }: Props) {
   const { societyId } = route.params
   const { permissions, isLoading: authLoading, loadUser, signOut, memberships, user } = useAuth()
@@ -50,6 +108,7 @@ export function DashboardScreen({ route, navigation }: Props) {
   const [profileName, setProfileName] = useState('')
   const [profileError, setProfileError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [layoutMode, setLayoutMode] = useState<'grid' | 'list'>('grid')
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
 
   function openProfile() {
@@ -148,10 +207,94 @@ export function DashboardScreen({ route, navigation }: Props) {
   const canViewEntryLog = permissions.includes('visitor.view_log')
   const canManageMyVisitors = permissions.includes('visitor.pre_approve') || permissions.includes('visitor.approve') || permissions.includes('visitor.view_own')
 
-  const hasAnyAction =
-    canViewAnnouncements || canViewStructure || canInvite || canViewMembers ||
-    canSwitchSociety || canViewComplaints || canViewUnitInventory || canViewMyHome ||
-    canLogVisitor || canViewActiveVisitors || canViewEntryLog || canManageMyVisitors
+  const actions = [
+    {
+      show: canViewAnnouncements,
+      icon: 'megaphone-outline' as const,
+      label: 'Announcements',
+      subtitle: 'Society notices and updates',
+      onPress: () => navigation.navigate('AnnouncementsList', { societyId }),
+    },
+    {
+      show: canViewStructure,
+      icon: 'business-outline' as const,
+      label: 'Structure',
+      subtitle: 'Towers, wings, and units',
+      onPress: () => navigation.navigate('Structure', { societyId }),
+    },
+    {
+      show: canInvite,
+      icon: 'mail-outline' as const,
+      label: 'Invite Member',
+      subtitle: 'Send invitation via SMS',
+      onPress: () => navigation.navigate('InviteMember', { societyId }),
+    },
+    {
+      show: canViewMembers,
+      icon: 'people-outline' as const,
+      label: 'View Members',
+      subtitle: 'Active residents and staff',
+      onPress: () => navigation.navigate('MemberList', { societyId }),
+    },
+    {
+      show: canViewComplaints,
+      icon: 'warning-outline' as const,
+      label: 'Complaints',
+      subtitle: 'View and raise complaints',
+      onPress: () => navigation.navigate('ComplaintList', { societyId }),
+    },
+    {
+      show: canViewUnitInventory,
+      icon: 'clipboard-outline' as const,
+      label: 'Unit Inventory',
+      subtitle: 'All flats, owners, and occupants',
+      onPress: () => navigation.navigate('UnitInventory', { societyId }),
+    },
+    {
+      show: canLogVisitor,
+      icon: 'person-add-outline' as const,
+      label: 'Log Visitor',
+      subtitle: 'Register walk-in or delivery',
+      onPress: () => navigation.navigate('LogVisitor', { societyId }),
+    },
+    {
+      show: canViewActiveVisitors,
+      icon: 'radio-outline' as const,
+      label: 'Active Visitors',
+      subtitle: 'Visitors currently inside',
+      onPress: () => navigation.navigate('ActiveVisitors', { societyId }),
+    },
+    {
+      show: canViewEntryLog,
+      icon: 'list-outline' as const,
+      label: 'Entry Log',
+      subtitle: 'History of all visitors',
+      onPress: () => navigation.navigate('EntryLog', { societyId }),
+    },
+    {
+      show: canManageMyVisitors,
+      icon: 'people-circle-outline' as const,
+      label: 'My Visitors',
+      subtitle: 'Pre-approvals and history',
+      onPress: () => navigation.navigate('MyVisitors', { societyId }),
+    },
+    {
+      show: canViewMyHome && !!currentMemberId,
+      icon: 'home-outline' as const,
+      label: 'My Home',
+      subtitle: 'Your flat and co-occupants',
+      onPress: () => navigation.navigate('MyHome', { societyId, memberId: currentMemberId! }),
+    },
+    {
+      show: canSwitchSociety,
+      icon: 'swap-horizontal-outline' as const,
+      label: 'Switch Society',
+      subtitle: 'Switch between societies',
+      onPress: () => navigation.navigate('SwitchSociety'),
+    },
+  ].filter((a) => a.show)
+
+  const hasAnyAction = actions.length > 0
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />
@@ -224,104 +367,40 @@ export function DashboardScreen({ route, navigation }: Props) {
         {/* Actions */}
         {hasAnyAction ? (
           <View style={styles.actionsSection}>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
-            <View style={styles.actionsList}>
-              {canViewAnnouncements ? (
-                <ActionRow
-                  icon="megaphone-outline"
-                  label="Announcements"
-                  subtitle="Society notices and updates"
-                  onPress={() => navigation.navigate('AnnouncementsList', { societyId })}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Quick Actions</Text>
+              <TouchableOpacity
+                onPress={() => setLayoutMode(layoutMode === 'grid' ? 'list' : 'grid')}
+                hitSlop={12}
+                style={styles.layoutToggle}
+              >
+                <Ionicons
+                  name={layoutMode === 'grid' ? 'list-outline' : 'grid-outline'}
+                  size={20}
+                  color={Colors.subtle}
                 />
-              ) : null}
-              {canViewStructure ? (
-                <ActionRow
-                  icon="business-outline"
-                  label="Manage Structure"
-                  subtitle="Towers, wings, and units"
-                  onPress={() => navigation.navigate('Structure', { societyId })}
-                />
-              ) : null}
-              {canInvite ? (
-                <ActionRow
-                  icon="mail-outline"
-                  label="Invite Member"
-                  subtitle="Send invitation via SMS"
-                  onPress={() => navigation.navigate('InviteMember', { societyId })}
-                />
-              ) : null}
-              {canViewMembers ? (
-                <ActionRow
-                  icon="people-outline"
-                  label="View Members"
-                  subtitle="Active residents and staff"
-                  onPress={() => navigation.navigate('MemberList', { societyId })}
-                />
-              ) : null}
-              {canViewComplaints ? (
-                <ActionRow
-                  icon="warning-outline"
-                  label="Complaints"
-                  subtitle="View and raise complaints"
-                  onPress={() => navigation.navigate('ComplaintList', { societyId })}
-                />
-              ) : null}
-              {canViewUnitInventory ? (
-                <ActionRow
-                  icon="clipboard-outline"
-                  label="Unit Inventory"
-                  subtitle="All flats, owners, and occupants"
-                  onPress={() => navigation.navigate('UnitInventory', { societyId })}
-                />
-              ) : null}
-              {canLogVisitor ? (
-                <ActionRow
-                  icon="person-add-outline"
-                  label="Log Visitor"
-                  subtitle="Register new walk-in or delivery"
-                  onPress={() => navigation.navigate('LogVisitor', { societyId })}
-                />
-              ) : null}
-              {canViewActiveVisitors ? (
-                <ActionRow
-                  icon="radio-outline"
-                  label="Active Visitors"
-                  subtitle="Visitors currently inside"
-                  onPress={() => navigation.navigate('ActiveVisitors', { societyId })}
-                />
-              ) : null}
-              {canViewEntryLog ? (
-                <ActionRow
-                  icon="list-outline"
-                  label="Entry Log"
-                  subtitle="History of all visitors"
-                  onPress={() => navigation.navigate('EntryLog', { societyId })}
-                />
-              ) : null}
-              {canManageMyVisitors ? (
-                <ActionRow
-                  icon="people-circle-outline"
-                  label="My Visitors"
-                  subtitle="Pre-approvals and recent visits"
-                  onPress={() => navigation.navigate('MyVisitors', { societyId })}
-                />
-              ) : null}
-              {canViewMyHome && currentMemberId ? (
-                <ActionRow
-                  icon="home-outline"
-                  label="My Home"
-                  subtitle="Your flat details and co-occupants"
-                  onPress={() => navigation.navigate('MyHome', { societyId, memberId: currentMemberId })}
-                />
-              ) : null}
-              {canSwitchSociety ? (
-                <ActionRow
-                  icon="swap-horizontal-outline"
-                  label="Switch Society"
-                  subtitle="You belong to multiple societies"
-                  onPress={() => navigation.navigate('SwitchSociety')}
-                />
-              ) : null}
+              </TouchableOpacity>
+            </View>
+
+            <View style={layoutMode === 'grid' ? styles.gridContainer : styles.actionsList}>
+              {actions.map((action, index) => (
+                layoutMode === 'grid' ? (
+                  <ActionGridItem
+                    key={index}
+                    icon={action.icon}
+                    label={action.label}
+                    onPress={action.onPress}
+                  />
+                ) : (
+                  <ActionRow
+                    key={index}
+                    icon={action.icon}
+                    label={action.label}
+                    subtitle={action.subtitle}
+                    onPress={action.onPress}
+                  />
+                )
+              ))}
             </View>
           </View>
         ) : null}
@@ -387,39 +466,6 @@ export function DashboardScreen({ route, navigation }: Props) {
         />
       ) : null}
     </ScreenWrapper>
-  )
-}
-
-// ─── Action Row ──────────────────────────────────────────────────────────────
-
-interface ActionRowProps {
-  icon: keyof typeof Ionicons.glyphMap
-}
-
-function ActionRow({ icon, label, subtitle, onPress }: ActionRowProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.actionRow,
-        pressed && styles.actionRowPressed,
-      ]}
-    >
-      <View style={styles.actionIcon}>
-        <Ionicons
-          name={icon}
-          size={20}
-          color={Colors.primary}
-        />
-      </View>
-
-      <View style={styles.actionText}>
-        <Text style={styles.actionLabel}>{label}</Text>
-        <Text style={styles.actionSubtitle}>{subtitle}</Text>
-      </View>
-
-      <Text style={styles.actionChevron}>›</Text>
-    </Pressable>
   )
 }
 
@@ -558,11 +604,52 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  layoutToggle: {
+    padding: 4,
+    marginRight: -4,
+  },
   actionsList: {
     backgroundColor: Colors.surface,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.border,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  gridItem: {
+    width: '48.2%', // Precise width for 2-column with gap
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    minHeight: 100,
+  },
+  gridIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gridLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.text,
+    textAlign: 'center',
   },
   actionRow: {
     flexDirection: 'row',
@@ -649,8 +736,6 @@ const styles = StyleSheet.create({
     color: Colors.surface,
   },
 })
-
-// ─── Profile sheet styles ─────────────────────────────────────────────────────
 
 const profileStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
