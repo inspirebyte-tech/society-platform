@@ -75,14 +75,14 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
           const myFlats = new Map<string, { id: string; name: string }>()
           res.occupancies.forEach(o => myFlats.set(o.flatId, { id: o.flatId, name: o.flatName }))
           res.ownerships.forEach(o => myFlats.set(o.flatId, { id: o.flatId, name: o.flatName }))
-          
+
           const uniqueFlats = Array.from(myFlats.values())
           setUnits(uniqueFlats)
           if (uniqueFlats.length === 1) {
             setSelectedUnitId(uniqueFlats[0].id)
           }
         })
-        .catch(() => {})
+        .catch(() => { })
     }
   }, [societyId, currentMemberId])
 
@@ -298,7 +298,7 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
 
             <TextInput label="Visitor Name *" value={formName} onChangeText={setFormName} />
             <TextInput label="Mobile Number" value={formMobile} onChangeText={setFormMobile} keyboardType="phone-pad" />
-            
+
             <View style={styles.field}>
               <Text style={styles.fieldLabel}>For Flat *</Text>
               {units.length === 1 ? (
@@ -333,8 +333,8 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
               keyExtractor={(item: any) => item.id}
               renderItem={
                 activeTab === 'PRE_APPROVALS' ? renderPreApprovalItem as any
-                : activeTab === 'FREQUENT' ? renderFrequentItem as any
-                : renderRecentItem as any
+                  : activeTab === 'FREQUENT' ? renderFrequentItem as any
+                    : renderRecentItem as any
               }
               contentContainerStyle={styles.listContainer}
               refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => loadData(true)} colors={[Colors.primary]} />}
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   wrapper: { backgroundColor: Colors.background, flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  
+
   tabContainer: {
     flexDirection: 'row',
     backgroundColor: Colors.surface,
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
   dot: { fontSize: 12, color: Colors.border, marginHorizontal: 6 },
   noteText: { fontSize: 13, color: Colors.subtle, marginTop: 4, fontStyle: 'italic' },
   dateText: { fontSize: 12, color: Colors.subtle, marginTop: 4 },
-  
+
   badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   badgeUnused: { backgroundColor: '#dcfce7' },
   badgeUsed: { backgroundColor: Colors.border },
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   formContainer: { padding: Spacing.screenPadding, gap: Spacing.sectionGap, paddingBottom: 40 },
   formHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   formTitle: { fontSize: 20, fontWeight: '700', color: Colors.text },
-  
+
   field: { gap: 6 },
   fieldLabel: { fontSize: 14, fontWeight: '500', color: Colors.text },
   pickerTrigger: { flexDirection: 'row', alignItems: 'center', height: 52, borderWidth: 1.5, borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 14, backgroundColor: Colors.surface },

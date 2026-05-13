@@ -163,7 +163,7 @@ export function DashboardScreen({ route, navigation }: Props) {
         </TouchableOpacity>
       ),
     })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.name, navigation])
 
   // "+" to create another society — builders only
@@ -623,30 +623,30 @@ const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 10,
   },
   gridItem: {
-    width: '48.2%', // Precise width for 2-column with gap
+    width: '31.1%', // Precise width for 3-column with gap
     backgroundColor: Colors.surface,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.border,
-    padding: 16,
+    padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    minHeight: 100,
+    gap: 8,
+    minHeight: 90,
   },
   gridIcon: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 12,
     backgroundColor: '#f1f5f9',
     alignItems: 'center',
     justifyContent: 'center',
   },
   gridLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: Colors.text,
     textAlign: 'center',
