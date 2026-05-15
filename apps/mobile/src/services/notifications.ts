@@ -50,16 +50,25 @@ const DEEP_LINK_MAP: Record<string, (data: any) => void> = {
       } as never)
     }
   },
-  'Announcements': (data) => {
+  'AnnouncementsList': (data) => {
     if (navigationRef.isReady()) {
-      navigationRef.navigate('Announcements' as never, {
+      navigationRef.navigate('AnnouncementsList' as never, {
         societyId: data.orgId,
       } as never)
     }
   },
-  'Dashboard': (_data) => {
+  'Dashboard': (data) => {
     if (navigationRef.isReady()) {
-      navigationRef.navigate('Dashboard' as never)
+      navigationRef.navigate('Dashboard' as never, {
+        societyId: data.orgId,
+      } as never)
+    }
+  },
+  'VisitorHistory': (data) => {
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('VisitorHistory' as never, {
+        societyId: data.orgId,
+      } as never)
     }
   },
   'VisitorApproval': (data) => {
