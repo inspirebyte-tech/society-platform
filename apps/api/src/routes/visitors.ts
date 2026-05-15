@@ -276,9 +276,8 @@ router.post(
         return sendSuccess(res, formatEntry(entry), 201)
       }
 
-      // Branch B: Walk-in
+      // Branch B: Walk-in without a unit — nobody to notify, leave notifiedAt null
       if (!unitId) {
-        // e.g. Delivery for whole society, or someone just entering without flat specified
         const entry = await prisma.visitorEntry.create({
           data: {
             orgId,
@@ -286,7 +285,6 @@ router.post(
             purpose,
             status: 'PENDING',
             loggedBy: userId,
-            notifiedAt: now
           },
           include: { visitor: true }
         })
@@ -303,7 +301,7 @@ router.post(
           purpose,
           status: 'PENDING',
           loggedBy: userId,
-          notifiedAt: now
+          // notifiedAt set below only if at least one push actually goes out
         },
         include: { visitor: true, unit: true }
       })
@@ -319,13 +317,18 @@ router.post(
         .filter(Boolean) as string[]
 
       if (occupantUserIds.length > 0) {
-        // Emit VISITOR_AT_GATE
+        const notified = await prisma.visitorEntry.update({
+          where: { id: entry.id },
+          data: { notifiedAt: now },
+          include: { visitor: true, unit: true }
+        })
         appEvents.emit(Events.VISITOR_AT_GATE, {
           orgId,
           userIds: occupantUserIds,
           visitorName: visitor.name,
           entryId: entry.id
         })
+        return sendSuccess(res, formatEntry(notified), 201)
       }
 
       return sendSuccess(res, formatEntry(entry), 201)
