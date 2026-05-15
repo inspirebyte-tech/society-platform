@@ -210,10 +210,11 @@ export function LogVisitorScreen({ route, navigation }: Props) {
 
       // If frequent + no notify -> immediately allow
       if (selectedVisitor.isFrequent && !notifyFrequent && entry.status === 'PENDING') {
-        const allowed = await allowEntry(societyId, entry.id)
-        setCurrentEntry(allowed)
-        await markEntered(societyId, allowed.id)
-        setCurrentEntry({ ...allowed, status: 'ALLOWED', enteredAt: new Date().toISOString() }) // Optimistic
+        setCurrentEntry(entry)
+        await allowEntry(societyId, entry.id)
+        setCurrentEntry(prev => prev ? { ...prev, status: 'ALLOWED' } : prev)
+        await markEntered(societyId, entry.id)
+        setCurrentEntry(prev => prev ? { ...prev, enteredAt: new Date().toISOString() } : prev)
       } else if (entry.status === 'ALLOWED') {
         // Pre-approval goes straight to ALLOWED
         setCurrentEntry(entry)
@@ -231,11 +232,11 @@ export function LogVisitorScreen({ route, navigation }: Props) {
     if (!currentEntry) return
     try {
       if (action === 'allow') {
-        const res = await allowEntry(societyId, currentEntry.id)
-        setCurrentEntry(res)
+        await allowEntry(societyId, currentEntry.id)
+        setCurrentEntry(prev => prev ? { ...prev, status: 'ALLOWED' } : prev)
       } else if (action === 'turnAway') {
-        const res = await turnAwayEntry(societyId, currentEntry.id)
-        setCurrentEntry(res)
+        await turnAwayEntry(societyId, currentEntry.id)
+        setCurrentEntry(prev => prev ? { ...prev, status: 'TURNED_AWAY' } : prev)
       } else if (action === 'enter') {
         const res = await markEntered(societyId, currentEntry.id)
         setCurrentEntry({ ...currentEntry, enteredAt: res.enteredAt })

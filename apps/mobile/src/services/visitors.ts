@@ -80,12 +80,12 @@ export async function rejectEntry(societyId: string, entryId: string): Promise<V
   return res.data.data
 }
 
-export async function allowEntry(societyId: string, entryId: string): Promise<VisitorEntry> {
+export async function allowEntry(societyId: string, entryId: string): Promise<{ message: string; status: string }> {
   const res = await api.patch(`/societies/${societyId}/entries/${entryId}/allow`)
   return res.data.data
 }
 
-export async function turnAwayEntry(societyId: string, entryId: string): Promise<VisitorEntry> {
+export async function turnAwayEntry(societyId: string, entryId: string): Promise<{ message: string; status: string }> {
   const res = await api.patch(`/societies/${societyId}/entries/${entryId}/turnaway`)
   return res.data.data
 }
