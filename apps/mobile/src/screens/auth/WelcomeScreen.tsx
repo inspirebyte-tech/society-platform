@@ -48,7 +48,7 @@ export function WelcomeScreen({ navigation }: Props) {
       })
     ).start()
 
-    // 3: Slow, infinite scroll for the architecture (40 seconds per loop)
+    // 4: Slow, infinite scroll for the architecture (40 seconds per loop)
     Animated.loop(
       Animated.timing(scrollAnim, {
         toValue: 1,
