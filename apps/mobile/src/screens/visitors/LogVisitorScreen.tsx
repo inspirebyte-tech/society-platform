@@ -93,7 +93,7 @@ export function LogVisitorScreen({ route, navigation }: Props) {
   useEffect(() => {
     listUnits(societyId)
       .then(res => setUnits(res.units))
-      .catch((e) => console.error('Failed to load units:', e))
+      .catch(() => setToast({ message: 'Failed to load flats', type: 'error' }))
   }, [societyId])
 
   // Debounced Search

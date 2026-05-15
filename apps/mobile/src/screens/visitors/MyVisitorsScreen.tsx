@@ -83,7 +83,7 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
             setSelectedUnitId(uniqueFlats[0].id)
           }
         })
-        .catch(() => { })
+        .catch(() => setToast({ message: 'Failed to load your flats', type: 'error' }))
     }
   }, [societyId, currentMemberId])
 
