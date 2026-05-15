@@ -739,6 +739,11 @@ router.post(
         return sendError(res, 'missing_field', 400)
       }
 
+      const unit = await prisma.propertyNode.findFirst({
+        where: { id: unitId, orgId }
+      })
+      if (!unit) return sendError(res, 'invalid_unit', 400)
+
       // Verify user is active occupant
       const isOccupant = await prisma.unitOccupancy.findFirst({
         where: {
@@ -948,6 +953,11 @@ router.post(
       })
 
       if (!visitor) return sendNotFound(res, 'visitor_not_found')
+
+      const unit = await prisma.propertyNode.findFirst({
+        where: { id: unitId, orgId }
+      })
+      if (!unit) return sendError(res, 'invalid_unit', 400)
 
       // Verify user is active occupant
       const isOccupant = await prisma.unitOccupancy.findFirst({
