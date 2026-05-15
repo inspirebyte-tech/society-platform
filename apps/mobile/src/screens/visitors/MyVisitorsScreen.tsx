@@ -68,6 +68,7 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null)
   const [showUnitPicker, setShowUnitPicker] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // Load Units once for the form
   useEffect(() => {
@@ -118,22 +119,28 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
   )
 
   const handleDeletePreApproval = async (id: string) => {
+    setDeletingId(id)
     try {
       await deletePreApproval(societyId, id)
       setPreApprovals(prev => prev.filter(p => p.id !== id))
       setToast({ message: 'Pre-approval removed', type: 'success' })
     } catch (e) {
       setToast({ message: getErrorMessage(getApiErrorCode(e)), type: 'error' })
+    } finally {
+      setDeletingId(null)
     }
   }
 
   const handleRemoveFrequent = async (id: string) => {
+    setDeletingId(id)
     try {
       await removeFrequent(societyId, id)
       setFrequentVisitors(prev => prev.filter(v => v.id !== id))
       setToast({ message: 'Frequent visitor removed', type: 'success' })
     } catch (e) {
       setToast({ message: getErrorMessage(getApiErrorCode(e)), type: 'error' })
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -221,9 +228,19 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
       </View>
       {!item.isUsed && (
         <View style={styles.cardActions}>
-          <Pressable style={styles.deleteBtn} onPress={() => handleDeletePreApproval(item.id)}>
-            <Ionicons name="trash-outline" size={16} color={Colors.error} />
-            <Text style={styles.deleteBtnText}>Cancel</Text>
+          <Pressable
+            style={styles.deleteBtn}
+            onPress={() => handleDeletePreApproval(item.id)}
+            disabled={deletingId === item.id}
+          >
+            {deletingId === item.id ? (
+              <ActivityIndicator size="small" color={Colors.error} />
+            ) : (
+              <>
+                <Ionicons name="trash-outline" size={16} color={Colors.error} />
+                <Text style={styles.deleteBtnText}>Cancel</Text>
+              </>
+            )}
           </Pressable>
         </View>
       )}
@@ -251,9 +268,19 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
         </View>
       </View>
       <View style={styles.cardActions}>
-        <Pressable style={styles.deleteBtn} onPress={() => handleRemoveFrequent(item.id)}>
-          <Ionicons name="person-remove-outline" size={16} color={Colors.error} />
-          <Text style={styles.deleteBtnText}>Remove from Frequent</Text>
+        <Pressable
+          style={styles.deleteBtn}
+          onPress={() => handleRemoveFrequent(item.id)}
+          disabled={deletingId === item.id}
+        >
+          {deletingId === item.id ? (
+            <ActivityIndicator size="small" color={Colors.error} />
+          ) : (
+            <>
+              <Ionicons name="person-remove-outline" size={16} color={Colors.error} />
+              <Text style={styles.deleteBtnText}>Remove from Frequent</Text>
+            </>
+          )}
         </Pressable>
       </View>
     </View>
