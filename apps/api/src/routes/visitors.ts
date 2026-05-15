@@ -155,7 +155,15 @@ router.post(
         }
       })
 
-      return sendSuccess(res, visitor, 201)
+      return sendSuccess(res, {
+        id: visitor.id,
+        name: visitor.name,
+        mobile: visitor.mobile,
+        type: visitor.type,
+        vehicleNo: visitor.vehicleNo,
+        photoUrl: visitor.photoUrl,
+        isFrequent: visitor.isFrequent,
+      }, 201)
     } catch (error) {
       console.error('POST /visitors error:', error)
       return sendError(res, 'server_error', 500)
@@ -790,7 +798,16 @@ router.post(
         }
       })
 
-      return sendSuccess(res, preApproval, 201)
+      return sendSuccess(res, {
+        id: preApproval.id,
+        visitorName: preApproval.visitorName,
+        visitorMobile: preApproval.visitorMobile,
+        unitId: preApproval.unitId,
+        note: preApproval.note,
+        expiresAt: preApproval.expiresAt?.toISOString() ?? null,
+        isUsed: preApproval.isUsed,
+        createdAt: preApproval.createdAt.toISOString(),
+      }, 201)
 
     } catch (error) {
       console.error('POST /pre-approvals error:', error)
@@ -839,8 +856,16 @@ router.get(
 
       return sendSuccess(res, {
         preApprovals: preApprovals.map(p => ({
-          ...p,
-          flatName: p.unit.name
+          id: p.id,
+          visitorName: p.visitorName,
+          visitorMobile: p.visitorMobile,
+          unitId: p.unitId,
+          flatName: p.unit.name,
+          note: p.note,
+          expiresAt: p.expiresAt?.toISOString() ?? null,
+          isUsed: p.isUsed,
+          usedAt: p.usedAt?.toISOString() ?? null,
+          createdAt: p.createdAt.toISOString(),
         }))
       })
 
