@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ScrollView,
   Pressable,
 } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { Ionicons } from '@expo/vector-icons'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
@@ -71,9 +72,11 @@ export function EntryLogScreen({ route }: Props) {
     }
   }, [societyId, selectedDate, selectedStatus])
 
-  useEffect(() => {
-    loadLog()
-  }, [loadLog])
+  useFocusEffect(
+    useCallback(() => {
+      loadLog()
+    }, [loadLog])
+  )
 
   const getStatusColor = (status: EntryStatus) => {
     switch (status) {

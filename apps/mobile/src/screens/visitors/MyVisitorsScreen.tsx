@@ -12,6 +12,7 @@ import {
   Platform,
   TouchableOpacity,
 } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { Ionicons } from '@expo/vector-icons'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
@@ -110,9 +111,11 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
     }
   }, [societyId, activeTab])
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
+  useFocusEffect(
+    useCallback(() => {
+      loadData()
+    }, [loadData])
+  )
 
   const handleDeletePreApproval = async (id: string) => {
     try {
