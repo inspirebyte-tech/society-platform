@@ -26,6 +26,7 @@ import {
   getEntryLog,
   deletePreApproval,
   removeFrequent,
+  markFrequent,
   createPreApproval,
   PreApproval,
   Visitor,
@@ -255,32 +256,58 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
     </View>
   )
 
-  const renderRecentItem = ({ item }: { item: VisitorEntry }) => (
-    <Pressable
-      style={styles.card}
-      onPress={() => navigation.navigate('VisitorApproval', { societyId, entryId: item.id })}
-    >
-      <View style={styles.cardHeader}>
-        <View style={styles.infoContainer}>
-          <Text style={styles.visitorName}>{item.visitorName}</Text>
-          <View style={styles.subInfoRow}>
-            <Text style={styles.visitorType}>{item.visitorType}</Text>
-            <Text style={styles.dot}>•</Text>
-            <Text style={styles.flatName}>{item.flatName}</Text>
+  const renderRecentItem = ({ item }: { item: VisitorEntry }) => {
+    const isFrequent = frequentVisitors.some(v => v.id === item.visitorId)
+    const myUnitId = units.find(u => u.name === item.flatName)?.id
+
+    return (
+      <Pressable
+        style={styles.card}
+        onPress={() => navigation.navigate('VisitorApproval', { societyId, entryId: item.id })}
+      >
+        <View style={styles.cardHeader}>
+          <View style={styles.infoContainer}>
+            <Text style={styles.visitorName}>{item.visitorName}</Text>
+            <View style={styles.subInfoRow}>
+              <Text style={styles.visitorType}>{item.visitorType}</Text>
+              <Text style={styles.dot}>•</Text>
+              <Text style={styles.flatName}>{item.flatName}</Text>
+            </View>
+            <Text style={styles.dateText}>{new Date(item.createdAt).toLocaleDateString()}</Text>
           </View>
-          <Text style={styles.dateText}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+          <View style={[styles.badge, { backgroundColor: item.status === 'PENDING' ? '#fef08a' : Colors.border }]}>
+            <Text style={[styles.badgeText, { color: item.status === 'PENDING' ? '#854d0e' : Colors.text }]}>{item.status}</Text>
+          </View>
         </View>
-        <View style={[styles.badge, { backgroundColor: item.status === 'PENDING' ? '#fef08a' : Colors.border }]}>
-          <Text style={[styles.badgeText, { color: item.status === 'PENDING' ? '#854d0e' : Colors.text }]}>{item.status}</Text>
-        </View>
-      </View>
-      {item.status === 'PENDING' && (
-        <View style={styles.cardActions}>
-          <Text style={{ fontSize: 13, color: Colors.primary, fontWeight: '600' }}>Review Request ›</Text>
-        </View>
-      )}
-    </Pressable>
-  )
+        {(item.status === 'PENDING' || (item.visitorId && !isFrequent && myUnitId)) && (
+          <View style={[styles.cardActions, { justifyContent: 'space-between' }]}>
+            {item.visitorId && !isFrequent && myUnitId ? (
+              <Pressable
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                onPress={async (e) => {
+                  e.stopPropagation()
+                  try {
+                    await markFrequent(societyId, item.visitorId, myUnitId)
+                    setToast({ message: 'Marked as frequent visitor', type: 'success' })
+                    loadData()
+                  } catch (err) {
+                    setToast({ message: 'Failed to mark frequent', type: 'error' })
+                  }
+                }}
+              >
+                <Ionicons name="star-outline" size={16} color={Colors.primary} />
+                <Text style={{ fontSize: 13, color: Colors.primary, fontWeight: '500' }}>Mark Frequent</Text>
+              </Pressable>
+            ) : <View />}
+            
+            {item.status === 'PENDING' && (
+              <Text style={{ fontSize: 13, color: Colors.primary, fontWeight: '600' }}>Review Request ›</Text>
+            )}
+          </View>
+        )}
+      </Pressable>
+    )
+  }
 
   return (
     <ScreenWrapper style={styles.wrapper} scroll={false}>
