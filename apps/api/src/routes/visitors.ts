@@ -403,6 +403,11 @@ router.get(
         return sendError(res, 'insufficient_permissions', 403)
       }
 
+      const validTypes = ['INDIVIDUAL', 'DELIVERY', 'SERVICE', 'DOMESTIC', 'CAB', 'OTHER']
+      if (type && !validTypes.includes(type as string)) {
+        return sendError(res, 'invalid_visitor_type', 400)
+      }
+
       const where: any = { orgId }
 
       if (status) where.status = status
