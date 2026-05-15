@@ -460,25 +460,33 @@ export function LogVisitorScreen({ route, navigation }: Props) {
                 <Pressable
                   key={p.id}
                   style={styles.resultCard}
-                  onPress={() => {
-                    setSelectedPreApproval(p)
-                    setSelectedVisitor({
-                      id: 'new', // will be ignored by API or we must create first?
-                      // Wait, logEntry requires a visitor ID! If we select a pre-approval, the visitor might not exist yet if they haven't visited.
-                      // Actually, if we pass preApprovalId, the backend uses the visitor details or expects us to create one?
-                      // Wait! In the API, pre-approval entry needs a `visitorId`.
-                      // So Gatekeeper MUST select or create a visitor FIRST, or if preApproval has it...
-                      // Wait, pre-approvals in search are just matches. If they tap a pre-approval, we should go to "Create New Visitor" pre-filled with pre-approval details, then log entry?
-                      // Or just use a dummy visitor ID if backend handles it? 
-                      // Let's create the visitor on the fly or prompt. Let's set the form to create state pre-filled.
-                      name: p.visitorName,
-                      type: 'INDIVIDUAL',
-                      isFrequent: false,
-                    })
-                    // Hack: We need to ensure the visitor exists. If we tap pre-approval, let's open the create form prefilled.
-                    setCreateName(p.visitorName)
-                    if (p.visitorMobile) setCreateMobile(p.visitorMobile)
-                    setShowCreate(true)
+                  onPress={async () => {
+                    try {
+                      setIsSearching(true)
+                      
+                      // 1. Try to find an existing visitor from the search results
+                      let visitor = visitors.find(v => 
+                        v.name.toLowerCase() === p.visitorName.toLowerCase() && 
+                        (!p.visitorMobile || v.mobile === p.visitorMobile)
+                      )
+                      
+                      // 2. If not found, create a new visitor record on the fly
+                      if (!visitor) {
+                        visitor = await createVisitor(societyId, {
+                          name: p.visitorName,
+                          mobile: p.visitorMobile,
+                          type: 'INDIVIDUAL'
+                        })
+                      }
+                      
+                      // 3. Set states to transition cleanly to Phase 2 with valid visitorId
+                      setSelectedPreApproval(p)
+                      setSelectedVisitor(visitor)
+                    } catch (e) {
+                      setToast({ message: 'Failed to prepare visitor record', type: 'error' })
+                    } finally {
+                      setIsSearching(false)
+                    }
                   }}
                 >
                   <View style={styles.resultInfo}>
