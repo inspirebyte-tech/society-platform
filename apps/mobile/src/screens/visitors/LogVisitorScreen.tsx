@@ -239,6 +239,7 @@ export function LogVisitorScreen({ route, navigation }: Props) {
       } else if (action === 'enter') {
         const res = await markEntered(societyId, currentEntry.id)
         setCurrentEntry({ ...currentEntry, enteredAt: res.enteredAt })
+        setToast({ message: 'Visitor marked as entered', type: 'success' })
       } else if (action === 'exit') {
         const res = await markExited(societyId, currentEntry.id)
         setCurrentEntry({ ...currentEntry, status: 'EXITED', exitedAt: res.exitedAt })
