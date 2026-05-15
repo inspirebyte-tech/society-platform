@@ -214,34 +214,48 @@ router.post(
       if (preApprovalId) {
         if (!unitId) return sendError(res, 'unit_required_for_preapproval', 400)
 
+        // Issue 3: reject expired pre-approvals
         const preApproval = await prisma.visitorPreApproval.findFirst({
-          where: { id: preApprovalId, orgId, unitId, isUsed: false }
+          where: {
+            id: preApprovalId, orgId, unitId, isUsed: false,
+            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }]
+          }
         })
 
         if (!preApproval) {
           return sendError(res, 'invalid_or_used_preapproval', 400)
         }
 
-        // Create entry directly as ALLOWED
-        const entry = await prisma.visitorEntry.create({
-          data: {
-            orgId,
-            visitorId,
-            unitId,
-            flatName,
-            purpose: purpose ?? preApproval.note,
-            status: 'ALLOWED',
-            loggedBy: userId,
-            enteredAt: now
-          },
-          include: { visitor: true, unit: true }
-        })
-
-        // Mark pre-approval as used
-        await prisma.visitorPreApproval.update({
-          where: { id: preApproval.id },
-          data: { isUsed: true, usedAt: now }
-        })
+        // Issue 4: atomic mark-used + entry create to prevent double-use
+        let entry: any
+        try {
+          ;[entry] = await prisma.$transaction(async (tx) => {
+            const updated = await tx.visitorPreApproval.updateMany({
+              where: { id: preApprovalId, orgId, unitId, isUsed: false },
+              data: { isUsed: true, usedAt: now }
+            })
+            if (updated.count === 0) throw new Error('pre_approval_already_used')
+            const created = await tx.visitorEntry.create({
+              data: {
+                orgId,
+                visitorId,
+                unitId,
+                flatName,
+                purpose: purpose ?? preApproval.note,
+                status: 'ALLOWED',
+                loggedBy: userId,
+                enteredAt: now
+              },
+              include: { visitor: true, unit: true }
+            })
+            return [created]
+          })
+        } catch (txErr: any) {
+          if (txErr.message === 'pre_approval_already_used') {
+            return sendError(res, 'invalid_or_used_preapproval', 400)
+          }
+          throw txErr
+        }
 
         // Emit PRE_APPROVAL_USED
         appEvents.emit(Events.VISITOR_PRE_APPROVAL_USED, {
