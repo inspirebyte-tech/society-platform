@@ -678,6 +678,9 @@ router.patch(
       if (!['ALLOWED', 'APPROVED'].includes(entry.status)) {
         return sendError(res, 'entry_must_be_allowed_or_approved', 400)
       }
+      if (entry.enteredAt) {
+        return sendError(res, 'visitor_already_entered', 400)
+      }
 
       const now = new Date()
       const updated = await prisma.visitorEntry.update({
@@ -751,6 +754,12 @@ router.post(
 
       if (!visitorName || !unitId) {
         return sendError(res, 'missing_field', 400)
+      }
+
+      if (expiresAt) {
+        const parsed = new Date(expiresAt)
+        if (isNaN(parsed.getTime())) return sendError(res, 'invalid_expires_at', 400)
+        if (parsed <= new Date()) return sendError(res, 'expires_at_must_be_future', 400)
       }
 
       const unit = await prisma.propertyNode.findFirst({
