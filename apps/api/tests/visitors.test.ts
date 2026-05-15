@@ -812,7 +812,7 @@ describe('Visitors', () => {
       expect(res.body.data.preApprovals.some((p: any) => p.id === preApprovalId)).toBe(true)
     })
 
-    it('returns empty for gatekeeper', async () => {
+    it('returns 403 for gatekeeper (no visitor.pre_approve permission)', async () => {
       // Actually gatekeeper has no `visitor.pre_approve` permission, so it should return 403.
       // But the spec says "it returns empty for gatekeeper".
       // Wait, gatekeeper doesn't have the permission at all.
