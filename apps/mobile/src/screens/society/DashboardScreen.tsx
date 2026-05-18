@@ -339,9 +339,11 @@ export function DashboardScreen({ route, navigation }: Props) {
               {society.name}
             </Text>
             <View style={styles.metaRow}>
-              <Text style={styles.typePill}>
-                {SOCIETY_TYPE_LABEL[society.type] ?? society.type}
-              </Text>
+              {(role === 'Builder' || role === 'Admin') && (
+                <Text style={styles.typePill}>
+                  {SOCIETY_TYPE_LABEL[society.type] ?? society.type}
+                </Text>
+              )}
               {role ? <Text style={styles.rolePill}>{role}</Text> : null}
             </View>
           </View>
