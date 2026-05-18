@@ -421,6 +421,7 @@ export function LogVisitorScreen({ route, navigation }: Props) {
         <BottomSheetPicker
           visible={showUnitPicker}
           title="Select Flat"
+          searchable
           options={units.map(u => ({ label: `${u.name} ${u.primaryOccupant ? `(${u.primaryOccupant})` : ''}`, value: u.id }))}
           selected={selectedUnitId}
           onSelect={(val) => {
