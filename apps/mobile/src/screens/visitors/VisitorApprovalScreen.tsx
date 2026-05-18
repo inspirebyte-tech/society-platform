@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import {
   View,
   Text,
@@ -46,10 +46,6 @@ export function VisitorApprovalScreen({ route, navigation }: Props) {
       setIsLoading(false)
     }
   }, [societyId, entryId])
-
-  useEffect(() => {
-    loadEntry()
-  }, [loadEntry])
 
   useFocusEffect(
     useCallback(() => {
