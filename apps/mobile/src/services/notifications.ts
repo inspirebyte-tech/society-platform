@@ -50,16 +50,40 @@ const DEEP_LINK_MAP: Record<string, (data: any) => void> = {
       } as never)
     }
   },
-  'Announcements': (data) => {
+  'AnnouncementsList': (data) => {
     if (navigationRef.isReady()) {
-      navigationRef.navigate('Announcements' as never, {
+      navigationRef.navigate('AnnouncementsList' as never, {
         societyId: data.orgId,
       } as never)
     }
   },
-  'Dashboard': (_data) => {
+  'Dashboard': (data) => {
     if (navigationRef.isReady()) {
-      navigationRef.navigate('Dashboard' as never)
+      navigationRef.navigate('Dashboard' as never, {
+        societyId: data.orgId,
+      } as never)
+    }
+  },
+  'VisitorHistory': (data) => {
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('VisitorHistory' as never, {
+        societyId: data.orgId,
+      } as never)
+    }
+  },
+  'VisitorApproval': (data) => {
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('VisitorApproval' as never, {
+        societyId: data.orgId,
+        entryId: data.entryId,
+      } as never)
+    }
+  },
+  'ActiveVisitors': (data) => {
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('ActiveVisitors' as never, {
+        societyId: data.orgId,
+      } as never)
     }
   },
 }
@@ -84,6 +108,7 @@ export const handleNotificationResponse = (
 export const setupNotificationHandler = (): void => {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
+      shouldShowBanner: true,
       shouldShowAlert: true,
       shouldPlaySound: true,
       shouldSetBadge: false,

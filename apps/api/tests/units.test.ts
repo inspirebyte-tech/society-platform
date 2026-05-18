@@ -177,12 +177,13 @@ describe('GET /societies/:id/units', () => {
     expect(res.body.error).toBe('insufficient_permissions')
   })
 
-  it('gatekeeper cannot list all units — 403', async () => {
+  it('gatekeeper can list all units — 200 (has unit.view_all for LogVisitor flat picker)', async () => {
     const res = await request(app)
       .get(`/api/societies/${orgId}/units`)
       .set('Authorization', `Bearer ${gatekeeperToken}`)
 
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(200)
+    expect(res.body.data.units).toBeInstanceOf(Array)
   })
 
   it('no token — 401', async () => {

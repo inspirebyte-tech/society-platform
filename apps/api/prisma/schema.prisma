@@ -30,6 +30,10 @@ model User {
   complaintsRaised   Complaint[] @relation("ComplaintRaiser")
   complaintsResolved Complaint[] @relation("ComplaintResolver")
   announcementsCreated Announcement[] @relation("AnnouncementCreator")
+  frequentVisitorApprovals Visitor[]          @relation("FrequentVisitorApprover")
+  visitorEntriesLogged     VisitorEntry[]     @relation("EntryLogger")
+  visitorEntriesApproved   VisitorEntry[]     @relation("EntryApprover")
+  visitorPreApprovals      VisitorPreApproval[] @relation("PreApprovalApprover")
   
   @@map("users")
 }
@@ -75,6 +79,9 @@ model Organization {
   invitations    Invitation[]
   complaints    Complaint[]
   announcements Announcement[]
+  visitors            Visitor[]
+  visitorEntries      VisitorEntry[]
+  visitorPreApprovals VisitorPreApproval[]
 
   @@map("organizations")
 }
@@ -179,6 +186,9 @@ model PropertyNode {
   children     PropertyNode[] @relation("NodeTree")
   ownerships   UnitOwnership[]
   occupancies  UnitOccupancy[]
+  frequentVisitors    Visitor[]          @relation("FrequentVisitorUnit")
+  visitorEntries      VisitorEntry[]     @relation("VisitorEntryUnit")
+  visitorPreApprovals VisitorPreApproval[] @relation("PreApprovalUnit")
 
   @@map("property_nodes")
   @@index([orgId, parentId])
@@ -385,6 +395,105 @@ model AnnouncementImage {
   announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
 
   @@map("announcement_images")
+}
+
+// ─────────────────────────────────────────────
+// Visitor Management
+// ─────────────────────────────────────────────
+
+enum VisitorType {
+  INDIVIDUAL
+  DELIVERY
+  SERVICE
+  DOMESTIC
+  CAB
+  OTHER
+}
+
+enum EntryStatus {
+  PENDING
+  APPROVED
+  DENIED
+  ALLOWED
+  TURNED_AWAY
+  EXITED
+}
+
+model Visitor {
+  id                  String    @id @default(uuid())
+  orgId               String
+  name                String
+  mobile              String?
+  vehicleNo           String?
+  type                VisitorType @default(INDIVIDUAL)
+  photoUrl            String?
+  isFrequent          Boolean   @default(false)
+  frequentForUnitId   String?
+  frequentApprovedBy  String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  org                 Organization   @relation(fields: [orgId], references: [id])
+  frequentForUnit     PropertyNode?  @relation("FrequentVisitorUnit", fields: [frequentForUnitId], references: [id])
+  frequentApprover    User?          @relation("FrequentVisitorApprover", fields: [frequentApprovedBy], references: [id])
+  entries             VisitorEntry[]
+
+  @@index([orgId])
+  @@index([orgId, mobile])
+  @@map("visitors")
+}
+
+model VisitorEntry {
+  id           String      @id @default(uuid())
+  orgId        String
+  visitorId    String
+  unitId       String?
+  flatName     String?
+  purpose      String?
+  status       EntryStatus @default(PENDING)
+  loggedBy     String
+  approvedBy   String?
+  notifiedAt   DateTime?
+  respondedAt  DateTime?
+  enteredAt    DateTime?
+  exitedAt     DateTime?
+  note         String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  org          Organization  @relation(fields: [orgId], references: [id])
+  visitor      Visitor       @relation(fields: [visitorId], references: [id])
+  unit         PropertyNode? @relation("VisitorEntryUnit", fields: [unitId], references: [id])
+  logger       User          @relation("EntryLogger", fields: [loggedBy], references: [id])
+  approver     User?         @relation("EntryApprover", fields: [approvedBy], references: [id])
+
+  @@index([orgId])
+  @@index([orgId, status])
+  @@index([orgId, unitId])
+  @@map("visitor_entries")
+}
+
+model VisitorPreApproval {
+  id              String    @id @default(uuid())
+  orgId           String
+  visitorName     String
+  visitorMobile   String?
+  unitId          String
+  approvedBy      String
+  note            String?
+  isUsed          Boolean   @default(false)
+  usedAt          DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  org             Organization @relation(fields: [orgId], references: [id])
+  unit            PropertyNode @relation("PreApprovalUnit", fields: [unitId], references: [id])
+  approver        User         @relation("PreApprovalApprover", fields: [approvedBy], references: [id])
+
+  @@index([orgId])
+  @@index([orgId, unitId])
+  @@map("visitor_pre_approvals")
 }
 
 enum ComplaintCategory {

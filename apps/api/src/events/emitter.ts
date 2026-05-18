@@ -21,6 +21,8 @@ export const Events = {
   VISITOR_AT_GATE:      'visitor.at_gate',
   VISITOR_APPROVED:     'visitor.approved',
   VISITOR_REJECTED:     'visitor.rejected',
+  VISITOR_DENIED:       'visitor.denied',
+  VISITOR_PRE_APPROVAL_USED: 'visitor.pre_approval_used',
 
   // Emergency
   EMERGENCY_DECLARED:   'emergency.declared',

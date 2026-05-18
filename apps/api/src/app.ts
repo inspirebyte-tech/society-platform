@@ -9,6 +9,7 @@ import deviceTokensRouter from './routes/deviceTokens'
 import complaintsRouter from './routes/complaints'
 import announcementsRouter from './routes/announcements'
 import unitsRouter from './routes/units'
+import visitorsRouter from './routes/visitors'
 import { enforceTenantContext } from './middleware/tenantContext'
 import { errorHandler } from './middleware/error'
 import { apiRateLimit } from './middleware/rateLimit'
@@ -30,6 +31,7 @@ app.use('/api/auth', deviceTokensRouter)
 app.use('/api/societies', complaintsRouter)
 app.use('/api/societies', announcementsRouter)
 app.use('/api/societies', unitsRouter)
+app.use('/api/societies', visitorsRouter)
 
 // Initialize notification dispatcher
 initNotificationDispatcher()

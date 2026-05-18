@@ -102,6 +102,59 @@ export const notificationRules: Partial<Record<string, NotificationRule>> = {
   },
 
   // ─────────────────────────────────────────────
+  // VISITOR MANAGEMENT
+  // ─────────────────────────────────────────────
+  [Events.VISITOR_AT_GATE]: {
+    recipients: async (d) => d.userIds,
+    payload: (d) => ({
+      title: 'Visitor at Gate',
+      body: `${d.visitorName} is here to see you`,
+      priority: 'high',
+      data: {
+        screen: 'VisitorApproval',
+        entryId: d.entryId,
+        orgId: d.orgId,
+      }
+    })
+  },
+
+  [Events.VISITOR_APPROVED]: {
+    recipients: async (d) => [d.loggedByUserId],
+    payload: (d) => ({
+      title: 'Visitor Approved',
+      body: `${d.approvedByName} approved ${d.visitorName}`,
+      data: {
+        screen: 'ActiveVisitors',
+        orgId: d.orgId,
+      }
+    })
+  },
+
+  [Events.VISITOR_DENIED]: {
+    recipients: async (d) => [d.loggedByUserId],
+    payload: (d) => ({
+      title: 'Visitor Denied',
+      body: `${d.approvedByName} denied ${d.visitorName}`,
+      data: {
+        screen: 'ActiveVisitors',
+        orgId: d.orgId,
+      }
+    })
+  },
+
+  [Events.VISITOR_PRE_APPROVAL_USED]: {
+    recipients: async (d) => [d.approvedByUserId],
+    payload: (d) => ({
+      title: 'Pre-approved Visitor Entered',
+      body: `${d.visitorName} has entered using your pre-approval`,
+      data: {
+        screen: 'VisitorHistory',
+        orgId: d.orgId,
+      }
+    })
+  },
+
+  // ─────────────────────────────────────────────
   // EMERGENCY
   // High priority — goes to everyone
   // ─────────────────────────────────────────────

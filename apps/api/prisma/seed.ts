@@ -50,6 +50,9 @@ async function main() {
     { name: 'visitor.view_own',        module: 'visitors', description: 'View own visitor history' },
     { name: 'visitor.view_live',       module: 'visitors', description: 'View live gate log' },
     { name: 'visitor.view_emergency',  module: 'visitors', description: 'Emergency full visitor access' },
+    { name: 'visitor.pre_approve',    module: 'visitors', description: 'Create and manage pre-approvals' },
+    { name: 'visitor.mark_frequent',  module: 'visitors', description: 'Mark visitors as frequent' },
+    { name: 'visitor.view_log',       module: 'visitors', description: 'View full visitor entry log' },
 
     // Services
     { name: 'service.create',          module: 'services', description: 'Add to society services directory' },
@@ -118,6 +121,7 @@ async function main() {
       'invitation.create', 'invitation.cancel', 'invitation.view',
       'ownership.assign', 'ownership.remove', 'ownership.view',
       'occupancy.assign', 'occupancy.remove', 'occupancy.view',
+      'visitor.view_log',
       'complaint.view_all', 'complaint.resolve_any', 'complaint.reject',
       'announcement.create', 'announcement.view',
       'visitor.view_live', 'visitor.view_emergency',
@@ -137,6 +141,7 @@ async function main() {
       'invitation.create', 'invitation.cancel', 'invitation.view',
       'ownership.assign', 'ownership.remove', 'ownership.view',
       'occupancy.assign', 'occupancy.remove', 'occupancy.view',
+      'visitor.view_log',
       'announcement.create', 'announcement.view',
       'visitor.view_live', 'visitor.view_emergency',
       'service.create', 'service.view',
@@ -162,6 +167,7 @@ async function main() {
       'emergency.declare', 'emergency.view',
       'asset.book', 'asset.view',
       'co_resident.invite',
+      'visitor.pre_approve', 'visitor.mark_frequent',
       'unit.view_own', 'announcement.view'
     ],
 
@@ -175,6 +181,7 @@ async function main() {
       'emergency.declare', 'emergency.view',
       'asset.book', 'asset.view',
       'unit.view_own',
+      'visitor.pre_approve', 'visitor.mark_frequent',
       'announcement.view'
     ],
 
@@ -182,7 +189,9 @@ async function main() {
       'society.view',
       'visitor.log', 'visitor.view_live',
       'emergency.declare', 'emergency.view',
-      'announcement.view'
+      'announcement.view',
+      'visitor.view_log',
+      'unit.view_all'
     ]
   }
 
