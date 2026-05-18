@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { Ionicons } from '@expo/vector-icons'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
@@ -50,12 +51,17 @@ export function VisitorApprovalScreen({ route, navigation }: Props) {
     loadEntry()
   }, [loadEntry])
 
+  useFocusEffect(
+    useCallback(() => {
+      loadEntry()
+    }, [loadEntry])
+  )
+
   const handleApprove = async () => {
     if (!entry) return
     setIsProcessing(true)
     try {
-      const res = await approveEntry(societyId, entry.id)
-      setEntry(res)
+      await approveEntry(societyId, entry.id)
       setToast({ message: 'Entry approved successfully.', type: 'success' })
       setTimeout(() => navigation.goBack(), 1500)
     } catch (e) {
@@ -68,8 +74,7 @@ export function VisitorApprovalScreen({ route, navigation }: Props) {
     if (!entry) return
     setIsProcessing(true)
     try {
-      const res = await rejectEntry(societyId, entry.id)
-      setEntry(res)
+      await rejectEntry(societyId, entry.id)
       setToast({ message: 'Entry denied.', type: 'success' })
       setTimeout(() => navigation.goBack(), 1500)
     } catch (e) {
