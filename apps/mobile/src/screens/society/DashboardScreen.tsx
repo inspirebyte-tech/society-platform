@@ -545,8 +545,10 @@ const styles = StyleSheet.create({
   typePill: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.primary,
-    backgroundColor: '#ede9fe',
+    color: Colors.subtle,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
