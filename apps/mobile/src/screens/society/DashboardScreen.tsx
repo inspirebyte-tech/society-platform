@@ -12,7 +12,6 @@ import {
 } from 'react-native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
-import { Card } from '../../components/Card'
 import { Button } from '../../components/Button'
 import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { Toast } from '../../components/Toast'
@@ -23,6 +22,7 @@ import { useSociety } from '../../hooks/useSociety'
 import { updateProfile } from '../../services/auth'
 import { getApiErrorCode } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
+import { VisitorEntry, getActiveVisitors, getEntryLog } from '../../services/visitors'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Ionicons } from '@expo/vector-icons'
@@ -110,6 +110,10 @@ export function DashboardScreen({ route, navigation }: Props) {
   const [isSaving, setIsSaving] = useState(false)
   const [layoutMode, setLayoutMode] = useState<'grid' | 'list'>('grid')
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
+  const [activeCount, setActiveCount] = useState(0)
+  const [todayCount, setTodayCount] = useState(0)
+  const [pendingCount, setPendingCount] = useState(0)
+  const [pendingEntry, setPendingEntry] = useState<VisitorEntry | null>(null)
 
   function openProfile() {
     setProfileName(user?.name ?? '')
@@ -141,13 +145,35 @@ export function DashboardScreen({ route, navigation }: Props) {
     }
   }
 
+  const loadVisitorStats = useCallback(async () => {
+    if (permissions.includes('visitor.log')) {
+      const active = await getActiveVisitors(societyId)
+      setActiveCount(active.length)
+      const today = new Date().toISOString().split('T')[0]
+      const todayEntries = await getEntryLog(societyId, { date: today })
+      setTodayCount(todayEntries.length)
+      const pending = await getEntryLog(societyId, { status: 'PENDING' })
+      setPendingCount(pending.length)
+    }
+    if (permissions.includes('visitor.approve')) {
+      try {
+        const entries = await getEntryLog(societyId, { status: 'PENDING' })
+        const pending = entries.find(e => e.status === 'PENDING')
+        setPendingEntry(pending ?? null)
+      } catch {
+        // non-critical — fail silently
+      }
+    }
+  }, [societyId, permissions])
+
   useEffect(() => {
     load()
-  }, [load])
+    loadVisitorStats()
+  }, [load, loadVisitorStats])
 
   const onRefresh = useCallback(async () => {
-    await Promise.all([load(), loadUser()])
-  }, [load, loadUser])
+    await Promise.all([load(), loadUser(), loadVisitorStats()])
+  }, [load, loadUser, loadVisitorStats])
 
   const canCreateSociety = permissions.includes('society.create')
 
@@ -339,9 +365,11 @@ export function DashboardScreen({ route, navigation }: Props) {
               {society.name}
             </Text>
             <View style={styles.metaRow}>
-              <Text style={styles.typePill}>
-                {SOCIETY_TYPE_LABEL[society.type] ?? society.type}
-              </Text>
+              {(role === 'Builder' || role === 'Admin') && (
+                <Text style={styles.typePill}>
+                  {SOCIETY_TYPE_LABEL[society.type] ?? society.type}
+                </Text>
+              )}
               {role ? <Text style={styles.rolePill}>{role}</Text> : null}
             </View>
           </View>
@@ -352,17 +380,59 @@ export function DashboardScreen({ route, navigation }: Props) {
           {society.address}, {society.city}, {society.state} – {society.pincode}
         </Text>
 
-        {/* Stats */}
-        <View style={styles.statsRow}>
-          <Card style={styles.statCard}>
-            <Text style={styles.statNumber}>{society.totalUnits}</Text>
-            <Text style={styles.statLabel}>Total Units</Text>
-          </Card>
-          <Card style={styles.statCard}>
-            <Text style={styles.statNumber}>{society.totalMembers}</Text>
-            <Text style={styles.statLabel}>Members</Text>
-          </Card>
-        </View>
+        {/* Stats — role-specific */}
+        {canLogVisitor ? (
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{activeCount}</Text>
+              <Text style={styles.statLabel}>Inside Now</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{todayCount}</Text>
+              <Text style={styles.statLabel}>Today's Entries</Text>
+            </View>
+            <View style={[styles.statCard, pendingCount > 0 && styles.statCardAlert]}>
+              <Text style={[styles.statNumber, pendingCount > 0 && styles.statNumberAlert]}>
+                {pendingCount}
+              </Text>
+              <Text style={[styles.statLabel, pendingCount > 0 && styles.statLabelAlert]}>
+                Awaiting Approval
+              </Text>
+            </View>
+          </View>
+        ) : !canManageMyVisitors ? (
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{society.totalUnits}</Text>
+              <Text style={styles.statLabel}>Total Units</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{society.totalMembers}</Text>
+              <Text style={styles.statLabel}>Members</Text>
+            </View>
+          </View>
+        ) : null}
+
+        {/* Pending visitor alert — residents only */}
+        {canManageMyVisitors && !canLogVisitor && pendingEntry && (
+          <Pressable
+            style={styles.pendingBanner}
+            onPress={() => navigation.navigate('VisitorApproval', {
+              societyId,
+              entryId: pendingEntry.id,
+            })}
+          >
+            <Ionicons name="notifications" size={20} color="#f97316" />
+            <View style={styles.pendingBannerText}>
+              <Text style={styles.pendingBannerTitle}>
+                {pendingEntry.visitorName} is waiting at your gate
+              </Text>
+              <Text style={styles.pendingBannerSub}>
+                Tap to approve or deny →
+              </Text>
+            </View>
+          </Pressable>
+        )}
 
         {/* Actions */}
         {hasAnyAction ? (
@@ -545,8 +615,10 @@ const styles = StyleSheet.create({
   typePill: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.primary,
-    backgroundColor: '#ede9fe',
+    color: Colors.subtle,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -581,16 +653,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 18,
     gap: 4,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  statCardAlert: {
+    backgroundColor: '#fff7ed',
+    borderColor: '#f97316',
+    borderWidth: 1,
   },
   statNumber: {
     fontSize: 28,
     fontWeight: '700',
     color: Colors.primary,
   },
+  statNumberAlert: { color: '#f97316' },
   statLabel: {
     fontSize: 13,
     color: Colors.subtle,
     fontWeight: '500',
+  },
+  statLabelAlert: { color: '#f97316' },
+  pendingBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#fff7ed',
+    borderWidth: 1,
+    borderColor: '#f97316',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  pendingBannerText: { flex: 1 },
+  pendingBannerTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#92400e',
+  },
+  pendingBannerSub: {
+    fontSize: 12,
+    color: '#f97316',
+    marginTop: 2,
   },
 
   // Actions section
