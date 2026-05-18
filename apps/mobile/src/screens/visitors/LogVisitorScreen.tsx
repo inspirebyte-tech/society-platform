@@ -186,7 +186,7 @@ export function LogVisitorScreen({ route, navigation }: Props) {
 
     if (!result.canceled && result.assets[0].base64) {
       setPhotoUri(result.assets[0].uri)
-      setPhotoBase64(result.assets[0].base64)
+      setPhotoBase64(`data:image/jpeg;base64,${result.assets[0].base64}`)
     }
   }
 

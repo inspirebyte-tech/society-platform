@@ -187,7 +187,7 @@ router.post(
       const userId = req.user!.userId
 
       // Check if visitor exists
-      const visitor = await prisma.visitor.findFirst({
+      let visitor = await prisma.visitor.findFirst({
         where: { id: visitorId, orgId }
       })
 
@@ -197,7 +197,7 @@ router.post(
 
       // Update visitor vehicle number if provided
       if (vehicleNo || photoUrl) {
-        await prisma.visitor.update({
+        visitor = await prisma.visitor.update({
           where: { id: visitor.id },
           data: {
             vehicleNo: vehicleNo ?? visitor.vehicleNo,
