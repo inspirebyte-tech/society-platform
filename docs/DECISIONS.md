@@ -425,3 +425,54 @@ Service account JSON stored as EAS secret — never in git.
 Only re-registered when token changes.
 Max 5 tokens per user (multiple devices supported).
 Token reassigned to new userId when user switches accounts on same device — expected behaviour.
+
+## Decision 038 — No timeout auto-allow
+**Date:** 9 May 2026
+  Entry stays PENDING indefinitely until gatekeeper acts.
+  No automatic state changes.
+  Gatekeeper is always responsible for final decision.
+  If resident doesn't respond: gatekeeper calls on phone,
+  then manually marks ALLOWED or TURNED_AWAY.
+  All manual overrides are logged with gatekeeper's userId.
+
+## Decision 039 — Pre-approval is single-use
+**Date:** 9 May 2026
+  Each pre-approval can only be used once.
+  For recurring visitors (painting contractor this week):
+  Resident marks them as FREQUENT instead.
+  Keeps pre-approval clean and auditable.
+
+## Decision 040 — Frequent visitor: gatekeeper decides
+**Date:** 9 May 2026
+  When frequent visitor arrives, gatekeeper sees FREQUENT badge.
+  Gatekeeper can allow directly without notifying resident.
+  OR can still notify — their choice.
+  Resident controls who is marked frequent.
+  Resident can revoke frequent status anytime.
+
+## Decision 041 — Visitor record is society-scoped
+**Date:** 9 May 2026
+  Same person visiting twice = one visitor record, many entries.
+  Gatekeeper searches before creating to avoid duplicates.
+  Visitor record stores photo from most recent visit.
+
+## Decision 042 — All occupants notified for approval
+**Date:** 9 May 2026
+  When visitor arrives for Flat 4B:
+  All active occupants (Arjun + Meera) get notified.
+  First to respond wins — PENDING → APPROVED/DENIED.
+  Second responder sees entry already decided.
+  notifiedAt only set when at least one push notification actually sent.
+
+## Decision 043 — Duplicate visitor entries allowed in V1
+**Date:** 9 May 2026
+  No prevention if same visitor is logged twice while already inside.
+  Gatekeeper is responsible for checking Active Visitors screen first.
+  V2: add warning when visitor already has an active (entered, not exited) entry.
+
+## Decision 044 — Actionable push notifications deferred to V2
+**Date:** 9 May 2026
+  Residents must open the app to approve or deny.
+  Complexity of headless background task execution not justified for V1 scale.
+  In-app fallback: MyVisitors Recent tab surfaces all pending entries
+  so missed notifications don't block visitors indefinitely.

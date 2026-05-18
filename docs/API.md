@@ -1507,3 +1507,444 @@ Hard delete announcement and images.
 **Permission:** announcement.delete
 
 **Response 200:** { message: 'announcement_deleted' }
+
+---
+
+## Visitor Management
+
+### POST /api/societies/:id/visitors/search
+Search visitors and pre-approvals by name or mobile.
+
+**Permission:** visitor.log
+
+**Request:**
+```json
+{ "name": "Ravi" }
+```
+or
+```json
+{ "mobile": "9876543210" }
+```
+
+**Response 200:**
+```json
+{
+  "data": {
+    "visitors": [
+      {
+        "id": "uuid", "name": "Ravi Kumar", "mobile": "+919876543210",
+        "type": "INDIVIDUAL", "photoUrl": null,
+        "isFrequent": true, "frequentForUnitId": "uuid", "frequentFlatName": "Flat 4B"
+      }
+    ],
+    "preApprovals": [
+      {
+        "id": "uuid", "visitorName": "Ravi Kumar", "visitorMobile": "+919876543210",
+        "unitId": "uuid", "flatName": "Flat 4B", "note": "plumber",
+        "expiresAt": null, "isUsed": false, "createdAt": "datetime"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### POST /api/societies/:id/visitors
+Create a new visitor record.
+
+**Permission:** visitor.log
+
+**Request:**
+```json
+{
+  "name": "Ravi Kumar",
+  "mobile": "9876543210",
+  "type": "INDIVIDUAL",
+  "vehicleNo": "MH12 AB 1234",
+  "photoUrl": "data:image/jpeg;base64,..."
+}
+```
+
+**Types:** INDIVIDUAL, DELIVERY, SERVICE, DOMESTIC, CAB, OTHER
+
+**Response 201:** visitor object (id, name, mobile, type, vehicleNo, photoUrl, isFrequent)
+
+**Errors:**
+```
+400 missing_field        → name or type not provided
+400 invalid_visitor_type → type not in allowed enum
+```
+
+---
+
+### POST /api/societies/:id/visitors/:visitorId/entries
+Log a visitor entry. Also updates visitor.photoUrl and visitor.vehicleNo if provided.
+
+**Permission:** visitor.log
+
+**Request:**
+```json
+{
+  "unitId": "uuid",
+  "purpose": "Fixing AC",
+  "vehicleNo": "MH12 AB 1234",
+  "photoUrl": "data:image/jpeg;base64,...",
+  "preApprovalId": "uuid"
+}
+```
+All fields optional. At least one of unitId or preApprovalId recommended.
+
+**Branch A — with preApprovalId:**
+Pre-approval must be unused and not expired.
+Entry created with status ALLOWED immediately (pre-approved).
+Consumed atomically — double-use prevented via transaction.
+Emits VISITOR_PRE_APPROVAL_USED event.
+
+**Branch B — walk-in without unitId:**
+Entry created with status PENDING.
+No flat to notify — notifiedAt stays null.
+
+**Branch C — walk-in to a unit:**
+Entry created with status PENDING.
+All active occupants of the unit notified via push.
+notifiedAt set only if at least one push notification sent.
+Emits VISITOR_AT_GATE event.
+
+**Response 201:** entry object (see entry shape below)
+
+**Errors:**
+```
+400 missing_field               → visitorId not in params
+400 invalid_unit                → unitId not found in this society
+400 unit_required_for_preapproval → preApprovalId without unitId
+400 invalid_or_used_preapproval → pre-approval not found, already used, or expired
+404 visitor_not_found           → visitorId not in this society
+```
+
+**Entry object shape:**
+```json
+{
+  "id": "uuid",
+  "visitorId": "uuid",
+  "visitorName": "Ravi Kumar",
+  "visitorType": "INDIVIDUAL",
+  "visitorPhoto": "data:image/jpeg;base64,...",
+  "flatName": "Flat 4B",
+  "purpose": "Fixing AC",
+  "status": "PENDING",
+  "loggedByName": "Ramesh Gate",
+  "notifiedAt": "datetime",
+  "respondedAt": null,
+  "enteredAt": null,
+  "exitedAt": null,
+  "createdAt": "datetime"
+}
+```
+
+---
+
+### PATCH /api/societies/:id/entries/:entryId/approve
+Resident approves visitor entry.
+
+**Permission:** visitor.approve
+**Requires:** token user must be an active occupant of the entry's unit
+
+**Response 200:**
+```json
+{ "data": { "message": "visitor_approved", "status": "APPROVED" } }
+```
+
+**Errors:**
+```
+400 not_unit_occupant       → user not an active occupant of entry's flat
+400 invalid_status_transition → entry not in PENDING status
+404 entry_not_found
+```
+
+---
+
+### PATCH /api/societies/:id/entries/:entryId/reject
+Resident denies visitor entry.
+
+**Permission:** visitor.approve
+
+**Response 200:**
+```json
+{ "data": { "message": "visitor_denied", "status": "DENIED" } }
+```
+
+**Errors:**
+```
+400 invalid_status_transition → entry not in PENDING status
+404 entry_not_found
+```
+
+---
+
+### PATCH /api/societies/:id/entries/:entryId/allow
+Gatekeeper manually allows entry (override or frequent visitor fast-track).
+
+**Permission:** visitor.log
+
+**Response 200:**
+```json
+{ "data": { "message": "visitor_allowed", "status": "ALLOWED" } }
+```
+
+**Errors:**
+```
+400 invalid_status_transition → entry already in terminal status
+404 entry_not_found
+```
+
+---
+
+### PATCH /api/societies/:id/entries/:entryId/turnaway
+Gatekeeper turns visitor away.
+
+**Permission:** visitor.log
+
+**Response 200:**
+```json
+{ "data": { "message": "visitor_turned_away", "status": "TURNED_AWAY" } }
+```
+
+**Errors:**
+```
+400 invalid_status_transition → entry already in terminal status
+404 entry_not_found
+```
+
+---
+
+### PATCH /api/societies/:id/entries/:entryId/enter
+Mark visitor as physically entered the premises.
+
+**Permission:** visitor.log
+**Requires:** entry must be in APPROVED or ALLOWED status
+
+**Response 200:**
+```json
+{ "data": { "message": "visitor_entered", "enteredAt": "datetime" } }
+```
+
+**Errors:**
+```
+400 invalid_status_transition → entry not APPROVED or ALLOWED
+400 visitor_already_entered   → enteredAt already set
+404 entry_not_found
+```
+
+---
+
+### PATCH /api/societies/:id/entries/:entryId/exit
+Mark visitor as exited the premises.
+
+**Permission:** visitor.log
+**Requires:** entry must have enteredAt set
+
+**Response 200:**
+```json
+{ "data": { "message": "visitor_exited", "exitedAt": "datetime" } }
+```
+
+**Errors:**
+```
+400 not_entered   → visitor has not been marked as entered
+404 entry_not_found
+```
+
+---
+
+### GET /api/societies/:id/entries/active
+List all visitors currently inside (enteredAt set, exitedAt null).
+
+**Permission:** visitor.view_live
+
+**Response 200:**
+```json
+{ "data": { "entries": [ ...entry objects ] } }
+```
+
+**Note:** Must be registered before `GET /:id/entries/:entryId` routes in router
+to avoid `:entryId` matching the literal string "active".
+
+---
+
+### GET /api/societies/:id/entries
+Full entry log with filters.
+
+**Permission:** visitor.view_log OR visitor.view_own
+
+**Query params:**
+```
+status  → PENDING | APPROVED | DENIED | ALLOWED | TURNED_AWAY | EXITED
+unitId  → filter by flat (uuid)
+date    → YYYY-MM-DD format
+type    → INDIVIDUAL | DELIVERY | SERVICE | DOMESTIC | CAB | OTHER
+```
+
+**Scoping behaviour:**
+- visitor.view_log → sees all entries for the society (Admin, Builder, Gatekeeper)
+- visitor.view_own → sees only entries for their own flats (Resident, Co-resident)
+- If both permissions present: view_log wins
+
+**Response 200:**
+```json
+{ "data": { "entries": [ ...entry objects ] } }
+```
+
+**Note:** Returns max 50 entries ordered by createdAt desc.
+
+---
+
+### POST /api/societies/:id/pre-approvals
+Create a pre-approval for an expected visitor.
+
+**Permission:** visitor.pre_approve
+**Requires:** token user must be an active occupant of unitId
+
+**Request:**
+```json
+{
+  "visitorName": "Swiggy Delivery",
+  "visitorMobile": "9123456789",
+  "unitId": "uuid",
+  "note": "Leave at door",
+  "expiresAt": "2026-12-31T23:59:59.000Z"
+}
+```
+expiresAt is optional. If provided, must be a future datetime.
+
+**Response 201:**
+```json
+{
+  "data": {
+    "id": "uuid", "visitorName": "Swiggy Delivery",
+    "visitorMobile": "+919123456789", "unitId": "uuid",
+    "note": "Leave at door", "expiresAt": "datetime",
+    "isUsed": false, "createdAt": "datetime"
+  }
+}
+```
+
+**Errors:**
+```
+400 missing_field             → visitorName or unitId not provided
+400 not_unit_occupant         → user not an active occupant of unitId
+400 invalid_unit              → unitId not found in this society
+400 invalid_expires_at        → expiresAt is not a valid datetime
+400 expires_at_must_be_future → expiresAt is in the past
+```
+
+---
+
+### GET /api/societies/:id/pre-approvals
+List all pre-approvals for the requesting user's flats.
+
+**Permission:** visitor.pre_approve
+
+**Response 200:**
+```json
+{
+  "data": {
+    "preApprovals": [
+      {
+        "id": "uuid", "visitorName": "Swiggy Delivery",
+        "visitorMobile": "+919123456789", "unitId": "uuid",
+        "flatName": "Flat 4B", "note": "Leave at door",
+        "expiresAt": null, "isUsed": false,
+        "usedAt": null, "createdAt": "datetime"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### DELETE /api/societies/:id/pre-approvals/:approvalId
+Cancel an unused pre-approval.
+
+**Permission:** visitor.pre_approve
+
+**Response 200:**
+```json
+{ "data": { "message": "pre_approval_cancelled" } }
+```
+
+**Errors:**
+```
+400 pre_approval_already_used → pre-approval has already been consumed
+404 pre_approval_not_found
+```
+
+---
+
+### POST /api/societies/:id/visitors/:visitorId/frequent
+Mark a visitor as frequent for a specific unit.
+
+**Permission:** visitor.mark_frequent
+**Requires:** token user must be an active occupant of unitId
+
+**Request:**
+```json
+{ "unitId": "uuid" }
+```
+
+**Response 200:**
+```json
+{ "data": { "message": "marked_frequent" } }
+```
+
+**Errors:**
+```
+400 missing_field     → unitId not provided
+400 not_unit_occupant → user not an active occupant of unitId
+400 invalid_unit      → unitId not found in this society
+404 visitor_not_found
+```
+
+---
+
+### DELETE /api/societies/:id/visitors/:visitorId/frequent
+Remove frequent visitor status.
+
+**Permission:** visitor.mark_frequent
+
+**Response 200:**
+```json
+{ "data": { "message": "frequent_removed" } }
+```
+
+**Errors:**
+```
+404 visitor_not_found   → visitor not in this society
+404 not_frequent        → visitor not marked as frequent
+```
+
+---
+
+### GET /api/societies/:id/visitors/frequent
+List all frequent visitors for the requesting user's flats.
+
+**Permission:** visitor.mark_frequent
+
+**Response 200:**
+```json
+{
+  "data": {
+    "visitors": [
+      {
+        "id": "uuid", "name": "Ravi Kumar", "mobile": "+919876543210",
+        "type": "INDIVIDUAL", "photoUrl": null,
+        "isFrequent": true, "frequentForUnitId": "uuid", "frequentFlatName": "Flat 4B"
+      }
+    ]
+  }
+}
+```
+
+**Note:** Must be registered before `GET /:id/visitors/:visitorId` routes in router
+to avoid `:visitorId` matching the literal string "frequent".

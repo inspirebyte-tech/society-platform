@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Modal,
   View,
@@ -7,6 +7,7 @@ import {
   FlatList,
   StyleSheet,
   TouchableWithoutFeedback,
+  TextInput,
 } from 'react-native'
 import { Colors } from '../constants/colors'
 import { Spacing } from '../constants/spacing'
@@ -23,6 +24,7 @@ interface BottomSheetPickerProps {
   selected: string | null
   onSelect: (value: string) => void
   onClose: () => void
+  searchable?: boolean
 }
 
 export function BottomSheetPicker({
@@ -32,7 +34,18 @@ export function BottomSheetPicker({
   selected,
   onSelect,
   onClose,
+  searchable = false,
 }: BottomSheetPickerProps) {
+  const [query, setQuery] = useState('')
+
+  useEffect(() => {
+    if (!visible) setQuery('')
+  }, [visible])
+
+  const filtered = searchable && query.trim()
+    ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
+    : options
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
@@ -43,8 +56,22 @@ export function BottomSheetPicker({
         <View style={styles.handle} />
         <Text style={styles.title}>{title}</Text>
 
+        {searchable && (
+          <View style={styles.searchBox}>
+            <TextInput
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search..."
+              placeholderTextColor={Colors.subtle}
+              style={styles.searchInput}
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+            />
+          </View>
+        )}
+
         <FlatList
-          data={options}
+          data={filtered}
           keyExtractor={(item) => item.value}
           renderItem={({ item }) => {
             const isSelected = item.value === selected
@@ -140,6 +167,21 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.border,
     marginHorizontal: Spacing.screenPadding,
+  },
+  searchBox: {
+    marginHorizontal: Spacing.screenPadding,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 44,
+    justifyContent: 'center',
+    backgroundColor: Colors.background,
+  },
+  searchInput: {
+    fontSize: 15,
+    color: Colors.text,
   },
   cancelWrapper: {
     marginTop: 8,
