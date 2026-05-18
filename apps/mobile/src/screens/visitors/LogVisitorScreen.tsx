@@ -442,7 +442,7 @@ export function LogVisitorScreen({ route, navigation }: Props) {
         <View style={styles.searchBox}>
           <Ionicons name="search" size={20} color={Colors.subtle} style={styles.searchIcon} />
           <RNTextInput
-            placeholder="Search by name or mobile"
+            placeholder="Search name or mobile — shows pre-approvals too"
             placeholderTextColor={Colors.subtle}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -457,6 +457,7 @@ export function LogVisitorScreen({ route, navigation }: Props) {
           {preApprovals.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>PRE-APPROVALS</Text>
+              <Text style={{ fontSize: 12, color: Colors.subtle, marginBottom: 8 }}>Visitors pre-approved by residents</Text>
               {preApprovals.map(p => (
                 <Pressable
                   key={p.id}
