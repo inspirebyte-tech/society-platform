@@ -93,7 +93,7 @@ export function LogVisitorScreen({ route, navigation }: Props) {
   useEffect(() => {
     listUnits(societyId)
       .then(res => setUnits(res.units))
-      .catch(() => setToast({ message: 'Failed to load flats', type: 'error' }))
+      .catch(() => setToast({ message: 'Failed to load units', type: 'error' }))
   }, [societyId])
 
   // Debounced Search
@@ -194,22 +194,33 @@ export function LogVisitorScreen({ route, navigation }: Props) {
     if (!selectedVisitor) return
 
     if (!selectedPreApproval && !selectedUnitId) {
-      setToast({ message: 'Please select a flat', type: 'error' })
+      setToast({ message: 'Please select a unit or area', type: 'error' })
       return
     }
+
+    const isCommonArea = selectedUnitId === '__society__'
 
     setIsLogging(true)
     try {
       const entry = await logEntry(societyId, selectedVisitor.id, {
-        unitId: selectedPreApproval ? selectedPreApproval.unitId : selectedUnitId!,
+        unitId: selectedPreApproval ? selectedPreApproval.unitId : (isCommonArea ? undefined : selectedUnitId!),
         purpose: purpose.trim() || undefined,
         vehicleNo: vehicleNo.trim() || undefined,
         photoUrl: photoBase64 || undefined,
         preApprovalId: selectedPreApproval?.id,
       })
 
-      // If frequent + no notify -> immediately allow
-      if (selectedVisitor.isFrequent && !notifyFrequent && entry.status === 'PENDING') {
+      // Common area: no resident to notify — fast-track allow + enter
+      if (isCommonArea) {
+        setCurrentEntry({ ...entry, flatName: 'Common Area' })
+        await allowEntry(societyId, entry.id)
+        setCurrentEntry(prev => prev ? { ...prev, status: 'ALLOWED' } : prev)
+        await markEntered(societyId, entry.id)
+        setCurrentEntry(prev => prev ? { ...prev, enteredAt: new Date().toISOString() } : prev)
+        setToast({ message: 'Common Area visitor — entry logged and allowed', type: 'success' })
+        setTimeout(() => navigation.replace('ActiveVisitors', { societyId }), 1500)
+      } else if (selectedVisitor.isFrequent && !notifyFrequent && entry.status === 'PENDING') {
+        // If frequent + no notify -> immediately allow
         setCurrentEntry(entry)
         await allowEntry(societyId, entry.id)
         setCurrentEntry(prev => prev ? { ...prev, status: 'ALLOWED' } : prev)
@@ -348,7 +359,7 @@ export function LogVisitorScreen({ route, navigation }: Props) {
 
             {/* Flat Picker */}
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Which Flat? *</Text>
+              <Text style={styles.fieldLabel}>Which Unit / Area? *</Text>
               {selectedPreApproval ? (
                 <View style={[styles.pickerTrigger, styles.pickerDisabled]}>
                   <Text style={styles.pickerText}>{selectedPreApproval.flatName}</Text>
@@ -357,7 +368,7 @@ export function LogVisitorScreen({ route, navigation }: Props) {
               ) : (
                 <Pressable onPress={() => setShowUnitPicker(true)} style={styles.pickerTrigger}>
                   <Text style={[styles.pickerText, !selectedUnitId && styles.pickerPlaceholder]}>
-                    {selectedUnitId ? units.find(u => u.id === selectedUnitId)?.name : 'Select a flat'}
+                    {selectedUnitId === '__society__' ? 'Common Area / Society' : selectedUnitId ? units.find(u => u.id === selectedUnitId)?.name : 'Select unit or area'}
                   </Text>
                   <Text style={styles.pickerChevron}>›</Text>
                 </Pressable>
@@ -423,9 +434,12 @@ export function LogVisitorScreen({ route, navigation }: Props) {
 
         <BottomSheetPicker
           visible={showUnitPicker}
-          title="Select Flat"
+          title="Select Unit or Area"
           searchable
-          options={units.map(u => ({ label: `${u.name} ${u.primaryOccupant ? `(${u.primaryOccupant})` : ''}`, value: u.id }))}
+          options={[
+            { label: 'Common Area / Society', value: '__society__' },
+            ...units.map(u => ({ label: `${u.name} ${u.primaryOccupant ? `(${u.primaryOccupant})` : ''}`, value: u.id }))
+          ]}
           selected={selectedUnitId}
           onSelect={(val) => {
             setSelectedUnitId(val as string)
