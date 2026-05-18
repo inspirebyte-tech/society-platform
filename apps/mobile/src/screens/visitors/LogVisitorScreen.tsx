@@ -244,6 +244,9 @@ export function LogVisitorScreen({ route, navigation }: Props) {
       } else if (action === 'exit') {
         const res = await markExited(societyId, currentEntry.id)
         setCurrentEntry({ ...currentEntry, status: 'EXITED', exitedAt: res.exitedAt })
+        setTimeout(() => {
+          navigation.replace('ActiveVisitors', { societyId })
+        }, 1500)
       }
     } catch (e) {
       setToast({ message: getErrorMessage(getApiErrorCode(e)), type: 'error' })
