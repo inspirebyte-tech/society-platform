@@ -241,9 +241,12 @@ Tap handler: handleNotificationResponse() in App.tsx
 Deep link map in notifications.ts — add new screens here.
 
 Current deep links:
-  ComplaintDetail → opens complaint with complaintId
-  Announcements → opens announcements list
-  Dashboard → opens dashboard
+  ComplaintDetail  → opens complaint with complaintId
+  AnnouncementsList → opens announcements list for societyId
+  Dashboard        → opens dashboard for societyId
+  VisitorApproval  → opens approval screen for entryId
+  ActiveVisitors   → opens active visitors for societyId
+  VisitorHistory   → opens entry log for societyId (pre-approval used)
   
 ---
 
@@ -461,6 +464,105 @@ Access: Builder, Admin only
 - POST /societies/:id/announcements
 
 
+### LogVisitorScreen
+Route: LogVisitor: { societyId: string }
+Access: Gatekeeper (visitor.log)
+Nav: Dashboard → Log Visitor
+
+Three-phase flow on a single screen:
+
+**Phase 1 — Search:**
+- TextInput with 500ms debounce, min 2 chars to trigger
+- Placeholder hints that pre-approvals are also surfaced
+- Results split into PRE-APPROVALS and EXISTING VISITORS sections
+- PRE-APPROVED badge on pre-approval cards
+- FREQUENT badge on frequent visitor cards
+- Tapping a frequent visitor auto-fills the flat picker with frequentForUnitId
+- Tapping a pre-approval card creates/finds visitor record on the fly, locks flat
+- FAB opens inline create form if visitor not found
+
+**Phase 2 — Log Entry:**
+- Flat picker: searchable BottomSheetPicker (handles 100+ flats)
+- Flat locked and read-only when entering via pre-approval
+- Purpose, vehicle number (optional)
+- Camera photo capture (expo-image-picker, base64 with data URI prefix)
+- Frequent visitor toggle: notify resident vs allow directly (hidden for pre-approvals)
+
+**Phase 3 — Status:**
+- PENDING: pulse indicator + "Waiting for resident" + Allow Anyway / Turn Away buttons
+  - Polls getEntryLog every 3 seconds for status change
+- APPROVED / ALLOWED: Mark Entered button
+- After entered: Mark Exited button
+- After exit: navigates to ActiveVisitors after 1.5s delay
+
+---
+
+### ActiveVisitorsScreen
+Route: ActiveVisitors: { societyId: string }
+Access: Gatekeeper (visitor.log)
+Nav: Dashboard → Active Visitors
+
+- Lists all entries where enteredAt set and exitedAt null
+- Auto-refreshes every 30 seconds (interval cleared on unmount)
+- Pull to refresh
+- Mark Exit button on each card
+
+---
+
+### EntryLogScreen
+Route: EntryLog: { societyId: string }
+Access: Gatekeeper, Admin, Builder (visitor.view_log)
+       Resident, Co-resident (visitor.view_own — own flat only)
+Nav: Dashboard → Entry Log
+
+- Filter chips: Date (Today / Yesterday / All Time), Status
+- Backend enforces scope: view_log sees all, view_own sees own flats only
+- useFocusEffect: re-fetches on every screen focus
+- Pull to refresh
+- Timeline row per entry: Logged / Entered / Exited times
+
+---
+
+### VisitorApprovalScreen
+Route: VisitorApproval: { societyId: string, entryId: string }
+Access: Resident, Co-resident (visitor.approve)
+Nav: Push notification deep link OR MyVisitors Recent tab → pending entry
+
+- Full-screen urgent UI with waiting time counter
+- Shows visitor photo (120×120 circle), name, type, purpose, flat
+- Approve / Deny buttons (loading state on both during in-flight)
+- If already processed: shows status icon + "already processed" message, Done button only
+- useFocusEffect re-fetches on focus (handles co-resident race condition)
+- On approve/deny: toast → goBack() after 1.5s (no setEntry — backend returns message not VisitorEntry)
+
+---
+
+### MyVisitorsScreen
+Route: MyVisitors: { societyId: string }
+Access: Resident, Co-resident (visitor.pre_approve, visitor.mark_frequent)
+Nav: Dashboard → My Visitors
+
+Three tabs:
+
+**PRE_APPROVALS tab:**
+- Lists pre-approvals for user's flats with USED / UNUSED badge
+- Delete (Cancel) button visible only for UNUSED pre-approvals
+- Delete button shows ActivityIndicator while in-flight (deletingId guard)
+- FAB opens inline create form with flat auto-selected if user has one flat
+
+**FREQUENT tab:**
+- Lists frequent visitors for user's flats
+- Remove button per visitor (same deletingId guard)
+
+**RECENT tab:**
+- Last 50 entries for user's flats (getEntryLog scoped by backend)
+- PENDING entries show "Review Request ›" link → VisitorApprovalScreen
+- "Mark Frequent" action on entries where visitor not yet frequent
+
+useFocusEffect refreshes active tab on screen focus.
+
+---
+
 ### Phase 2 — Member Management
 
 Screen: Member List
@@ -499,6 +601,11 @@ MemberDetail
 ComplaintList   → { societyId }
 RaiseComplaint  → { societyId }
 ComplaintDetail → { societyId, complaintId, title }
+LogVisitor      → { societyId }
+ActiveVisitors  → { societyId }
+EntryLog        → { societyId }
+VisitorApproval → { societyId, entryId }
+MyVisitors      → { societyId }
 
 ---
 
@@ -521,8 +628,8 @@ Dashboard Complaints action is shown if user has complaint.create OR complaint.v
 Residents and co-residents have complaint.create; admins/builders see it via member.view check.
 
 Gatekeeper:
-Only gate-related features (future)
-Cannot: access society management screens
+Dashboard actions: Log Visitor, Active Visitors, Entry Log
+Cannot: access society management, complaints, announcements
 
 ---
 

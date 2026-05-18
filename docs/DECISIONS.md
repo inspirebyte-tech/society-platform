@@ -462,3 +462,17 @@ Token reassigned to new userId when user switches accounts on same device — ex
   All active occupants (Arjun + Meera) get notified.
   First to respond wins — PENDING → APPROVED/DENIED.
   Second responder sees entry already decided.
+  notifiedAt only set when at least one push notification actually sent.
+
+## Decision 043 — Duplicate visitor entries allowed in V1
+**Date:** 9 May 2026
+  No prevention if same visitor is logged twice while already inside.
+  Gatekeeper is responsible for checking Active Visitors screen first.
+  V2: add warning when visitor already has an active (entered, not exited) entry.
+
+## Decision 044 — Actionable push notifications deferred to V2
+**Date:** 9 May 2026
+  Residents must open the app to approve or deny.
+  Complexity of headless background task execution not justified for V1 scale.
+  In-app fallback: MyVisitors Recent tab surfaces all pending entries
+  so missed notifications don't block visitors indefinitely.
