@@ -515,7 +515,12 @@ export function LogVisitorScreen({ route, navigation }: Props) {
                 <Pressable
                   key={v.id}
                   style={styles.resultCard}
-                  onPress={() => setSelectedVisitor(v)}
+                  onPress={() => {
+                    setSelectedVisitor(v)
+                    if (v.isFrequent && v.frequentForUnitId) {
+                      setSelectedUnitId(v.frequentForUnitId)
+                    }
+                  }}
                 >
                   <View style={styles.resultIcon}>
                     <Ionicons name={VISITOR_TYPES.find(t => t.value === v.type)?.icon ?? 'person'} size={20} color={Colors.primary} />
