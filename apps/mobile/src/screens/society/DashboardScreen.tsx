@@ -203,7 +203,7 @@ export function DashboardScreen({ route, navigation }: Props) {
   const currentMemberId = currentMembership?.id ?? null
 
   const canLogVisitor = permissions.includes('visitor.log')
-  const canViewActiveVisitors = permissions.includes('visitor.view_live')
+  const canViewActiveVisitors = permissions.includes('visitor.log')
   const canViewEntryLog = permissions.includes('visitor.view_log')
   const canManageMyVisitors = permissions.includes('visitor.pre_approve') || permissions.includes('visitor.approve') || permissions.includes('visitor.view_own')
 
