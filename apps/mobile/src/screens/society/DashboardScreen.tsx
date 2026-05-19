@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useState } from 'react'
+import { useFocusEffect } from '@react-navigation/native'
 import {
   View,
   Text,
@@ -23,6 +24,7 @@ import { updateProfile } from '../../services/auth'
 import { getApiErrorCode } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
 import { VisitorEntry, getActiveVisitors, getEntryLog } from '../../services/visitors'
+import { getUnreadCount } from '../../services/notificationInbox'
 import { Colors } from '../../constants/colors'
 import { Spacing } from '../../constants/spacing'
 import { Ionicons } from '@expo/vector-icons'
@@ -114,6 +116,7 @@ export function DashboardScreen({ route, navigation }: Props) {
   const [todayCount, setTodayCount] = useState(0)
   const [pendingCount, setPendingCount] = useState(0)
   const [pendingEntry, setPendingEntry] = useState<VisitorEntry | null>(null)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   function openProfile() {
     setProfileName(user?.name ?? '')
@@ -145,6 +148,21 @@ export function DashboardScreen({ route, navigation }: Props) {
     }
   }
 
+  const loadNotificationBadge = useCallback(async () => {
+    try {
+      const result = await getUnreadCount()
+      setUnreadCount(result.count)
+    } catch {
+      // non-critical
+    }
+  }, [])
+
+  useFocusEffect(
+    useCallback(() => {
+      loadNotificationBadge()
+    }, [loadNotificationBadge]),
+  )
+
   const loadVisitorStats = useCallback(async () => {
     if (permissions.includes('visitor.log')) {
       const active = await getActiveVisitors(societyId)
@@ -172,8 +190,8 @@ export function DashboardScreen({ route, navigation }: Props) {
   }, [load, loadVisitorStats])
 
   const onRefresh = useCallback(async () => {
-    await Promise.all([load(), loadUser(), loadVisitorStats()])
-  }, [load, loadUser, loadVisitorStats])
+    await Promise.all([load(), loadUser(), loadVisitorStats(), loadNotificationBadge()])
+  }, [load, loadUser, loadVisitorStats, loadNotificationBadge])
 
   const canCreateSociety = permissions.includes('society.create')
 
@@ -192,21 +210,40 @@ export function DashboardScreen({ route, navigation }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.name, navigation])
 
-  // "+" to create another society — builders only
+  // Bell icon (all roles) + "+" button (builders only)
   useEffect(() => {
-    if (!canCreateSociety) return
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity
-          onPress={() => navigation.navigate('CreateSociety', { source: 'dashboard' })}
-          hitSlop={12}
-          style={styles.headerButton}
-        >
-          <Text style={styles.headerButtonText}>+</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRightRow}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Notifications', { societyId })}
+            style={styles.headerButton}
+            hitSlop={12}
+          >
+            <View>
+              <Ionicons name="notifications-outline" size={24} color={Colors.primary} />
+              {unreadCount > 0 && (
+                <View style={styles.badgeContainer}>
+                  <Text style={styles.badgeText}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+          {canCreateSociety && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('CreateSociety', { source: 'dashboard' })}
+              hitSlop={12}
+              style={styles.headerButton}
+            >
+              <Text style={styles.headerButtonText}>+</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       ),
     })
-  }, [canCreateSociety, navigation])
+  }, [canCreateSociety, unreadCount, navigation, societyId])
 
   // Permission gates — as per MOBILE_CONTEXT.md
   const canViewStructure = permissions.includes('node.view')
@@ -812,8 +849,13 @@ const styles = StyleSheet.create({
   },
 
   // Header
-  headerButton: {
+  headerRightRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     marginRight: 4,
+  },
+  headerButton: {
     padding: 4,
   },
   headerButtonText: {
@@ -821,6 +863,24 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '400',
     lineHeight: 30,
+  },
+
+  badgeContainer: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: Colors.error,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '700',
   },
 
   // Header avatar (profile button)
