@@ -23,6 +23,7 @@ import { ActiveVisitorsScreen } from '../screens/visitors/ActiveVisitorsScreen'
 import { EntryLogScreen } from '../screens/visitors/EntryLogScreen'
 import { VisitorApprovalScreen } from '../screens/visitors/VisitorApprovalScreen'
 import { MyVisitorsScreen } from '../screens/visitors/MyVisitorsScreen'
+import { NotificationsScreen } from '../screens/notifications/NotificationsScreen'
 import { Colors } from '../constants/colors'
 
 export type AppStackParamList = {
@@ -55,6 +56,7 @@ export type AppStackParamList = {
   EntryLog: { societyId: string }
   VisitorApproval: { societyId: string; entryId: string }
   MyVisitors: { societyId: string }
+  Notifications: { societyId: string }
 }
 
 const Stack = createNativeStackNavigator<AppStackParamList>()
@@ -103,6 +105,7 @@ export function AppNavigator({ initialSocietyId }: AppNavigatorProps) {
       <Stack.Screen name="EntryLog" component={EntryLogScreen} options={{ title: 'Visitor Log' }} />
       <Stack.Screen name="VisitorApproval" component={VisitorApprovalScreen} options={{ title: '', headerShown: false }} />
       <Stack.Screen name="MyVisitors" component={MyVisitorsScreen} options={{ title: 'My Visitors' }} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Notifications' }} />
     </Stack.Navigator>
   )
 }
