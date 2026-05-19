@@ -34,6 +34,7 @@ model User {
   visitorEntriesLogged     VisitorEntry[]     @relation("EntryLogger")
   visitorEntriesApproved   VisitorEntry[]     @relation("EntryApprover")
   visitorPreApprovals      VisitorPreApproval[] @relation("PreApprovalApprover")
+  notifications UserNotification[] @relation("UserNotifications")
   
   @@map("users")
 }
@@ -82,6 +83,7 @@ model Organization {
   visitors            Visitor[]
   visitorEntries      VisitorEntry[]
   visitorPreApprovals VisitorPreApproval[]
+  userNotifications UserNotification[]
 
   @@map("organizations")
 }
@@ -494,6 +496,29 @@ model VisitorPreApproval {
   @@index([orgId])
   @@index([orgId, unitId])
   @@map("visitor_pre_approvals")
+}
+
+// ─────────────────────────────────────────────
+// Notification Inbox
+// ─────────────────────────────────────────────
+
+model UserNotification {
+  id        String   @id @default(uuid())
+  userId    String
+  orgId     String
+  title     String
+  body      String
+  screen    String?
+  data      Json?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User         @relation("UserNotifications", fields: [userId], references: [id])
+  org       Organization @relation(fields: [orgId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("user_notifications")
 }
 
 enum ComplaintCategory {
