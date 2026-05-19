@@ -1948,3 +1948,71 @@ List all frequent visitors for the requesting user's flats.
 
 **Note:** Must be registered before `GET /:id/visitors/:visitorId` routes in router
 to avoid `:visitorId` matching the literal string "frequent".
+
+---
+
+## Notification Inbox
+
+User-scoped notification inbox. All endpoints require authentication. No `orgId` param — scoped to the authenticated user automatically.
+
+### GET /api/notifications/unread-count
+Returns the count of unread notifications for the current user.
+
+**Auth:** Bearer token required
+
+**Response 200:**
+```json
+{ "data": { "count": 3 } }
+```
+
+---
+
+### GET /api/notifications
+Paginated list of notifications for the current user, newest first.
+
+**Auth:** Bearer token required
+
+**Query params:**
+- `limit` (number, default 20) — max items per page
+- `before` (ISO timestamp string) — cursor for pagination; returns items older than this timestamp
+
+**Response 200:**
+```json
+{
+  "data": {
+    "notifications": [
+      {
+        "id": "uuid",
+        "title": "New Announcement",
+        "body": "Meeting scheduled for Sunday",
+        "screen": "AnnouncementsList",
+        "data": { "orgId": "uuid", "announcementId": "uuid" },
+        "isRead": false,
+        "createdAt": "2026-01-03T10:00:00.000Z"
+      }
+    ],
+    "hasMore": true,
+    "nextCursor": "2026-01-02T10:00:00.000Z"
+  }
+}
+```
+
+**Pagination:** `nextCursor` is the `createdAt` of the last item returned. Pass it as `before` to fetch the next page. `nextCursor` is `null` when `hasMore` is `false`.
+
+---
+
+### PATCH /api/notifications/read
+Mark notifications as read.
+
+**Auth:** Bearer token required
+
+**Body (JSON):**
+- `{ "ids": ["uuid", "uuid"] }` — mark specific notifications as read
+- `{}` or omit body — mark **all** unread notifications as read
+
+Silently ignores IDs belonging to other users (`updated` will be 0 for those).
+
+**Response 200:**
+```json
+{ "data": { "updated": 2 } }
+```

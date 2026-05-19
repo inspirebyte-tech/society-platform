@@ -75,6 +75,28 @@ export const sendPushToUsers = async (
       where: { token: { in: expiredTokens } }
     })
   }
+
+  // Persist notifications to inbox for each recipient
+  if (userIds.length > 0) {
+    const orgId = payload.data?.orgId
+    if (orgId) {
+      try {
+        await prisma.userNotification.createMany({
+          data: userIds.map(userId => ({
+            userId,
+            orgId,
+            title: payload.title,
+            body: payload.body,
+            screen: payload.data?.screen ?? null,
+            data: payload.data ?? null,
+          }))
+        })
+      } catch (error) {
+        // Never let persistence failure affect push delivery
+        console.error('Failed to persist notifications:', error)
+      }
+    }
+  }
 }
 
 // ─────────────────────────────────────────────
