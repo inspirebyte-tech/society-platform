@@ -297,6 +297,7 @@ Actions:
 Manage Structure → nodes screen
 Invite Member → invite screen
 View Members → members screen
+Header right: Bell icon for all roles → NotificationsScreen; unread badge (red, capped at 99+); useFocusEffect refreshes badge on return
 Wireframe: approved ✓
 
 **Screen 6: Structure Management**
@@ -563,6 +564,37 @@ useFocusEffect refreshes active tab on screen focus.
 
 ---
 
+### NotificationsScreen
+Route: Notifications: { societyId: string }
+Access: All roles
+Nav: Dashboard → bell icon in header
+
+Notification inbox for the authenticated user. Shows all inbox notifications newest-first with infinite scroll (cursor-based pagination via `before` query param).
+
+**List behaviour:**
+- Unread rows have a light blue background (`#f8faff`) and a blue dot indicator
+- Unread row titles are bold (`fontWeight: '700'`)
+- Auto-marks all notifications as read 3 seconds after screen mounts (fire-and-forget, cleared on unmount)
+- "Mark all read" button appears in header right only when `hasUnread` is true
+- Tapping a row: optimistic `isRead` update → fire-and-forget `markNotificationsRead([id])` → navigate to linked screen
+
+**Navigation from tap (`screen` field in notification data):**
+- `VisitorApproval` → VisitorApprovalScreen (requires `entryId` in data; skips nav if missing)
+- `ActiveVisitors` → ActiveVisitorsScreen
+- `AnnouncementsList` → AnnouncementsListScreen
+- `ComplaintDetail` → ComplaintDetailScreen (requires `complaintId` in data; skips nav if missing)
+- anything else → no navigation (just marks read)
+
+**Icon mapping by screen:**
+- `VisitorApproval` / `ActiveVisitors` → blue person icon
+- `AnnouncementsList` → purple megaphone icon
+- `ComplaintDetail` → orange warning icon
+- default → gray bell icon
+
+useFocusEffect is NOT used here — `loadInitial` runs once on mount. Badge refresh happens in DashboardScreen on focus return.
+
+---
+
 ### Phase 2 — Member Management
 
 Screen: Member List
@@ -606,6 +638,7 @@ ActiveVisitors  → { societyId }
 EntryLog        → { societyId }
 VisitorApproval → { societyId, entryId }
 MyVisitors      → { societyId }
+Notifications   → { societyId }
 
 ---
 
