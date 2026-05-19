@@ -95,7 +95,7 @@ export const notificationRules: Partial<Record<string, NotificationRule>> = {
       body: d.title,
       priority: d.category === 'EMERGENCY' ? 'high' : 'default',
       data: {
-        screen: 'Announcements',
+        screen: 'AnnouncementsList',
         orgId: d.orgId,
       }
     })

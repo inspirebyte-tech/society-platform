@@ -465,14 +465,29 @@ Token reassigned to new userId when user switches accounts on same device — ex
   notifiedAt only set when at least one push notification actually sent.
 
 ## Decision 043 — Duplicate visitor entries allowed in V1
-**Date:** 9 May 2026
+**Date:** 18 May 2026
   No prevention if same visitor is logged twice while already inside.
   Gatekeeper is responsible for checking Active Visitors screen first.
   V2: add warning when visitor already has an active (entered, not exited) entry.
 
 ## Decision 044 — Actionable push notifications deferred to V2
-**Date:** 9 May 2026
+**Date:** 18 May 2026
   Residents must open the app to approve or deny.
   Complexity of headless background task execution not justified for V1 scale.
   In-app fallback: MyVisitors Recent tab surfaces all pending entries
   so missed notifications don't block visitors indefinitely.
+
+## Decision 045 — Notification persistence via expoPush.ts
+Date: 19 May 2026
+UserNotification records written inside expoPush.ts
+after each push is sent. This means all notification
+types are automatically persisted without changing
+individual route files or event rules.
+Single responsibility: expoPush handles both delivery
+and persistence.
+
+## Decision 046 — Cursor-based pagination for inbox
+Date: 19 May 2026
+20 items per page using createdAt as cursor.
+No time limit on history — complete record kept in DB.
+UI loads lazily via infinite scroll.
