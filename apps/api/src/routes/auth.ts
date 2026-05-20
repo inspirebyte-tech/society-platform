@@ -48,7 +48,7 @@ router.post('/request-otp', otpRateLimit, async (req: AuthRequest, res: Response
         phone: normalizedPhone,
         otp,
         expiresAt,
-        ipAddress: req.ip
+        ipAddress: (req as any).ip
       }
     })
 
