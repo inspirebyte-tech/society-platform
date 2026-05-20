@@ -23,7 +23,7 @@ export const generateToken = (
   return jwt.sign(
     { ...payload, type: payload.orgId ? 'session' : 'auth' },
     JWT_SECRET,
-    { expiresIn }
+    { expiresIn: expiresIn as any }
   )
 }
 

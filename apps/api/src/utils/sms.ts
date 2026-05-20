@@ -46,7 +46,7 @@ export const sendOtp = async (
       body: JSON.stringify(payload)
     })
 
-    const data = await response.json()
+    const data = await response.json() as any
 
     if (!response.ok || data.type === 'error') {
       console.error('MSG91 error:', data)
