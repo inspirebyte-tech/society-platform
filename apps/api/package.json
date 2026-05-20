@@ -8,7 +8,7 @@
     "test:coverage": "cross-env NODE_ENV=test jest --coverage --runInBand",
     "dev": "npx tsx src/index.ts",
     "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/src/index.js"
+    "start": "node dist/index.js"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
