@@ -9,6 +9,10 @@ export interface AuthRequest extends Request {
         permissions: string[]
         tokenVersion: number
     }
+    params: Record<string, string>
+    body: any
+    query: any
+    headers: any
 }
 
 export const authenticate = async (
