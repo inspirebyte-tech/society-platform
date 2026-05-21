@@ -22,6 +22,8 @@ export const sendOtp = async (
 
   // Production — send real SMS via MSG91
   try {
+    // TODO: remove before real user onboarding
+    console.log(`[PILOT] OTP for ${phone}: ${otp}`)
     const mobile = phone.replace('+', '')
 
     const payload = {
