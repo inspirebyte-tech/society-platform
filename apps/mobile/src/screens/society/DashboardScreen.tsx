@@ -294,7 +294,6 @@ export function DashboardScreen({ route, navigation }: Props) {
 
   // Permission gates — as per MOBILE_CONTEXT.md
   const canViewStructure = permissions.includes('node.view')
-  const canInvite = permissions.includes('invitation.create')
   const canViewMembers = permissions.includes('member.view')
   const canSwitchSociety = memberships.length > 1
   const canViewComplaints =
