@@ -7,6 +7,7 @@ interface User {
   id: string
   phone: string
   name: string
+  photoUrl?: string | null
   isProfileComplete: boolean
 }
 

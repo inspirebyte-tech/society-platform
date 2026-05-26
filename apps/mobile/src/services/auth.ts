@@ -21,8 +21,10 @@ export async function getMe() {
   return res.data.data
 }
 
-export async function updateProfile(name: string) {
-  const res = await api.patch('/auth/profile', { name })
+export async function updateProfile(name: string, photoUrl?: string) {
+  const body: { name: string; photoUrl?: string } = { name }
+  if (photoUrl) body.photoUrl = photoUrl
+  const res = await api.patch('/auth/profile', body)
   return res.data.data
 }
 

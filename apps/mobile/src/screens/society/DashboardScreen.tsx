@@ -10,7 +10,10 @@ import {
   TouchableOpacity,
   Modal,
   TouchableWithoutFeedback,
+  Image,
+  Alert,
 } from 'react-native'
+import * as ImagePicker from 'expo-image-picker'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { Button } from '../../components/Button'
@@ -110,6 +113,8 @@ export function DashboardScreen({ route, navigation }: Props) {
   const [profileName, setProfileName] = useState('')
   const [profileError, setProfileError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [photoBase64, setPhotoBase64] = useState<string | null>(null)
+  const [photoPreviewUri, setPhotoPreviewUri] = useState<string | null>(null)
   const [layoutMode, setLayoutMode] = useState<'grid' | 'list'>('grid')
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
   const [activeCount, setActiveCount] = useState(0)
@@ -121,7 +126,49 @@ export function DashboardScreen({ route, navigation }: Props) {
   function openProfile() {
     setProfileName(user?.name ?? '')
     setProfileError('')
+    setPhotoBase64(null)
+    setPhotoPreviewUri(null)
     setShowProfile(true)
+  }
+
+  async function handlePickPhoto(source: 'camera' | 'library') {
+    if (source === 'camera') {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync()
+      if (status !== 'granted') {
+        setToast({ message: 'Camera permission required.', type: 'info' })
+        return
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        base64: true,
+        quality: 0.7,
+      })
+      if (result.canceled || !result.assets[0]?.base64) return
+      setPhotoBase64(result.assets[0].base64)
+      setPhotoPreviewUri(result.assets[0].uri)
+    } else {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      if (status !== 'granted') {
+        setToast({ message: 'Allow photo access to choose an image.', type: 'info' })
+        return
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        base64: true,
+        quality: 0.7,
+      })
+      if (result.canceled || !result.assets[0]?.base64) return
+      setPhotoBase64(result.assets[0].base64)
+      setPhotoPreviewUri(result.assets[0].uri)
+    }
+  }
+
+  function showPhotoOptions() {
+    Alert.alert('Change Photo', undefined, [
+      { text: 'Take Photo', onPress: () => handlePickPhoto('camera') },
+      { text: 'Choose from Gallery', onPress: () => handlePickPhoto('library') },
+      { text: 'Cancel', style: 'cancel' },
+    ])
   }
 
   async function handleSaveName() {
@@ -132,17 +179,13 @@ export function DashboardScreen({ route, navigation }: Props) {
     }
     setIsSaving(true)
     try {
-      await updateProfile(trimmed)
+      await updateProfile(trimmed, photoBase64 ?? undefined)
       await loadUser()
       setShowProfile(false)
-      setToast({ message: 'Name updated.', type: 'success' })
+      setToast({ message: 'Profile updated.', type: 'success' })
     } catch (e) {
       const code = getApiErrorCode(e)
-      if (code === 'missing_field' || code === 'invalid_name') {
-        setProfileError(getErrorMessage(code))
-      } else {
-        setProfileError(getErrorMessage(code))
-      }
+      setProfileError(getErrorMessage(code))
     } finally {
       setIsSaving(false)
     }
@@ -201,9 +244,13 @@ export function DashboardScreen({ route, navigation }: Props) {
     navigation.setOptions({
       headerLeft: () => (
         <TouchableOpacity onPress={openProfile} hitSlop={12} style={styles.headerAvatarBtn}>
-          <View style={styles.headerAvatar}>
-            <Text style={styles.headerAvatarText}>{initial}</Text>
-          </View>
+          {user?.photoUrl ? (
+            <Image source={{ uri: user.photoUrl }} style={styles.headerAvatar} />
+          ) : (
+            <View style={styles.headerAvatar}>
+              <Text style={styles.headerAvatarText}>{initial}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       ),
     })
@@ -535,10 +582,31 @@ export function DashboardScreen({ route, navigation }: Props) {
           <View style={profileStyles.handle} />
 
           <View style={profileStyles.body}>
-            <Text style={profileStyles.title}>Edit Name</Text>
+            <Text style={profileStyles.title}>Edit Profile</Text>
             {user ? (
               <Text style={profileStyles.phoneHint}>{user.phone}</Text>
             ) : null}
+
+            {/* Photo picker */}
+            <View style={profileStyles.photoSection}>
+              <TouchableOpacity onPress={showPhotoOptions} style={profileStyles.photoWrap}>
+                {photoPreviewUri ? (
+                  <Image source={{ uri: photoPreviewUri }} style={profileStyles.photoCircle} />
+                ) : user?.photoUrl ? (
+                  <Image source={{ uri: user.photoUrl }} style={profileStyles.photoCircle} />
+                ) : (
+                  <View style={profileStyles.photoCircle}>
+                    <Text style={profileStyles.photoInitial}>
+                      {(user?.name ?? '?').trim().charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity onPress={showPhotoOptions} hitSlop={8}>
+                <Text style={profileStyles.changePhotoText}>Change Photo</Text>
+              </TouchableOpacity>
+            </View>
+
             <TextInput
               label="Full Name"
               value={profileName}
@@ -938,5 +1006,34 @@ const profileStyles = StyleSheet.create({
   actions: {
     paddingHorizontal: Spacing.screenPadding,
     gap: 10,
+  },
+
+  // Photo picker
+  photoSection: {
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 4,
+  },
+  photoWrap: {
+    borderRadius: 40,
+    overflow: 'hidden',
+  },
+  photoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoInitial: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: Colors.surface,
+  },
+  changePhotoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.primary,
   },
 })
