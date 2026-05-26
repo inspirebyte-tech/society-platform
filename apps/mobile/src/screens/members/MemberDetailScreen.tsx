@@ -13,6 +13,7 @@ import { Button } from '../../components/Button'
 import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { ConfirmSheet } from '../../components/ConfirmSheet'
 import { Toast } from '../../components/Toast'
+import { Avatar } from '../../components/Avatar'
 import { AppStackParamList } from '../../navigation/AppNavigator'
 import { useAuth } from '../../hooks/useAuth'
 import {
@@ -42,6 +43,7 @@ interface MemberDetail {
   userId: string
   name: string
   phone: string
+  photoUrl?: string | null
   role: string
   unit: string | null
   unitId: string | null
@@ -69,14 +71,6 @@ const OCCUPANCY_LABEL: Record<string, string> = {
   OWNER_RESIDENT: 'Owner · Resident',
   OWNER:          'Owner',
   TENANT:         'Tenant',
-}
-
-const AVATAR_COLORS = [
-  Colors.primary, '#6366f1', '#7c3aed', '#059669', '#d97706', '#0891b2',
-]
-function getAvatarColor(name: string): string {
-  const sum = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
-  return AVATAR_COLORS[sum % AVATAR_COLORS.length]
 }
 
 function formatDate(iso: string): string {
@@ -207,8 +201,6 @@ export function MemberDetailScreen({ route, navigation }: Props) {
   }
 
   const badge = ROLE_BADGE[member.role] ?? { text: Colors.subtle, bg: Colors.border }
-  const avatarColor = getAvatarColor(member.name)
-  const initial = member.name.trim().charAt(0).toUpperCase()
 
   const isActive = member.isActive
   const hasUnit = !!member.unit
@@ -231,9 +223,12 @@ export function MemberDetailScreen({ route, navigation }: Props) {
         {/* ── Identity card ── */}
         <Card style={styles.identityCard}>
           <View style={styles.identityRow}>
-            <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
-              <Text style={styles.avatarText}>{initial}</Text>
-            </View>
+            <Avatar
+              name={member.name}
+              photoUrl={member.photoUrl}
+              size={52}
+              borderRadius={14}
+            />
             <View style={styles.identityInfo}>
               <Text style={styles.memberName} numberOfLines={2}>{member.name}</Text>
               <View style={styles.badgeRow}>
@@ -402,19 +397,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 14,
-  },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  avatarText: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Colors.surface,
   },
   identityInfo: {
     flex: 1,
