@@ -11,6 +11,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { Toast } from '../../components/Toast'
+import { Avatar } from '../../components/Avatar'
 import { AppStackParamList } from '../../navigation/AppNavigator'
 import { listMembers } from '../../services/members'
 import { getApiErrorCode } from '../../services/api'
@@ -27,6 +28,7 @@ interface Member {
   userId?: string
   name: string
   phone: string
+  photoUrl?: string | null
   role: string
   unit: string | null
   unitId: string | null
@@ -52,15 +54,6 @@ const OCCUPANCY_LABEL: Record<string, string> = {
   OWNER_RESIDENT: 'Owner · Resident',
   OWNER:          'Owner',
   TENANT:         'Tenant',
-}
-
-const AVATAR_COLORS = [
-  Colors.primary, '#6366f1', '#7c3aed', '#059669', '#d97706', '#0891b2',
-]
-
-function getAvatarColor(name: string): string {
-  const sum = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
-  return AVATAR_COLORS[sum % AVATAR_COLORS.length]
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
@@ -298,8 +291,6 @@ function MemberRow({ member, onPress, pending = false, inactive = false }: Membe
   const badge = inactive
     ? { text: Colors.subtle, bg: Colors.border }
     : ROLE_BADGE[member.role] ?? { text: Colors.subtle, bg: Colors.border }
-  const avatarColor = inactive ? Colors.subtle : getAvatarColor(member.name)
-  const initial = member.name.trim().charAt(0).toUpperCase()
 
   const isResidentRole = member.role === 'Resident' || member.role === 'Co-resident'
 
@@ -316,10 +307,12 @@ function MemberRow({ member, onPress, pending = false, inactive = false }: Membe
       onPress={onPress}
       style={({ pressed }) => [rowStyles.row, inactive && rowStyles.rowInactive, pressed && rowStyles.rowPressed]}
     >
-      {/* Avatar */}
-      <View style={[rowStyles.avatar, { backgroundColor: avatarColor }]}>
-        <Text style={rowStyles.avatarText}>{initial}</Text>
-      </View>
+      <Avatar
+        name={member.name}
+        photoUrl={inactive ? null : member.photoUrl}
+        size={40}
+        borderRadius={12}
+      />
 
       {/* Info */}
       <View style={rowStyles.info}>
@@ -457,19 +450,6 @@ const rowStyles = StyleSheet.create({
   },
   rowPressed: {
     backgroundColor: Colors.background,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.surface,
   },
   info: {
     flex: 1,
