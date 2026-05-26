@@ -333,17 +333,10 @@ export function DashboardScreen({ route, navigation }: Props) {
       onPress: () => navigation.navigate('Structure', { societyId }),
     },
     {
-      show: canInvite,
-      icon: 'mail-outline' as const,
-      label: 'Invite Member',
-      subtitle: 'Send invitation via SMS',
-      onPress: () => navigation.navigate('InviteMember', { societyId }),
-    },
-    {
       show: canViewMembers,
       icon: 'people-outline' as const,
-      label: 'View Members',
-      subtitle: 'Active residents and staff',
+      label: 'Members',
+      subtitle: 'Manage members and roles',
       onPress: () => navigation.navigate('MemberList', { societyId }),
     },
     {
