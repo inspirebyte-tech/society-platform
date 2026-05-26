@@ -491,3 +491,118 @@ Date: 19 May 2026
 20 items per page using createdAt as cursor.
 No time limit on history — complete record kept in DB.
 UI loads lazily via infinite scroll.
+
+## Decision 047 — Soft delete only for member deactivation
+Date: May 2026
+Deactivation sets Membership.isActive = false.
+No records are ever deleted. Complete history preserved.
+
+## Decision 048 — Ownership preserved on deactivation
+Date: May 2026
+UnitOwnership records are legal records and never ended
+on deactivation. Only UnitOccupancy is ended.
+
+## Decision 049 — Active occupancies ended on deactivation
+Date: May 2026
+All active UnitOccupancy records for the member are
+ended (occupiedUntil = now) when membership deactivated.
+
+## Decision 050 — Last admin protection
+Date: May 2026
+Cannot deactivate the last active Admin in a society.
+Endpoint returns 400 last_admin error.
+
+## Decision 051 — Builder self-protection
+Date: May 2026
+Admin cannot deactivate a Builder.
+Only another Builder can deactivate a Builder.
+
+## Decision 052 — Pending visitor entries not auto-denied
+Date: May 2026
+When a member is deactivated, pending visitor entries
+for their unit are NOT auto-denied.
+Gatekeeper handles them manually.
+Auto-deny would cause confusion if visitor is already
+at gate.
+
+## Decision 053 — Reactivation does not restore unit
+Date: May 2026
+Reactivating a member does not restore their previous
+unit assignment. Admin must reassign unit manually.
+Prevents stale occupancy data if unit was reassigned.
+
+## Decision 054 — Device tokens not deleted on deactivation
+Date: May 2026
+Device tokens are per-user not per-society.
+Deleting tokens would break push for other societies.
+Deactivated member stops receiving society pushes
+because their membership.isActive = false filters
+them out of notification recipients.
+
+## Decision 055 — Direct add creates full account
+Date: May 2026
+Direct add creates Person + User + Membership immediately.
+Member shows as Active in member list, not Pending.
+Person logs in later and finds society already set up.
+
+## Decision 056 — Direct add uses member.remove permission
+Date: May 2026
+Direct add reuses member.remove permission (Builder + Admin).
+Avoids creating a new permission for pilot scale.
+Semantic: "managing members" covers both operations.
+
+## Decision 057 — Admin cannot direct-add Builder or Admin
+Date: May 2026
+Admin can direct-add: Resident, Co-resident, Gatekeeper.
+Builder can direct-add: Admin, Resident, Co-resident, Gatekeeper.
+Enforced in endpoint logic, not just permissions.
+
+## Decision 058 — Phone and name required for direct add
+Date: May 2026
+Both fields mandatory. No anonymous members.
+Person can update their own name after logging in.
+
+## Decision 059 — Unit assignment optional in direct add
+Date: May 2026
+Admin can add member without unit — assign later.
+Useful when unit not yet decided at time of adding.
+
+## Decision 060 — Occupied unit warning in direct add
+Date: May 2026
+If selected unit already has primary occupant,
+new member is added as co-occupant (isPrimary: false).
+No blocking — admin decides.
+
+## Decision 061 — SMS notification on direct add is fire and forget
+Date: May 2026
+SMS sent after successful direct add to notify person.
+SMS failure never blocks the operation.
+No sendSms utility exists — deferred for V1.
+
+## Decision 062 — Inactive member detected during direct add
+Date: May 2026
+If phone matches inactive member, returns 409 inactive_member
+with memberId. Mobile shows reactivation option.
+Reactivation does not restore unit (Decision 053).
+
+## Decision 063 — Direct add wrapped in DB transaction
+Date: May 2026
+All operations atomic: Person + User + Membership + Occupancy.
+If any step fails, nothing is created.
+
+## Decision 064 — Direct add entry via Members list
+Date: May 2026
++ button in MemberListScreen header shows action sheet:
+Invite via SMS → InviteMemberScreen
+Add Directly → DirectAddMemberScreen
+
+## Decision 065 — Invite Member dashboard tile removed
+Date: May 2026
+Functionality preserved via Members list header + button
+which offers both Invite via SMS and Add Directly.
+Single consolidated entry point is cleaner UX.
+
+## Decision 066 — Dashboard tile renamed View Members to Members
+Date: May 2026
+Noun not verb — standard navigation tile pattern.
+MemberList screen header already showed Members correctly.

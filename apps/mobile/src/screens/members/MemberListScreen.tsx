@@ -4,15 +4,18 @@ import {
   Text,
   ScrollView,
   Pressable,
+  Alert,
   RefreshControl,
   StyleSheet,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { Toast } from '../../components/Toast'
 import { Avatar } from '../../components/Avatar'
 import { AppStackParamList } from '../../navigation/AppNavigator'
+import { useAuth } from '../../hooks/useAuth'
 import { listMembers } from '../../services/members'
 import { getApiErrorCode } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
@@ -60,6 +63,35 @@ const OCCUPANCY_LABEL: Record<string, string> = {
 
 export function MemberListScreen({ route, navigation }: Props) {
   const { societyId } = route.params
+  const { permissions } = useAuth()
+  const canInvite = permissions.includes('invitation.create')
+
+  useEffect(() => {
+    if (!canInvite) return
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          onPress={() => {
+            Alert.alert('Add Member', undefined, [
+              {
+                text: 'Invite via SMS',
+                onPress: () => navigation.navigate('InviteMember', { societyId }),
+              },
+              {
+                text: 'Add Directly',
+                onPress: () => navigation.navigate('DirectAddMember', { societyId }),
+              },
+              { text: 'Cancel', style: 'cancel' },
+            ])
+          }}
+          style={{ padding: 4, marginRight: 4 }}
+          hitSlop={12}
+        >
+          <Ionicons name="person-add-outline" size={22} color={Colors.primary} />
+        </Pressable>
+      ),
+    })
+  }, [canInvite, navigation, societyId])
 
   const [filter, setFilter] = useState<FilterOption>('All')
   const [active, setActive] = useState<Member[]>([])

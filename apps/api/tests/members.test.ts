@@ -1,6 +1,8 @@
 import request from 'supertest'
 import app from '../src/app'
 import { getTokens, getSocietyId, getMembershipId } from './setup'
+import { prisma } from '../src/lib/prisma'
+import { generateToken } from '../src/utils/jwt'
 
 describe('Members', () => {
   let builderToken: string
@@ -202,4 +204,212 @@ describe('Members', () => {
     expect(res.body.data.warning).toBeDefined()
   })
 })
+
+  // ─────────────────────────────────────────────
+  // POST /societies/:id/members/direct-add
+  // ─────────────────────────────────────────────
+  describe('POST /societies/:id/members/direct-add', () => {
+    let adminToken: string
+    let adminUserId: string
+    let unitId: string
+    const phoneA = '+919800000001'
+    const phoneB = '+919800000002'
+    const phoneC = '+919800000003'
+    let membershipIdA: string
+
+    beforeAll(async () => {
+      // Create an admin user with membership for role restriction tests
+      const adminUser = await prisma.user.create({
+        data: {
+          phone: '+919800000099',
+          phoneVerified: true,
+          tokenVersion: 0,
+          person: { create: { fullName: 'Test Admin User', phone: '+919800000099' } }
+        }
+      })
+      adminUserId = adminUser.id
+      await prisma.membership.create({
+        data: { userId: adminUser.id, orgId: societyId, roleId: 'role-admin', isActive: true }
+      })
+      adminToken = generateToken({ userId: adminUser.id, orgId: societyId, tokenVersion: 0 })
+
+      // Get a valid unit ID for unit assignment tests
+      const unit = await prisma.propertyNode.findFirst({
+        where: { orgId: societyId, nodeType: 'UNIT' }
+      })
+      unitId = unit!.id
+    })
+
+    afterAll(async () => {
+      // Remove direct_add audit logs, then users created by these tests
+      await prisma.auditLog.deleteMany({ where: { orgId: societyId, action: 'direct_add' } })
+      for (const phone of [phoneA, phoneB, phoneC, '+919800000099']) {
+        const user = await prisma.user.findUnique({ where: { phone } })
+        if (!user) continue
+        await prisma.auditLog.deleteMany({ where: { orgId: societyId, actorId: user.id } })
+        await prisma.unitOccupancy.deleteMany({ where: { person: { userId: user.id } } })
+        await prisma.membership.deleteMany({ where: { userId: user.id } })
+        const person = await prisma.person.findFirst({ where: { userId: user.id } })
+        if (person) await prisma.person.delete({ where: { id: person.id } })
+        await prisma.user.delete({ where: { id: user.id } })
+      }
+    })
+
+    it('returns 401 with no token', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .send({ name: 'Test', phone: '9800000001', role: 'Resident' })
+      expect(res.status).toBe(401)
+    })
+
+    it('returns 403 if caller lacks member.remove permission', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${residentToken}`)
+        .send({ name: 'Test', phone: '9800000001', role: 'Resident' })
+      expect(res.status).toBe(403)
+    })
+
+    it('returns 400 if name missing', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ phone: '9800000001', role: 'Resident' })
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBe('invalid_name')
+    })
+
+    it('returns 400 if name too short', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ name: 'A', phone: '9800000001', role: 'Resident' })
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBe('invalid_name')
+    })
+
+    it('returns 400 if phone missing', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ name: 'Test User', role: 'Resident' })
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBe('invalid_phone')
+    })
+
+    it('returns 400 if invalid phone format', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ name: 'Test User', phone: '1234', role: 'Resident' })
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBe('invalid_phone')
+    })
+
+    it('returns 400 if role missing', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ name: 'Test User', phone: '9800000001' })
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBe('invalid_role')
+    })
+
+    it('returns 403 if Admin tries to add Admin role', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ name: 'Test User', phone: '9800000001', role: 'Admin' })
+      expect(res.status).toBe(403)
+      expect(res.body.error).toBe('role_not_allowed')
+    })
+
+    it('returns 403 if Admin tries to add Builder role', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ name: 'Test User', phone: '9800000001', role: 'Builder' })
+      expect(res.status).toBe(403)
+      expect(res.body.error).toBe('role_not_allowed')
+    })
+
+    it('successfully adds a new member (Builder caller)', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ name: 'Direct Add Test', phone: '9800000001', role: 'Gatekeeper' })
+      expect(res.status).toBe(201)
+      expect(res.body.data.memberId).toBeDefined()
+      expect(res.body.data.message).toBe('Member added successfully')
+      membershipIdA = res.body.data.memberId
+
+      // Verify member appears in list
+      const list = await request(app)
+        .get(`/api/societies/${societyId}/members`)
+        .set('Authorization', `Bearer ${builderToken}`)
+      const found = list.body.data.active.some((m: any) => m.membershipId === membershipIdA)
+      expect(found).toBe(true)
+    })
+
+    it('successfully adds a new member (Admin caller, Resident role)', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ name: 'Admin Added Resident', phone: '9800000002', role: 'Resident' })
+      expect(res.status).toBe(201)
+      expect(res.body.data.memberId).toBeDefined()
+    })
+
+    it('returns 409 already_member for active member', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ name: 'Direct Add Test', phone: '9800000001', role: 'Gatekeeper' })
+      expect(res.status).toBe(409)
+      expect(res.body.error).toBe('already_member')
+    })
+
+    it('returns 409 inactive_member with memberId for deactivated member', async () => {
+      // Deactivate the member added in the Builder test
+      await request(app)
+        .patch(`/api/societies/${societyId}/members/${membershipIdA}/deactivate`)
+        .set('Authorization', `Bearer ${builderToken}`)
+
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ name: 'Direct Add Test', phone: '9800000001', role: 'Gatekeeper' })
+      expect(res.status).toBe(409)
+      expect(res.body.error).toBe('inactive_member')
+      expect(res.body.details.memberId).toBe(membershipIdA)
+    })
+
+    it('returns 400 if unitId provided without occupancyType', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ name: 'Unit Test', phone: '9800000003', role: 'Resident', unitId })
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBe('missing_field')
+    })
+
+    it('successfully adds member with unit assignment', async () => {
+      const res = await request(app)
+        .post(`/api/societies/${societyId}/members/direct-add`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ name: 'Unit Test Resident', phone: '9800000003', role: 'Resident', unitId, occupancyType: 'TENANT' })
+      expect(res.status).toBe(201)
+      expect(res.body.data.memberId).toBeDefined()
+
+      // Verify occupancy was created
+      const user = await prisma.user.findUnique({ where: { phone: phoneC } })
+      const person = await prisma.person.findFirst({ where: { userId: user!.id } })
+      const occupancy = await prisma.unitOccupancy.findFirst({
+        where: { personId: person!.id, occupiedUntil: null }
+      })
+      expect(occupancy).not.toBeNull()
+      expect(occupancy!.occupancyType).toBe('TENANT')
+      expect(occupancy!.unitId).toBe(unitId)
+    })
+  })
 })

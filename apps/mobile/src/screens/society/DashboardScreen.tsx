@@ -294,7 +294,6 @@ export function DashboardScreen({ route, navigation }: Props) {
 
   // Permission gates — as per MOBILE_CONTEXT.md
   const canViewStructure = permissions.includes('node.view')
-  const canInvite = permissions.includes('invitation.create')
   const canViewMembers = permissions.includes('member.view')
   const canSwitchSociety = memberships.length > 1
   const canViewComplaints =
@@ -333,17 +332,10 @@ export function DashboardScreen({ route, navigation }: Props) {
       onPress: () => navigation.navigate('Structure', { societyId }),
     },
     {
-      show: canInvite,
-      icon: 'mail-outline' as const,
-      label: 'Invite Member',
-      subtitle: 'Send invitation via SMS',
-      onPress: () => navigation.navigate('InviteMember', { societyId }),
-    },
-    {
       show: canViewMembers,
       icon: 'people-outline' as const,
-      label: 'View Members',
-      subtitle: 'Active residents and staff',
+      label: 'Members',
+      subtitle: 'Manage members and roles',
       onPress: () => navigation.navigate('MemberList', { societyId }),
     },
     {
