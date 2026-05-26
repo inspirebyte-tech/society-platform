@@ -5,10 +5,12 @@ import { enforceTenantContext } from '../middleware/tenantContext'
 import { prisma } from '../lib/prisma'
 import {
   sendSuccess,
+  sendCreated,
   sendError,
   sendNotFound,
   sendServerError
 } from '../utils/response'
+import { validatePhone, normalizePhone } from '../utils/validate'
 
 const router = Router()
 
@@ -219,6 +221,213 @@ router.get(
 
     } catch (error) {
       console.error('GET /societies/:id/members/:memberId error:', error)
+      return sendServerError(res)
+    }
+  }
+)
+
+// ─────────────────────────────────────────────
+// POST /api/societies/:id/members/direct-add
+// Admin/Builder directly adds a member without SMS invite
+// Creates User + Person if phone not in system
+// Optionally assigns unit occupancy in same transaction
+// ─────────────────────────────────────────────
+router.post(
+  '/:id/members/direct-add',
+  authenticate,
+  enforceTenantContext,
+  requirePermission('member.remove'),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const orgId = req.params.id as string
+      const { name, phone, role, unitId, occupancyType } = req.body
+
+      // 1. Validate required fields
+      if (!name || typeof name !== 'string' || name.trim().length < 2) {
+        return sendError(res, 'invalid_name', 400, {
+          message: 'Name must be at least 2 characters'
+        })
+      }
+      if (!phone || typeof phone !== 'string') {
+        return sendError(res, 'invalid_phone', 400, {
+          message: 'Phone number is required'
+        })
+      }
+      if (!role || typeof role !== 'string') {
+        return sendError(res, 'invalid_role', 400, {
+          message: 'Role is required'
+        })
+      }
+
+      // 2. Normalize and validate phone
+      const normalizedPhone = normalizePhone(phone)
+      const phoneValidation = validatePhone(normalizedPhone)
+      if (!phoneValidation.valid) {
+        return sendError(res, 'invalid_phone', 400, {
+          message: 'Invalid phone number format'
+        })
+      }
+
+      // 3. Role permission check
+      const callerMembership = await prisma.membership.findFirst({
+        where: { userId: req.user!.userId, orgId, isActive: true },
+        include: { role: true }
+      })
+      const callerRole = callerMembership?.role.name
+      const allowedRolesForAdmin = ['Resident', 'Co-resident', 'Gatekeeper']
+      const allowedRolesForBuilder = ['Admin', 'Resident', 'Co-resident', 'Gatekeeper']
+
+      if (callerRole === 'Admin' && !allowedRolesForAdmin.includes(role)) {
+        return sendError(res, 'role_not_allowed', 403, {
+          message: 'Admin can only add Resident, Co-resident, or Gatekeeper'
+        })
+      }
+      if (callerRole === 'Builder' && !allowedRolesForBuilder.includes(role)) {
+        return sendError(res, 'role_not_allowed', 403, {
+          message: 'Invalid role'
+        })
+      }
+
+      // 4. Find role record (system roles have orgId: null)
+      const roleRecord = await prisma.role.findFirst({
+        where: { name: role }
+      })
+      if (!roleRecord) {
+        return sendError(res, 'invalid_role', 400, {
+          message: 'Role not found'
+        })
+      }
+
+      // 5. Check if user with this phone already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { phone: normalizedPhone },
+        include: {
+          memberships: {
+            where: { orgId },
+            include: { role: true }
+          },
+          person: true
+        }
+      })
+
+      if (existingUser) {
+        const existingMembership = existingUser.memberships[0]
+        if (existingMembership) {
+          if (existingMembership.isActive) {
+            return sendError(res, 'already_member', 409, {
+              message: 'This person is already an active member'
+            })
+          } else {
+            return sendError(res, 'inactive_member', 409, {
+              message: 'This person was previously a member',
+              memberId: existingMembership.id
+            })
+          }
+        }
+      }
+
+      // 6. Validate unit if provided
+      if (unitId) {
+        if (!occupancyType) {
+          return sendError(res, 'missing_field', 400, {
+            message: 'Occupancy type required when unit is selected'
+          })
+        }
+        const unit = await prisma.propertyNode.findFirst({
+          where: { id: unitId as string, orgId, nodeType: { in: ['UNIT', 'VILLA', 'FLOOR', 'PLOT'] } }
+        })
+        if (!unit) {
+          return sendError(res, 'unit_not_found', 404, {
+            message: 'Unit not found'
+          })
+        }
+      }
+
+      // 7. All in one transaction
+      const result = await prisma.$transaction(async (tx) => {
+        let userId: string
+        let personId: string
+
+        if (existingUser) {
+          userId = existingUser.id
+          personId = existingUser.person!.id
+          await tx.person.update({
+            where: { id: personId },
+            data: { fullName: name.trim() }
+          })
+        } else {
+          const newUser = await tx.user.create({
+            data: {
+              phone: normalizedPhone,
+              tokenVersion: 0,
+              person: {
+                create: {
+                  fullName: name.trim(),
+                  phone: normalizedPhone,
+                }
+              }
+            },
+            include: { person: true }
+          })
+          userId = newUser.id
+          personId = newUser.person!.id
+        }
+
+        const membership = await tx.membership.create({
+          data: {
+            userId,
+            orgId,
+            roleId: roleRecord.id,
+            isActive: true,
+            invitedBy: req.user!.userId,
+          }
+        })
+
+        if (unitId && occupancyType) {
+          const existingPrimary = await tx.unitOccupancy.findFirst({
+            where: {
+              unitId: unitId as string,
+              isPrimary: true,
+              occupiedUntil: null
+            }
+          })
+          await tx.unitOccupancy.create({
+            data: {
+              unitId: unitId as string,
+              personId,
+              occupancyType: occupancyType as any,
+              isPrimary: !existingPrimary,
+              occupiedFrom: new Date(),
+            }
+          })
+        }
+
+        await tx.auditLog.create({
+          data: {
+            orgId,
+            tableName: 'memberships',
+            recordId: membership.id,
+            action: 'direct_add',
+            actorId: req.user!.userId,
+            newData: {
+              addedPhone: normalizedPhone,
+              addedName: name.trim(),
+              role,
+              unitId: unitId ?? null
+            }
+          }
+        })
+
+        return membership
+      })
+
+      return sendCreated(res, {
+        memberId: result.id,
+        message: 'Member added successfully'
+      })
+
+    } catch (error) {
+      console.error('direct-add error:', error)
       return sendServerError(res)
     }
   }

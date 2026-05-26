@@ -27,3 +27,19 @@ export async function reactivateMember(societyId: string, memberId: string) {
   const res = await api.patch(`/societies/${societyId}/members/${memberId}/reactivate`)
   return res.data.data
 }
+
+export interface DirectAddMemberParams {
+  phone: string
+  name: string
+  role: string
+  unitId?: string
+  occupancyType?: string
+}
+
+export async function directAddMember(
+  societyId: string,
+  params: DirectAddMemberParams,
+): Promise<{ memberId: string; message: string }> {
+  const res = await api.post(`/societies/${societyId}/members/direct-add`, params)
+  return res.data.data
+}
