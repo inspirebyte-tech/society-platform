@@ -6,6 +6,7 @@ import { generateToken, generateRefreshToken, verifyRefreshToken } from '../util
 import { generateOtp, getOtpExpiry, isOtpExpired, getInvitationExpiry } from '../utils/otp'
 import { sendOtp } from '../utils/sms'
 import { validatePhone, validateOtp, validateRequired, normalizePhone } from '../utils/validate'
+import { uploadImage } from '../utils/cloudinary'
 import { sendSuccess, sendCreated, sendError, sendUnauthorized, sendForbidden, sendNotFound, sendServerError } from '../utils/response'
 
 const router = Router()
@@ -375,6 +376,7 @@ router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
         id: user.id,
         phone: user.phone,
         name: user.person?.fullName,
+        photoUrl: user.person?.photoUrl ?? null,
         isProfileComplete: !!user.person?.fullName
       },
       hasAnyMembership: user._count.memberships > 0,
@@ -497,18 +499,37 @@ router.post('/refresh', async (req: AuthRequest, res: Response) => {
 // ─────────────────────────────────────────────
 router.patch('/profile', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const { name } = req.body
+    const { name, photoUrl } = req.body
 
-    const validation = validateRequired({ name }, ['name'])
-    if (!validation.valid) {
-      return sendError(res, validation.error!, 400, {
-        field: validation.field
-      })
+    const updateData: { fullName?: string; photoUrl?: string } = {}
+
+    if (name !== undefined) {
+      if (typeof name !== 'string' || name.trim().length < 2) {
+        return sendError(res, 'invalid_name', 400, {
+          message: 'Name must be at least 2 characters'
+        })
+      }
+      updateData.fullName = name.trim()
     }
 
-    if (typeof name !== 'string' || name.trim().length < 2) {
-      return sendError(res, 'invalid_name', 400, {
-        message: 'Name must be at least 2 characters'
+    if (photoUrl !== undefined) {
+      if (typeof photoUrl !== 'string') {
+        return sendError(res, 'invalid_photo', 400, {
+          message: 'Invalid photo'
+        })
+      }
+      try {
+        updateData.photoUrl = await uploadImage(photoUrl, 'avatars')
+      } catch {
+        return sendError(res, 'upload_failed', 500, {
+          message: 'Photo upload failed'
+        })
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return sendError(res, 'missing_field', 400, {
+        message: 'Nothing to update'
       })
     }
 
@@ -522,12 +543,13 @@ router.patch('/profile', authenticate, async (req: AuthRequest, res: Response) =
 
     const updated = await prisma.person.update({
       where: { id: person.id },
-      data: { fullName: name.trim() }
+      data: updateData
     })
 
     return sendSuccess(res, {
       name: updated.fullName,
-      isProfileComplete: true
+      photoUrl: updated.photoUrl ?? null,
+      isProfileComplete: !!updated.fullName
     })
 
   } catch (error) {
