@@ -1,10 +1,19 @@
 import request from 'supertest'
 import app from '../src/app'
+import { prisma } from '../src/lib/prisma'
+import { generateToken } from '../src/utils/jwt'
 import { getTokens, getSocietyId } from './setup'
+
+jest.mock('../src/utils/cloudinary', () => ({
+  uploadImage: jest.fn().mockResolvedValue('https://res.cloudinary.com/test/vaastio/societies/photo.jpg'),
+}))
+
+const ADMIN_TEST_PHONE = '+919800001001'
 
 describe('Societies', () => {
   let builderToken: string
   let residentToken: string
+  let adminToken: string
   let societyId: string
 
   beforeAll(async () => {
@@ -12,6 +21,27 @@ describe('Societies', () => {
     builderToken = tokens['Builder']
     residentToken = tokens['Resident']
     societyId = await getSocietyId()
+
+    const adminUser = await prisma.user.create({
+      data: {
+        phone: ADMIN_TEST_PHONE,
+        phoneVerified: true,
+        person: { create: { fullName: 'Test Admin Settings', phone: ADMIN_TEST_PHONE } },
+      },
+    })
+    await prisma.membership.create({
+      data: { userId: adminUser.id, orgId: societyId, roleId: 'role-admin', isActive: true },
+    })
+    adminToken = generateToken({ userId: adminUser.id, orgId: societyId, tokenVersion: 0 })
+  })
+
+  afterAll(async () => {
+    const user = await prisma.user.findFirst({ where: { phone: ADMIN_TEST_PHONE } })
+    if (user) {
+      await prisma.membership.deleteMany({ where: { userId: user.id } })
+      await prisma.person.deleteMany({ where: { userId: user.id } })
+      await prisma.user.delete({ where: { id: user.id } })
+    }
   })
 
   // ─────────────────────────────────────────────
@@ -190,6 +220,140 @@ describe('Societies', () => {
         .send({ type: 'WRONG' })
       expect(res.status).toBe(400)
       expect(res.body.error).toBe('invalid_type')
+    })
+  })
+
+  // ─────────────────────────────────────────────
+  // GET /societies/:id — settings fields
+  // ─────────────────────────────────────────────
+  describe('GET /societies/:id — settings fields', () => {
+    it('returns photoUrl null when not set', async () => {
+      const res = await request(app)
+        .get(`/api/societies/${societyId}`)
+        .set('Authorization', `Bearer ${builderToken}`)
+      expect(res.status).toBe(200)
+      expect(res.body.data.photoUrl).toBeNull()
+      expect(res.body.data.contactPhone).toBeNull()
+      expect(res.body.data.contactEmail).toBeNull()
+      expect(res.body.data.description).toBeNull()
+    })
+
+    it('returns contactPhone and description after PATCH /settings', async () => {
+      await request(app)
+        .patch(`/api/societies/${societyId}/settings`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ contactPhone: '9876543210', description: 'A nice society' })
+
+      const res = await request(app)
+        .get(`/api/societies/${societyId}`)
+        .set('Authorization', `Bearer ${builderToken}`)
+      expect(res.status).toBe(200)
+      expect(res.body.data.contactPhone).toBe('9876543210')
+      expect(res.body.data.description).toBe('A nice society')
+    })
+  })
+
+  // ─────────────────────────────────────────────
+  // PATCH /societies/:id — photo + Admin restriction
+  // ─────────────────────────────────────────────
+  describe('PATCH /societies/:id — photo and Admin restriction', () => {
+    it('returns 403 if Admin tries to edit name', async () => {
+      const res = await request(app)
+        .patch(`/api/societies/${societyId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ name: 'Hacked Name' })
+      expect(res.status).toBe(403)
+      expect(res.body.error).toBe('not_allowed')
+    })
+
+    it('accepts photoUrl as base64 and returns cloudinary URL', async () => {
+      const fakeBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+      const res = await request(app)
+        .patch(`/api/societies/${societyId}`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ photoUrl: fakeBase64 })
+      expect(res.status).toBe(200)
+      expect(res.body.data.photoUrl).toBe('https://res.cloudinary.com/test/vaastio/societies/photo.jpg')
+    })
+  })
+
+  // ─────────────────────────────────────────────
+  // PATCH /societies/:id/settings
+  // ─────────────────────────────────────────────
+  describe('PATCH /societies/:id/settings', () => {
+    it('returns 401 with no token', async () => {
+      const res = await request(app)
+        .patch(`/api/societies/${societyId}/settings`)
+        .send({ contactPhone: '9876543210' })
+      expect(res.status).toBe(401)
+    })
+
+    it('returns 400 if no fields provided', async () => {
+      const res = await request(app)
+        .patch(`/api/societies/${societyId}/settings`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({})
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBe('missing_field')
+    })
+
+    it('successfully sets contactPhone', async () => {
+      const res = await request(app)
+        .patch(`/api/societies/${societyId}/settings`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ contactPhone: '9000000001' })
+      expect(res.status).toBe(200)
+      expect(res.body.data.contactPhone).toBe('9000000001')
+    })
+
+    it('successfully sets contactPhone and description together', async () => {
+      const res = await request(app)
+        .patch(`/api/societies/${societyId}/settings`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ contactPhone: '9000000002', description: 'Updated description' })
+      expect(res.status).toBe(200)
+      expect(res.body.data.contactPhone).toBe('9000000002')
+      expect(res.body.data.description).toBe('Updated description')
+    })
+
+    it('returns updated values in GET /societies/:id', async () => {
+      await request(app)
+        .patch(`/api/societies/${societyId}/settings`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ contactEmail: 'admin@greenvalley.com' })
+
+      const res = await request(app)
+        .get(`/api/societies/${societyId}`)
+        .set('Authorization', `Bearer ${builderToken}`)
+      expect(res.status).toBe(200)
+      expect(res.body.data.contactEmail).toBe('admin@greenvalley.com')
+    })
+
+    it('returns 400 for description over 300 characters', async () => {
+      const res = await request(app)
+        .patch(`/api/societies/${societyId}/settings`)
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({ description: 'x'.repeat(301) })
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBe('description_too_long')
+    })
+
+    it('allows Admin to update settings', async () => {
+      const res = await request(app)
+        .patch(`/api/societies/${societyId}/settings`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ contactPhone: '9111111199' })
+      expect(res.status).toBe(200)
+      expect(res.body.data.contactPhone).toBe('9111111199')
+    })
+
+    it('returns 403 for Resident', async () => {
+      const res = await request(app)
+        .patch(`/api/societies/${societyId}/settings`)
+        .set('Authorization', `Bearer ${residentToken}`)
+        .send({ contactPhone: '9999999999' })
+      expect(res.status).toBe(403)
+      expect(res.body.error).toBe('insufficient_permissions')
     })
   })
 })
