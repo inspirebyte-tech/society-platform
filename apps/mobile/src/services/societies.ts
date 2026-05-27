@@ -11,6 +11,12 @@ export interface CreateSocietyPayload {
   type: SocietyType
 }
 
+export interface SocietySettings {
+  contactPhone?: string
+  contactEmail?: string
+  description?: string
+}
+
 export async function createSociety(payload: CreateSocietyPayload) {
   const res = await api.post('/societies', payload)
   return res.data.data
@@ -29,4 +35,12 @@ export async function getSociety(id: string) {
 export async function updateSociety(id: string, payload: Partial<CreateSocietyPayload>) {
   const res = await api.patch(`/societies/${id}`, payload)
   return res.data.data
+}
+
+export async function updateSocietyPhoto(id: string, photoUrl: string): Promise<void> {
+  await api.patch(`/societies/${id}`, { photoUrl })
+}
+
+export async function updateSocietySettings(id: string, settings: SocietySettings): Promise<void> {
+  await api.patch(`/societies/${id}/settings`, settings)
 }

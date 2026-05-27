@@ -2,6 +2,8 @@ import React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { CreateSocietyScreen } from '../screens/society/CreateSocietyScreen'
 import { DashboardScreen } from '../screens/society/DashboardScreen'
+import { SocietySettingsScreen } from '../screens/society/SocietySettingsScreen'
+import { SocietyInfoScreen } from '../screens/society/SocietyInfoScreen'
 import { StructureScreen } from '../screens/society/StructureScreen'
 import { AddNodeScreen } from '../screens/society/AddNodeScreen'
 import { InviteMemberScreen } from '../screens/society/InviteMemberScreen'
@@ -30,6 +32,8 @@ import { Colors } from '../constants/colors'
 export type AppStackParamList = {
   CreateSociety: { source?: 'dashboard' }
   Dashboard: { societyId: string }
+  SocietySettings: { societyId: string }
+  SocietyInfo: { societyId: string }
   SwitchSociety: undefined
   Structure: { societyId: string }
   AddNode: { societyId: string; parentId?: string; parentName?: string }
@@ -92,6 +96,8 @@ export function AppNavigator({ initialSocietyId }: AppNavigatorProps) {
       <Stack.Screen name="MemberList" component={MemberListScreen} options={{ title: 'Members' }} />
       <Stack.Screen name="MemberDetail" component={MemberDetailScreen} options={({ route }) => ({ title: route.params.memberName })} />
       <Stack.Screen name="DirectAddMember" component={DirectAddMemberScreen} options={{ title: 'Add Member' }} />
+      <Stack.Screen name="SocietySettings" component={SocietySettingsScreen} options={{ title: 'Society Settings' }} />
+      <Stack.Screen name="SocietyInfo" component={SocietyInfoScreen} options={{ title: 'Society Info' }} />
       <Stack.Screen name="SwitchSociety" component={SwitchSocietyScreen} options={{ title: 'Switch Society' }} />
       <Stack.Screen name="ComplaintList" component={ComplaintListScreen} options={{ title: 'Complaints' }} />
       <Stack.Screen name="RaiseComplaint" component={RaiseComplaintScreen} options={{ title: 'Raise Complaint' }} />
