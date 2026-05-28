@@ -442,7 +442,7 @@ export function DashboardScreen({ route, navigation }: Props) {
         <TouchableOpacity
           onPress={() => navigation.navigate('SocietyInfo', { societyId })}
           activeOpacity={0.8}
-          style={{ flexShrink: 0 }}
+          style={{ flexShrink: 0, gap: 4 }}
         >
           <View style={styles.identityRow}>
             {society.photoUrl ? (
@@ -755,7 +755,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.subtle,
     lineHeight: 20,
-    marginTop: -Spacing.itemGap,
+    marginTop: 6,
   },
 
   // Stats
