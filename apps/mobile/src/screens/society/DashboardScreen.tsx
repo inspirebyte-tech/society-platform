@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 1,
     borderRadius: 6,
   },
   rolePill: {
@@ -746,7 +746,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 1,
     borderRadius: 6,
   },
 
@@ -755,7 +755,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.subtle,
     lineHeight: 20,
-    marginTop: 6,
+    marginTop: 10,
   },
 
   // Stats
