@@ -439,9 +439,10 @@ export function DashboardScreen({ route, navigation }: Props) {
         }
       >
         {/* Society identity + address — tappable → SocietyInfo */}
-        <Pressable
+        <TouchableOpacity
           onPress={() => navigation.navigate('SocietyInfo', { societyId })}
-          style={({ pressed }) => [styles.societyCard, pressed && { opacity: 0.95 }]}
+          activeOpacity={0.8}
+          style={{ flexShrink: 0 }}
         >
           <View style={styles.identityRow}>
             {society.photoUrl ? (
@@ -471,7 +472,7 @@ export function DashboardScreen({ route, navigation }: Props) {
           <Text style={styles.address} numberOfLines={2}>
             {society.address}, {society.city}, {society.state} – {society.pincode}
           </Text>
-        </Pressable>
+        </TouchableOpacity>
 
         {/* Stats — role-specific */}
         {canLogVisitor ? (
@@ -691,10 +692,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sectionGap,
   },
 
-  // Society card
-  societyCard: {
-    // no extra padding — children already have it from content
-  },
   // Identity
   identityRow: {
     flexDirection: 'row',

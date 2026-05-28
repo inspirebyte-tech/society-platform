@@ -206,6 +206,7 @@ export function SocietySettingsScreen({ route }: Props) {
       }
 
       setToast({ message: 'Society updated.', type: 'success' })
+      setTimeout(() => navigation.goBack(), 1000)
     } catch (e) {
       const code = getApiErrorCode(e)
       setToast({ message: getErrorMessage(code), type: 'error' })
