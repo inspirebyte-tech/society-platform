@@ -540,69 +540,110 @@ because their membership.isActive = false filters
 them out of notification recipients.
 
 ## Decision 055 — Direct add creates full account
-Date: May 2026
+Date: 26 May 2026
 Direct add creates Person + User + Membership immediately.
 Member shows as Active in member list, not Pending.
 Person logs in later and finds society already set up.
 
 ## Decision 056 — Direct add uses member.remove permission
-Date: May 2026
+Date: 26 May 2026
 Direct add reuses member.remove permission (Builder + Admin).
 Avoids creating a new permission for pilot scale.
 Semantic: "managing members" covers both operations.
 
 ## Decision 057 — Admin cannot direct-add Builder or Admin
-Date: May 2026
+Date: 26 May 2026
 Admin can direct-add: Resident, Co-resident, Gatekeeper.
 Builder can direct-add: Admin, Resident, Co-resident, Gatekeeper.
 Enforced in endpoint logic, not just permissions.
 
 ## Decision 058 — Phone and name required for direct add
-Date: May 2026
+Date: 26 May 2026
 Both fields mandatory. No anonymous members.
 Person can update their own name after logging in.
 
 ## Decision 059 — Unit assignment optional in direct add
-Date: May 2026
+Date: 26 May 2026
 Admin can add member without unit — assign later.
 Useful when unit not yet decided at time of adding.
 
 ## Decision 060 — Occupied unit warning in direct add
-Date: May 2026
+Date: 26 May 2026
 If selected unit already has primary occupant,
 new member is added as co-occupant (isPrimary: false).
 No blocking — admin decides.
 
 ## Decision 061 — SMS notification on direct add is fire and forget
-Date: May 2026
+Date: 26 May 2026
 SMS sent after successful direct add to notify person.
 SMS failure never blocks the operation.
 No sendSms utility exists — deferred for V1.
 
 ## Decision 062 — Inactive member detected during direct add
-Date: May 2026
+Date: 26 May 2026
 If phone matches inactive member, returns 409 inactive_member
 with memberId. Mobile shows reactivation option.
 Reactivation does not restore unit (Decision 053).
 
 ## Decision 063 — Direct add wrapped in DB transaction
-Date: May 2026
+Date: 26 May 2026
 All operations atomic: Person + User + Membership + Occupancy.
 If any step fails, nothing is created.
 
 ## Decision 064 — Direct add entry via Members list
-Date: May 2026
+Date: 26 May 2026
 + button in MemberListScreen header shows action sheet:
 Invite via SMS → InviteMemberScreen
 Add Directly → DirectAddMemberScreen
 
 ## Decision 065 — Invite Member dashboard tile removed
-Date: May 2026
+Date: 26 May 2026
 Functionality preserved via Members list header + button
 which offers both Invite via SMS and Add Directly.
 Single consolidated entry point is cleaner UX.
 
 ## Decision 066 — Dashboard tile renamed View Members to Members
-Date: May 2026
+Date: 26 May 2026
 Noun not verb — standard navigation tile pattern.
 MemberList screen header already showed Members correctly.
+
+## Decision 067 — Society photoUrl on Organization model
+Date: 27 May 2026
+photoUrl added directly to Organization model as a column.
+Structural field used everywhere like member photos.
+Uploaded to Cloudinary vaastio/societies/ folder.
+Requires migration.
+
+## Decision 068 — Society settings in OrganizationSetting table
+Date: 27 May 2026
+contactPhone, contactEmail, description stored as
+key-value pairs in existing OrganizationSetting table.
+Flexible — new settings can be added later without
+schema changes. Upserted via PATCH /societies/:id/settings.
+
+## Decision 069 — Admin cannot edit structural society info
+Date: 27 May 2026
+Admin can edit: photo, contactPhone, contactEmail, description.
+Admin cannot edit: name, address, city, state, pincode, type.
+Structural info is builder-owned — they created the project.
+Enforced in endpoint logic not just permissions.
+
+## Decision 070 — Society type fixed after creation
+Date: 27 May 2026
+OrgType (APARTMENT/VILLA/MIXED/PLOTTED) cannot be changed
+after society is created. Changing type mid-way causes
+confusion in unit structure and member expectations.
+Omitted from PATCH /societies/:id for Admin role.
+
+## Decision 071 — Society info read-only for residents
+Date: 27 May 2026
+Residents see: photo, name, description, contactPhone,
+contactEmail via SocietyInfoScreen (read-only).
+They cannot edit anything.
+Contact phone shown with tap-to-call button.
+
+## Decision 072 — Society card on dashboard shows photo
+Date: 27 May 2026
+If society has photoUrl set, shown on dashboard card
+replacing the letter avatar.
+Falls back to letter avatar if no photo.

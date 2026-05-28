@@ -4,6 +4,7 @@ import { requirePermission } from '../middleware/permission'
 import { prisma } from '../lib/prisma'
 import { enforceTenantContext } from '../middleware/tenantContext'
 import { validateRequired } from '../utils/validate'
+import { uploadImage } from '../utils/cloudinary'
 import {
   sendSuccess,
   sendCreated,
@@ -182,8 +183,10 @@ router.get('/:id', authenticate, enforceTenantContext, requirePermission('societ
           state: true,
           pincode: true,
           type: true,
+          photoUrl: true,
           isActive: true,
           createdAt: true,
+          settings: true,
           _count: {
             select: {
               propertyNodes: {
@@ -201,6 +204,10 @@ router.get('/:id', authenticate, enforceTenantContext, requirePermission('societ
         return sendNotFound(res, 'society_not_found')
       }
 
+      const settingsMap = Object.fromEntries(
+        (org.settings ?? []).map(s => [s.key, s.value])
+      )
+
       return sendSuccess(res, {
         id: org.id,
         name: org.name,
@@ -209,10 +216,14 @@ router.get('/:id', authenticate, enforceTenantContext, requirePermission('societ
         state: org.state,
         pincode: org.pincode,
         type: org.type,
+        photoUrl: org.photoUrl ?? null,
         isActive: org.isActive,
         totalUnits: org._count.propertyNodes,
         totalMembers: org._count.memberships,
-        createdAt: org.createdAt
+        createdAt: org.createdAt,
+        contactPhone: settingsMap['contactPhone'] ?? null,
+        contactEmail: settingsMap['contactEmail'] ?? null,
+        description: settingsMap['description'] ?? null,
       })
 
     } catch (error) {
@@ -230,19 +241,31 @@ router.patch('/:id', authenticate, enforceTenantContext, requirePermission('soci
   async (req: AuthRequest, res: Response) => {
     try {
       const { id } = req.params
-      const { name, address, city, state, pincode, type } = req.body
+      const { name, address, city, state, pincode, type, photoUrl } = req.body
 
-      // verify membership
-      const membership = await prisma.membership.findFirst({
+      // verify membership and get caller role
+      const callerMembership = await prisma.membership.findFirst({
         where: {
           userId: req.user!.userId,
           orgId: id,
           isActive: true
-        }
+        },
+        include: { role: true }
       })
 
-      if (!membership) {
+      if (!callerMembership) {
         return sendNotFound(res, 'society_not_found')
+      }
+
+      const callerRole = callerMembership.role.name
+
+      // Admin cannot edit structural fields
+      if (callerRole === 'Admin') {
+        if (name || address || city || state || pincode || type) {
+          return sendError(res, 'not_allowed', 403, {
+            message: 'Admin cannot edit structural society info'
+          })
+        }
       }
 
       // validate type if provided
@@ -261,6 +284,22 @@ router.patch('/:id', authenticate, enforceTenantContext, requirePermission('soci
       if (pincode) updates.pincode = pincode
       if (type)    updates.type    = type
 
+      // handle photo upload if provided
+      if (photoUrl) {
+        if (typeof photoUrl !== 'string') {
+          return sendError(res, 'invalid_photo', 400, {
+            message: 'Invalid photo'
+          })
+        }
+        try {
+          updates.photoUrl = await uploadImage(photoUrl, 'societies')
+        } catch {
+          return sendError(res, 'upload_failed', 500, {
+            message: 'Photo upload failed'
+          })
+        }
+      }
+
       if (Object.keys(updates).length === 0) {
         return sendError(res, 'no_fields_provided', 400)
       }
@@ -278,11 +317,76 @@ router.patch('/:id', authenticate, enforceTenantContext, requirePermission('soci
         state: org.state,
         pincode: org.pincode,
         type: org.type,
+        photoUrl: org.photoUrl ?? null,
         updatedAt: org.updatedAt
       })
 
     } catch (error) {
       console.error('PATCH /societies/:id error:', error)
+      return sendServerError(res)
+    }
+  }
+)
+
+// ─────────────────────────────────────────────
+// PATCH /api/societies/:id/settings
+// Update society contact/about settings
+// ─────────────────────────────────────────────
+router.patch(
+  '/:id/settings',
+  authenticate,
+  enforceTenantContext,
+  requirePermission('society.update'),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const orgId = req.params.id as string
+      const { contactPhone, contactEmail, description } = req.body
+
+      if (!contactPhone && !contactEmail && !description) {
+        return sendError(res, 'missing_field', 400, {
+          message: 'At least one setting required'
+        })
+      }
+
+      if (contactPhone && typeof contactPhone !== 'string') {
+        return sendError(res, 'invalid_phone', 400, {})
+      }
+      if (contactEmail && typeof contactEmail !== 'string') {
+        return sendError(res, 'invalid_email', 400, {})
+      }
+      if (description && typeof description !== 'string') {
+        return sendError(res, 'invalid_description', 400, {})
+      }
+      if (description && description.trim().length > 300) {
+        return sendError(res, 'description_too_long', 400, {
+          message: 'Description max 300 characters'
+        })
+      }
+
+      const settingsToUpdate = [
+        { key: 'contactPhone', value: contactPhone },
+        { key: 'contactEmail', value: contactEmail },
+        { key: 'description', value: description },
+      ].filter(s => s.value !== undefined && s.value !== null)
+
+      await Promise.all(
+        settingsToUpdate.map(({ key, value }) =>
+          prisma.organizationSetting.upsert({
+            where: { orgId_key: { orgId, key } },
+            create: { orgId, key, value: value as string },
+            update: { value: value as string },
+          })
+        )
+      )
+
+      return sendSuccess(res, {
+        contactPhone: contactPhone ?? undefined,
+        contactEmail: contactEmail ?? undefined,
+        description: description ?? undefined,
+      })
+
+    } catch (error) {
+      console.error('PATCH /societies/:id/settings error:', error)
       return sendServerError(res)
     }
   }

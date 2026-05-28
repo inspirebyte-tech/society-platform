@@ -9,9 +9,13 @@ interface Society {
   state: string
   pincode: string
   type: string
+  photoUrl: string | null
   isActive: boolean
   totalUnits: number
   totalMembers: number
+  contactPhone: string | null
+  contactEmail: string | null
+  description: string | null
 }
 
 export function useSociety(societyId: string | null) {

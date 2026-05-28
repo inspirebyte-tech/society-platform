@@ -257,7 +257,7 @@ export function DashboardScreen({ route, navigation }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.name, navigation])
 
-  // Bell icon (all roles) + "+" button (builders only)
+  // Bell icon (all roles) + gear (Builder/Admin) + "+" button (builders only)
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -278,6 +278,15 @@ export function DashboardScreen({ route, navigation }: Props) {
               )}
             </View>
           </TouchableOpacity>
+          {(role === 'Builder' || role === 'Admin') && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate('SocietySettings', { societyId })}
+              style={styles.headerButton}
+              hitSlop={12}
+            >
+              <Ionicons name="settings-outline" size={22} color={Colors.primary} />
+            </TouchableOpacity>
+          )}
           {canCreateSociety && (
             <TouchableOpacity
               onPress={() => navigation.navigate('CreateSociety', { source: 'dashboard' })}
@@ -290,7 +299,7 @@ export function DashboardScreen({ route, navigation }: Props) {
         </View>
       ),
     })
-  }, [canCreateSociety, unreadCount, navigation, societyId])
+  }, [canCreateSociety, unreadCount, navigation, societyId, role])
 
   // Permission gates — as per MOBILE_CONTEXT.md
   const canViewStructure = permissions.includes('node.view')
@@ -429,32 +438,41 @@ export function DashboardScreen({ route, navigation }: Props) {
           />
         }
       >
-        {/* Society identity */}
-        <View style={styles.identityRow}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {society.name.trim().charAt(0).toUpperCase()}
-            </Text>
-          </View>
-          <View style={styles.identityText}>
-            <Text style={styles.societyName} numberOfLines={2}>
-              {society.name}
-            </Text>
-            <View style={styles.metaRow}>
-              {(role === 'Builder' || role === 'Admin') && (
-                <Text style={styles.typePill}>
-                  {SOCIETY_TYPE_LABEL[society.type] ?? society.type}
+        {/* Society identity + address — tappable → SocietyInfo */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('SocietyInfo', { societyId })}
+          activeOpacity={0.8}
+          style={{ flexShrink: 0, gap: 4 }}
+        >
+          <View style={styles.identityRow}>
+            {society.photoUrl ? (
+              <Image source={{ uri: society.photoUrl }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {society.name.trim().charAt(0).toUpperCase()}
                 </Text>
-              )}
-              {role ? <Text style={styles.rolePill}>{role}</Text> : null}
+              </View>
+            )}
+            <View style={styles.identityText}>
+              <Text style={styles.societyName} numberOfLines={2}>
+                {society.name}
+              </Text>
+              <View style={styles.metaRow}>
+                {(role === 'Builder' || role === 'Admin') && (
+                  <Text style={styles.typePill}>
+                    {SOCIETY_TYPE_LABEL[society.type] ?? society.type}
+                  </Text>
+                )}
+                {role ? <Text style={styles.rolePill}>{role}</Text> : null}
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* Address */}
-        <Text style={styles.address} numberOfLines={2}>
-          {society.address}, {society.city}, {society.state} – {society.pincode}
-        </Text>
+          <Text style={styles.address} numberOfLines={2}>
+            {society.address}, {society.city}, {society.state} – {society.pincode}
+          </Text>
+        </TouchableOpacity>
 
         {/* Stats — role-specific */}
         {canLogVisitor ? (
@@ -717,7 +735,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 1,
     borderRadius: 6,
   },
   rolePill: {
@@ -728,7 +746,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 1,
     borderRadius: 6,
   },
 
@@ -737,7 +755,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.subtle,
     lineHeight: 20,
-    marginTop: -Spacing.itemGap,
+    marginTop: 10,
   },
 
   // Stats
