@@ -58,7 +58,7 @@ interface SocietyData {
   description: string | null
 }
 
-export function SocietySettingsScreen({ route }: Props) {
+export function SocietySettingsScreen({ route, navigation }: Props) {
   const { societyId } = route.params
   const { memberships } = useAuth()
 
