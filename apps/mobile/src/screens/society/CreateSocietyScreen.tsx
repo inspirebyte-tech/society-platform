@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, Pressable, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { TextInput } from '../../components/TextInput'
@@ -51,6 +52,7 @@ interface FormErrors {
 
 export function CreateSocietyScreen({ route, navigation }: Props) {
   const source = route.params?.source
+  const handoverComplete = route.params?.handoverComplete ?? false
   const { loadUser, signOut } = useAuth()
   const [form, setForm] = useState<FormState>({
     name: '',
@@ -126,6 +128,15 @@ export function CreateSocietyScreen({ route, navigation }: Props) {
 
   return (
     <ScreenWrapper>
+      {handoverComplete && (
+        <View style={styles.handoverBanner}>
+          <Ionicons name="checkmark-circle" size={20} color="#16a34a" />
+          <Text style={styles.handoverBannerText}>
+            Society handed over successfully. You can create a new society or join another.
+          </Text>
+        </View>
+      )}
+
       <View style={styles.header}>
         <Text style={styles.title}>Create Society</Text>
         <Text style={styles.subtitle}>Set up your residential society in minutes</Text>
@@ -246,6 +257,23 @@ export function CreateSocietyScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  handoverBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: Spacing.sectionGap,
+  },
+  handoverBannerText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#15803d',
+    lineHeight: 20,
+  },
   header: {
     marginBottom: Spacing.sectionGap,
     gap: 6,

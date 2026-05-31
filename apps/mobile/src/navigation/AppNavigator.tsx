@@ -30,7 +30,7 @@ import { NotificationsScreen } from '../screens/notifications/NotificationsScree
 import { Colors } from '../constants/colors'
 
 export type AppStackParamList = {
-  CreateSociety: { source?: 'dashboard' }
+  CreateSociety: { source?: 'dashboard'; handoverComplete?: boolean }
   Dashboard: { societyId: string }
   SocietySettings: { societyId: string }
   SocietyInfo: { societyId: string }
