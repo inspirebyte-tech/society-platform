@@ -208,13 +208,20 @@ export function DashboardScreen({ route, navigation }: Props) {
 
   const loadVisitorStats = useCallback(async () => {
     if (permissions.includes('visitor.log')) {
-      const active = await getActiveVisitors(societyId)
-      setActiveCount(active.length)
       const today = new Date().toISOString().split('T')[0]
-      const todayEntries = await getEntryLog(societyId, { date: today })
-      setTodayCount(todayEntries.length)
-      const pending = await getEntryLog(societyId, { status: 'PENDING' })
-      setPendingCount(pending.length)
+      try {
+        const [active, todayEntries, pendingEntries] =
+          await Promise.all([
+            getActiveVisitors(societyId),
+            getEntryLog(societyId, { date: today }),
+            getEntryLog(societyId, { status: 'PENDING' }),
+          ])
+        setActiveCount(active.length)
+        setTodayCount(todayEntries.length)
+        setPendingCount(pendingEntries.length)
+      } catch {
+        // non-critical — stats fail silently
+      }
     }
     if (permissions.includes('visitor.approve')) {
       try {
@@ -230,7 +237,8 @@ export function DashboardScreen({ route, navigation }: Props) {
   useEffect(() => {
     load()
     loadVisitorStats()
-  }, [load, loadVisitorStats])
+    loadNotificationBadge()
+  }, [load, loadVisitorStats, loadNotificationBadge])
 
   const onRefresh = useCallback(async () => {
     await Promise.all([load(), loadUser(), loadVisitorStats(), loadNotificationBadge()])
