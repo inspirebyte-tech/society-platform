@@ -297,8 +297,8 @@ export function MemberDetailScreen({ route, navigation }: Props) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Actions</Text>
             <View style={styles.actionButtons}>
-              {/* Assign Unit — admin/builder only */}
-              {canAssignUnit ? (
+              {/* Assign Unit — admin/builder only, active members only */}
+              {canAssignUnit && isActive ? (
                 <Button
                   label="Assign Unit"
                   variant="primary"
