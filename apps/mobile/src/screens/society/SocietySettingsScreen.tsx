@@ -22,6 +22,7 @@ import {
   updateSociety,
   updateSocietyPhoto,
   updateSocietySettings,
+  leaveSociety,
   SocietyType,
 } from '../../services/societies'
 import { getApiErrorCode } from '../../services/api'
@@ -58,9 +59,9 @@ interface SocietyData {
   description: string | null
 }
 
-export function SocietySettingsScreen({ route }: Props) {
+export function SocietySettingsScreen({ route, navigation }: Props) {
   const { societyId } = route.params
-  const { memberships } = useAuth()
+  const { memberships, loadUser } = useAuth()
 
   const membership = memberships.find((m) => m.org.id === societyId)
   const callerRole = membership?.role ?? null
@@ -87,6 +88,7 @@ export function SocietySettingsScreen({ route }: Props) {
 
   // ── UI state ──
   const [isSaving, setIsSaving] = useState(false)
+  const [isLeaving, setIsLeaving] = useState(false)
   const [typePicker, setTypePicker] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null)
 
@@ -212,6 +214,51 @@ export function SocietySettingsScreen({ route }: Props) {
       setToast({ message: getErrorMessage(code), type: 'error' })
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  function handleLeave() {
+    Alert.alert(
+      'Leave Society?',
+      `You will lose access to ${original?.name ?? 'this society'}. The Admin will manage it going forward. This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Continue', style: 'destructive', onPress: showFinalConfirmation },
+      ]
+    )
+  }
+
+  function showFinalConfirmation() {
+    Alert.alert(
+      'Are you absolutely sure?',
+      'Once you leave, you cannot rejoin without admin approval. All society data will be preserved.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Yes, Leave Society', style: 'destructive', onPress: executeLeave },
+      ]
+    )
+  }
+
+  async function executeLeave() {
+    setIsLeaving(true)
+    try {
+      await leaveSociety(societyId)
+      await loadUser()
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'CreateSociety', params: { handoverComplete: true } }],
+      })
+    } catch (e) {
+      const code = getApiErrorCode(e)
+      if (code === 'no_admin_exists') {
+        setToast({ message: 'Add an Admin before leaving the society.', type: 'error' })
+      } else if (code === 'no_other_members') {
+        setToast({ message: 'Add members before leaving the society.', type: 'error' })
+      } else {
+        setToast({ message: getErrorMessage(code), type: 'error' })
+      }
+    } finally {
+      setIsLeaving(false)
     }
   }
 
@@ -357,6 +404,24 @@ export function SocietySettingsScreen({ route }: Props) {
           loading={isSaving}
           style={styles.saveBtn}
         />
+
+        {isBuilder && (
+          <View style={styles.dangerSection}>
+            <View style={styles.dangerDivider} />
+            <Text style={styles.dangerTitle}>Danger Zone</Text>
+            <Text style={styles.dangerDescription}>
+              Leaving this society will remove your access permanently.
+              Make sure an Admin is set up to manage the society.
+            </Text>
+            <Button
+              label="Leave Society"
+              onPress={handleLeave}
+              loading={isLeaving}
+              variant="secondary"
+              style={styles.leaveBtn}
+            />
+          </View>
+        )}
       </ScrollView>
 
       <BottomSheetPicker
@@ -511,5 +576,30 @@ const styles = StyleSheet.create({
   saveBtn: {
     marginHorizontal: Spacing.screenPadding,
     marginTop: Spacing.sectionGap,
+  },
+  dangerSection: {
+    marginTop: Spacing.sectionGap,
+    marginHorizontal: Spacing.screenPadding,
+    marginBottom: Spacing.sectionGap,
+  },
+  dangerDivider: {
+    height: 1,
+    backgroundColor: Colors.error + '33',
+    marginBottom: Spacing.sectionGap,
+  },
+  dangerTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.error,
+    marginBottom: 6,
+  },
+  dangerDescription: {
+    fontSize: 13,
+    color: Colors.subtle,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  leaveBtn: {
+    borderColor: Colors.error,
   },
 })

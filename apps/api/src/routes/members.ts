@@ -498,7 +498,22 @@ router.patch(
           }
         })
         if (activeAdminCount === 1) {
-          // allow but warn — builder still has access
+          // Block if no Builder remains — society would be unmanageable
+          const activeBuilderCount = await prisma.membership.count({
+            where: {
+              orgId: id,
+              isActive: true,
+              role: { name: 'Builder' }
+            }
+          })
+
+          if (activeBuilderCount === 0) {
+            return sendError(res, 'last_admin_no_builder', 400, {
+              message: 'Cannot deactivate the last Admin when no Builder exists in the society.'
+            })
+          }
+
+          // Builder exists — allow but warn
           await prisma.membership.update({
             where: { id: memberId },
             data: { isActive: false }

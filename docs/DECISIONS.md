@@ -647,3 +647,61 @@ Date: 27 May 2026
 If society has photoUrl set, shown on dashboard card
 replacing the letter avatar.
 Falls back to letter avatar if no photo.
+
+## Decision 073 — Handover V1 scope: Builder leaves society
+Date: 31 May 2026
+V1 handover = Builder deactivates own membership.
+Full role transfer (promoting Admin to Builder level)
+deferred to V2. Covers 80% of real handover scenarios.
+Builder who just stops using app is also acceptable
+for pilot scale.
+
+## Decision 074 — Leave society requires active Admin
+Date: 31 May 2026
+Builder cannot leave if no active Admin exists.
+Prevents society becoming unmanaged.
+Error shown: "Add an Admin before leaving."
+Last admin protection also updated: when no Builder
+exists in society, last Admin cannot be deactivated.
+
+## Decision 075 — tokenVersion incremented on leave
+Date: 31 May 2026
+When Builder leaves, user.tokenVersion incremented.
+All active JWT sessions immediately invalidated.
+Builder must re-login to access other societies.
+Security: prevents stale token from accessing
+society after membership deactivated.
+
+## Decision 076 — Admin structural edit limitation after handover
+Date: 31 May 2026
+Admin cannot edit society name, address, type after
+Builder leaves. Accepted V1 limitation.
+Society name and address rarely change post-construction.
+Fix in V2 via role promotion or Society Owner role.
+
+## Decision 077 — Builder reactivation via support only
+Date: 31 May 2026
+If Builder wants to rejoin after leaving,
+requires manual reactivation by Inspirebyte team.
+Self-reactivation flow deferred to V2.
+Admin cannot reactivate Builder (existing rule).
+
+## Decision 078 — Two confirmation dialogs for Leave Society
+Date: 31 May 2026
+Destructive action requires double confirmation.
+Dialog 1: summary of what will happen
+Dialog 2: final irreversible warning
+No OTP confirmation — too much friction for pilot.
+
+## Decision 079 — Builder data preserved after leave
+Date: 31 May 2026
+All Builder-created content preserved after leaving:
+announcements, complaints, units, structure.
+createdBy references remain for audit trail.
+No orphaned data. Society continues without interruption.
+
+## Decision 080 — Leave Society entry via Society Settings
+Date: 31 May 2026
+"Leave Society" button at bottom of SocietySettingsScreen.
+Styled as destructive (red). Visible to Builder only.
+Not in profile — this is a society-level action.

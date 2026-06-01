@@ -44,3 +44,8 @@ export async function updateSocietyPhoto(id: string, photoUrl: string): Promise<
 export async function updateSocietySettings(id: string, settings: SocietySettings): Promise<void> {
   await api.patch(`/societies/${id}/settings`, settings)
 }
+
+export async function leaveSociety(societyId: string): Promise<{ message: string }> {
+  const res = await api.patch(`/societies/${societyId}/leave`)
+  return res.data.data
+}

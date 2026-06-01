@@ -392,4 +392,104 @@ router.patch(
   }
 )
 
+// ─────────────────────────────────────────────
+// PATCH /api/societies/:id/leave
+// Builder hands over and leaves the society
+// ─────────────────────────────────────────────
+router.patch(
+  '/:id/leave',
+  authenticate,
+  enforceTenantContext,
+  requirePermission('society.view'),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const orgId = req.params.id as string
+      const userId = req.user!.userId
+
+      // 1. Find caller's membership and role
+      const membership = await prisma.membership.findFirst({
+        where: { userId, orgId, isActive: true },
+        include: { role: true }
+      })
+
+      if (!membership) {
+        return sendNotFound(res, 'membership_not_found')
+      }
+
+      // 2. Only Builder can use this endpoint
+      if (membership.role.name !== 'Builder') {
+        return sendError(res, 'not_allowed', 403, {
+          message: 'Only a Builder can leave a society via handover'
+        })
+      }
+
+      // 3. Guard: at least one active Admin must exist
+      const activeAdminCount = await prisma.membership.count({
+        where: {
+          orgId,
+          isActive: true,
+          role: { name: 'Admin' }
+        }
+      })
+
+      if (activeAdminCount === 0) {
+        return sendError(res, 'no_admin_exists', 400, {
+          message: 'You must add an Admin before leaving. They will manage the society after you.'
+        })
+      }
+
+      // 4. Guard: society must have other active members
+      const otherActiveMemberCount = await prisma.membership.count({
+        where: {
+          orgId,
+          isActive: true,
+          userId: { not: userId }
+        }
+      })
+
+      if (otherActiveMemberCount === 0) {
+        return sendError(res, 'no_other_members', 400, {
+          message: 'You are the only member. Add members before leaving.'
+        })
+      }
+
+      // 5. Execute in transaction
+      await prisma.$transaction(async (tx) => {
+        // Deactivate membership
+        await tx.membership.update({
+          where: { id: membership.id },
+          data: { isActive: false }
+        })
+
+        // Increment tokenVersion — invalidates all active JWTs
+        await tx.user.update({
+          where: { id: userId },
+          data: { tokenVersion: { increment: 1 } }
+        })
+
+        // Audit log
+        await tx.auditLog.create({
+          data: {
+            orgId,
+            tableName: 'memberships',
+            recordId: membership.id,
+            action: 'society_leave',
+            actorId: userId,
+            oldData: { isActive: true, role: membership.role.name },
+            newData: { isActive: false, reason: 'builder_handover' }
+          }
+        })
+      })
+
+      return sendSuccess(res, {
+        message: 'You have successfully left the society.'
+      })
+
+    } catch (error) {
+      console.error('PATCH /societies/:id/leave error:', error)
+      return sendServerError(res)
+    }
+  }
+)
+
 export default router

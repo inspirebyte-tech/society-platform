@@ -356,4 +356,71 @@ describe('Societies', () => {
       expect(res.body.error).toBe('insufficient_permissions')
     })
   })
+
+  // ─────────────────────────────────────────────
+  // PATCH /societies/:id/leave
+  // ─────────────────────────────────────────────
+  describe('PATCH /societies/:id/leave', () => {
+    it('returns 401 with no token', async () => {
+      const res = await request(app)
+        .patch(`/api/societies/${societyId}/leave`)
+      expect(res.status).toBe(401)
+    })
+
+    it('returns 403 if caller is not Builder', async () => {
+      const res = await request(app)
+        .patch(`/api/societies/${societyId}/leave`)
+        .set('Authorization', `Bearer ${residentToken}`)
+      expect(res.status).toBe(403)
+      expect(res.body.error).toBe('not_allowed')
+    })
+
+    it('returns 403 if Admin tries to leave', async () => {
+      const res = await request(app)
+        .patch(`/api/societies/${societyId}/leave`)
+        .set('Authorization', `Bearer ${adminToken}`)
+      expect(res.status).toBe(403)
+      expect(res.body.error).toBe('not_allowed')
+    })
+
+    it('returns 400 if no active Admin exists', async () => {
+      // Create a fresh society with only a builder — no admin
+      const createRes = await request(app)
+        .post('/api/societies')
+        .set('Authorization', `Bearer ${builderToken}`)
+        .send({
+          name: 'Leave Guard Test Society',
+          address: '1 Test Lane',
+          city: 'Dehradun',
+          state: 'Uttarakhand',
+          pincode: '248001',
+          type: 'APARTMENT',
+        })
+      expect(createRes.status).toBe(201)
+      const noAdminSocietyId = createRes.body.data.id
+
+      // Get builder user id from token to build a scoped token
+      const builderUser = await prisma.user.findFirst({
+        where: { memberships: { some: { orgId: noAdminSocietyId, isActive: true } } }
+      })
+      const scopedToken = generateToken({
+        userId: builderUser!.id,
+        orgId: noAdminSocietyId,
+        tokenVersion: 0,
+      })
+
+      const res = await request(app)
+        .patch(`/api/societies/${noAdminSocietyId}/leave`)
+        .set('Authorization', `Bearer ${scopedToken}`)
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBe('no_admin_exists')
+    })
+
+    // TODO: full integration test — builder leaves after admin is present,
+    // verify membership deactivated and tokenVersion incremented.
+    // Requires creating an isolated society, adding an admin, then leaving.
+    // Skipped for now to avoid mutating the shared builderToken account.
+    it.todo('deactivates builder membership and increments tokenVersion after leave')
+    it.todo('old builder JWT returns 401 after leave')
+  })
 })
