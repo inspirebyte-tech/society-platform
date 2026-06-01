@@ -177,7 +177,7 @@ export function ComplaintListScreen({ route, navigation }: Props) {
     )
   }
 
-  if (isLoading) return <LoadingSpinner fullScreen />
+  if (isLoading && complaints.length === 0) return <LoadingSpinner fullScreen />
 
   return (
     <ScreenWrapper scroll={false} style={styles.wrapper}>

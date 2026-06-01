@@ -415,7 +415,7 @@ export function DashboardScreen({ route, navigation }: Props) {
 
   const hasAnyAction = actions.length > 0
 
-  if (isLoading) {
+  if (isLoading && !society) {
     return <LoadingSpinner fullScreen />
   }
 
