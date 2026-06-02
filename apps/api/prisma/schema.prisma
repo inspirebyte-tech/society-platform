@@ -193,6 +193,7 @@ model PropertyNode {
   visitorEntries      VisitorEntry[]     @relation("VisitorEntryUnit")
   visitorPreApprovals VisitorPreApproval[] @relation("PreApprovalUnit")
 
+  @@unique([orgId, parentId, code], name: "unique_node_code")
   @@map("property_nodes")
   @@index([orgId, parentId])
 }

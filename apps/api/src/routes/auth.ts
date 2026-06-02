@@ -189,22 +189,22 @@ router.post('/verify-otp', async (req: AuthRequest, res: Response) => {
     })
 
     if (invitation) {
-      // auto-accept invitation — create membership
-      await prisma.membership.create({
-        data: {
-          userId: user.id,
-          orgId: invitation.orgId,
-          roleId: invitation.roleId,
-          invitedBy: invitation.invitedBy,
-          isActive: true
-        }
-      })
-
-      // mark invitation accepted
-      await prisma.invitation.update({
-        where: { id: invitation.id },
-        data: { acceptedAt: new Date() }
-      })
+      // auto-accept invitation — membership + mark accepted atomically
+      await prisma.$transaction([
+        prisma.membership.create({
+          data: {
+            userId: user.id,
+            orgId: invitation.orgId,
+            roleId: invitation.roleId,
+            invitedBy: invitation.invitedBy,
+            isActive: true
+          }
+        }),
+        prisma.invitation.update({
+          where: { id: invitation.id },
+          data: { acceptedAt: new Date() }
+        })
+      ])
 
       // reload user with new membership
       user = await prisma.user.findUnique({

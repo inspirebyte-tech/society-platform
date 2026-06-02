@@ -302,28 +302,33 @@ router.post(
       }
 
       // Create ownership record
-      const ownership = await prisma.unitOwnership.create({
-        data: {
-          orgId,
-          unitId: nodeId,
-          personId: person.id,
-          ownershipType,
-          isPrimary,
-          ownedFrom: new Date()
-        }
-      })
+      try {
+        const ownership = await prisma.unitOwnership.create({
+          data: {
+            orgId,
+            unitId: nodeId,
+            personId: person.id,
+            ownershipType,
+            isPrimary,
+            ownedFrom: new Date()
+          }
+        })
 
-      return sendSuccess(res, {
-        id: ownership.id,
-        flatName: unit.name,
-        member: {
-          name: person.fullName,
-          phone: person.phone
-        },
-        ownershipType: ownership.ownershipType,
-        isPrimary: ownership.isPrimary,
-        ownedFrom: ownership.ownedFrom
-      }, 201)
+        return sendSuccess(res, {
+          id: ownership.id,
+          flatName: unit.name,
+          member: {
+            name: person.fullName,
+            phone: person.phone
+          },
+          ownershipType: ownership.ownershipType,
+          isPrimary: ownership.isPrimary,
+          ownedFrom: ownership.ownedFrom
+        }, 201)
+      } catch (e: any) {
+        if (e.code === 'P2002') return sendError(res, 'primary_owner_exists', 409, { message: 'A primary owner already exists for this unit' })
+        throw e
+      }
 
     } catch (error) {
       console.error('POST /ownership error:', error)
@@ -428,27 +433,32 @@ router.post(
         return sendError(res, 'already_occupying', 400)
       }
 
-      const occupancy = await prisma.unitOccupancy.create({
-        data: {
-          unitId: nodeId,
-          personId: person.id,
-          occupancyType,
-          isPrimary,
-          occupiedFrom: new Date()
-        }
-      })
+      try {
+        const occupancy = await prisma.unitOccupancy.create({
+          data: {
+            unitId: nodeId,
+            personId: person.id,
+            occupancyType,
+            isPrimary,
+            occupiedFrom: new Date()
+          }
+        })
 
-      return sendSuccess(res, {
-        id: occupancy.id,
-        flatName: unit.name,
-        member: {
-          name: person.fullName,
-          phone: person.phone
-        },
-        occupancyType: occupancy.occupancyType,
-        isPrimary: occupancy.isPrimary,
-        occupiedFrom: occupancy.occupiedFrom
-      }, 201)
+        return sendSuccess(res, {
+          id: occupancy.id,
+          flatName: unit.name,
+          member: {
+            name: person.fullName,
+            phone: person.phone
+          },
+          occupancyType: occupancy.occupancyType,
+          isPrimary: occupancy.isPrimary,
+          occupiedFrom: occupancy.occupiedFrom
+        }, 201)
+      } catch (e: any) {
+        if (e.code === 'P2002') return sendError(res, 'primary_occupant_exists', 409, { message: 'A primary occupant already exists for this unit' })
+        throw e
+      }
 
     } catch (error) {
       console.error('POST /occupancy error:', error)

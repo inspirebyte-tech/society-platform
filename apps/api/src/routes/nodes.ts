@@ -145,14 +145,18 @@ router.post(
         })
       }
 
-      // 2. validate nodeType
+      // 2. validate lengths
+      if (name.length > 100) return sendError(res, 'name_too_long', 400, { max: 100 })
+      if (code.length > 20) return sendError(res, 'code_too_long', 400, { max: 20 })
+
+      // 3. validate nodeType
       if (!VALID_NODE_TYPES.includes(nodeType)) {
         return sendError(res, 'invalid_node_type', 400, {
           allowed: VALID_NODE_TYPES
         })
       }
 
-      // 3. verify membership
+      // 4. verify membership
       const membership = await prisma.membership.findFirst({
         where: {
           userId: req.user!.userId,
@@ -181,27 +185,32 @@ router.post(
       }
 
       // 6. create node
-      const node = await prisma.propertyNode.create({
-        data: {
-          orgId: id,
-          parentId,
-          nodeType,
-          name,
-          code,
-          metadata: metadata || {}
-        }
-      })
+      try {
+        const node = await prisma.propertyNode.create({
+          data: {
+            orgId: id,
+            parentId,
+            nodeType,
+            name,
+            code,
+            metadata: metadata || {}
+          }
+        })
 
-      return sendCreated(res, {
-        id: node.id,
-        orgId: node.orgId,
-        parentId: node.parentId,
-        nodeType: node.nodeType,
-        name: node.name,
-        code: node.code,
-        metadata: node.metadata,
-        createdAt: node.createdAt
-      })
+        return sendCreated(res, {
+          id: node.id,
+          orgId: node.orgId,
+          parentId: node.parentId,
+          nodeType: node.nodeType,
+          name: node.name,
+          code: node.code,
+          metadata: node.metadata,
+          createdAt: node.createdAt
+        })
+      } catch (e: any) {
+        if (e.code === 'P2002') return sendError(res, 'duplicate_code', 409, { message: `Code '${code}' already exists under this parent` })
+        throw e
+      }
 
     } catch (error) {
       console.error('POST /societies/:id/nodes error:', error)
@@ -362,7 +371,11 @@ router.patch(
       const node = await getNodeInOrg(nodeId, id)
       if (!node) return sendNotFound(res, 'node_not_found')
 
-      // 3. if changing code — check duplicate under same parent
+      // 3. validate lengths if provided
+      if (name && name.length > 100) return sendError(res, 'name_too_long', 400, { max: 100 })
+      if (code && code.length > 20) return sendError(res, 'code_too_long', 400, { max: 20 })
+
+      // 4. if changing code — check duplicate under same parent
       if (code && code !== node.code) {
         const duplicate = await prisma.propertyNode.findFirst({
           where: {
