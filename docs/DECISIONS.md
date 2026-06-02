@@ -705,3 +705,43 @@ Date: 31 May 2026
 "Leave Society" button at bottom of SocietySettingsScreen.
 Styled as destructive (red). Visible to Builder only.
 Not in profile — this is a society-level action.
+
+## Decision 081 — JWT secrets required at startup
+Date: 2 June 2026
+Server refuses to start if JWT_SECRET or
+JWT_REFRESH_SECRET is missing or under 32 characters.
+Fails loudly rather than booting with a known default.
+See jwt.ts requireSecret() function.
+
+## Decision 082 — Cryptographically secure OTP
+Date: 2 June 2026
+OTP generation uses crypto.randomInt() not Math.random().
+Math.random() is not cryptographically secure and V8's
+PRNG state can be recovered from observed outputs.
+
+## Decision 083 — Notification inbox persisted before push
+Date: 2 June 2026
+UserNotification records written before device token
+check in expoPush.ts. Users without registered devices
+still receive inbox notifications. Fixes violation of
+Decision 045 where early return skipped persistence.
+
+## Decision 084 — Atomic visitor approve/deny
+Date: 2 June 2026
+Approve and reject use updateMany with status: PENDING
+guard. result.count === 0 means another occupant already
+responded. Returns entry_not_pending (409).
+Prevents last-write-wins race between co-occupants.
+
+## Decision 085 — Audit logs inside transactions
+Date: 2 June 2026
+All member state changes (deactivate, moveout, reactivate)
+wrap state change + audit log in single $transaction.
+Prevents state change with missing audit trail.
+
+## Decision 086 — Trust proxy for rate limiting
+Date: 2 June 2026
+app.set('trust proxy', 1) ensures req.ip is the real
+client IP behind Render's load balancer.
+OTP rate limit bypass narrowed to test environment only.
+Development now subject to same rate limits as production.
