@@ -211,13 +211,21 @@ describe('Members', () => {
       where: { user: { phone: '+919222222222' } }
     })
     if (person) {
-      await prisma.unitOccupancy.updateMany({
-        where: {
-          personId: person.id,
-          occupiedUntil: { not: null }
-        },
-        data: { occupiedUntil: null }
+      const hasActive = await prisma.unitOccupancy.findFirst({
+        where: { personId: person.id, occupiedUntil: null }
       })
+      if (!hasActive) {
+        const lastEnded = await prisma.unitOccupancy.findFirst({
+          where: { personId: person.id, occupiedUntil: { not: null } },
+          orderBy: { occupiedUntil: 'desc' }
+        })
+        if (lastEnded) {
+          await prisma.unitOccupancy.update({
+            where: { id: lastEnded.id },
+            data: { occupiedUntil: null }
+          })
+        }
+      }
     }
   })
 })

@@ -29,6 +29,9 @@ router.post(
         })
       }
 
+      if (title.length > 200) return sendError(res, 'title_too_long', 400, { max: 200 })
+      if (description.length > 5000) return sendError(res, 'description_too_long', 400, { max: 5000 })
+
       const validCategories = [
         'WATER_SUPPLY', 'ELECTRICITY', 'LIFT_ELEVATOR', 'GENERATOR',
         'INTERNET_CABLE', 'PARKING', 'GARBAGE_WASTE', 'GARDEN_LANDSCAPING',

@@ -37,7 +37,14 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
       })
     }
 
-    // 2. Validate type enum
+    // 2. Validate lengths and formats
+    if (name.length > 100) return sendError(res, 'name_too_long', 400, { max: 100 })
+    if (address.length > 200) return sendError(res, 'address_too_long', 400, { max: 200 })
+    if (city.length > 100) return sendError(res, 'city_too_long', 400, { max: 100 })
+    if (state.length > 100) return sendError(res, 'state_too_long', 400, { max: 100 })
+    if (!/^\d{6}$/.test(pincode)) return sendError(res, 'invalid_pincode', 400, { message: 'Pincode must be exactly 6 digits' })
+
+    // 3. Validate type enum
     if (!VALID_TYPES.includes(type)) {
       return sendError(res, 'invalid_type', 400, {
         allowed: VALID_TYPES
@@ -351,8 +358,20 @@ router.patch(
       if (contactPhone && typeof contactPhone !== 'string') {
         return sendError(res, 'invalid_phone', 400, {})
       }
+      if (contactPhone && !/^\+?[\d\s\-]{7,15}$/.test(contactPhone)) {
+        return sendError(res, 'invalid_phone', 400, { message: 'Invalid phone format' })
+      }
+      if (contactPhone && contactPhone.length > 15) {
+        return sendError(res, 'invalid_phone', 400, { message: 'Phone max 15 characters' })
+      }
       if (contactEmail && typeof contactEmail !== 'string') {
         return sendError(res, 'invalid_email', 400, {})
+      }
+      if (contactEmail && contactEmail.length > 100) {
+        return sendError(res, 'invalid_email', 400, { message: 'Email max 100 characters' })
+      }
+      if (contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+        return sendError(res, 'invalid_email', 400, { message: 'Invalid email format' })
       }
       if (description && typeof description !== 'string') {
         return sendError(res, 'invalid_description', 400, {})

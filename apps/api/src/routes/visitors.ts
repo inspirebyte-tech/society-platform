@@ -139,6 +139,8 @@ router.post(
         })
       }
 
+      if (name.length > 100) return sendError(res, 'name_too_long', 400, { max: 100 })
+
       const validTypes = ['INDIVIDUAL', 'DELIVERY', 'SERVICE', 'DOMESTIC', 'CAB', 'OTHER']
       if (!validTypes.includes(type)) {
         return sendError(res, 'invalid_type', 400)
@@ -779,6 +781,9 @@ router.post(
       if (!visitorName || !unitId) {
         return sendError(res, 'missing_field', 400)
       }
+
+      if (visitorName.length > 100) return sendError(res, 'name_too_long', 400, { max: 100 })
+      if (note && note.length > 500) return sendError(res, 'note_too_long', 400, { max: 500 })
 
       if (expiresAt) {
         const parsed = new Date(expiresAt)

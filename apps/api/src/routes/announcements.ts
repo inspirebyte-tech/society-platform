@@ -31,6 +31,8 @@ router.post(
       if (!body || !body.trim()) {
         return sendError(res, 'missing_field', 400, { field: 'body' })
       }
+      if (title.length > 200) return sendError(res, 'title_too_long', 400, { max: 200 })
+      if (body.length > 10000) return sendError(res, 'body_too_long', 400, { max: 10000 })
       if (category && !VALID_CATEGORIES.includes(category)) {
         return sendError(res, 'invalid_category', 400)
       }
