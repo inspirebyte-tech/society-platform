@@ -1,7 +1,15 @@
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production'
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret'
+function requireSecret(name: string): string {
+  const val = process.env[name]
+  if (!val || val.length < 32) {
+    throw new Error(`${name} must be set and at least 32 characters long`)
+  }
+  return val
+}
+
+const JWT_SECRET = requireSecret('JWT_SECRET')
+const JWT_REFRESH_SECRET = requireSecret('JWT_REFRESH_SECRET')
 
 export interface TokenPayload {
   userId: string

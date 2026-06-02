@@ -288,9 +288,12 @@ router.post(
         })
       }
 
-      // 4. Find role record (system roles have orgId: null)
+      // 4. Find role record (org-specific first, then system roles with orgId: null)
       const roleRecord = await prisma.role.findFirst({
-        where: { name: role }
+        where: {
+          name: role,
+          OR: [{ orgId: orgId }, { orgId: null }]
+        }
       })
       if (!roleRecord) {
         return sendError(res, 'invalid_role', 400, {
@@ -514,23 +517,23 @@ router.patch(
           }
 
           // Builder exists — allow but warn
-          await prisma.membership.update({
-            where: { id: memberId },
-            data: { isActive: false }
-          })
-
-          // audit log
-          await prisma.auditLog.create({
-            data: {
-              orgId:     id,
-              tableName: 'memberships',
-              recordId:  memberId,
-              action:    'deactivate',
-              actorId:   req.user!.userId,
-              oldData:   { isActive: true },
-              newData:   { isActive: false }
-            }
-          })
+          await prisma.$transaction([
+            prisma.membership.update({
+              where: { id: memberId },
+              data: { isActive: false }
+            }),
+            prisma.auditLog.create({
+              data: {
+                orgId:     id,
+                tableName: 'memberships',
+                recordId:  memberId,
+                action:    'deactivate',
+                actorId:   req.user!.userId,
+                oldData:   { isActive: true },
+                newData:   { isActive: false }
+              }
+            })
+          ])
 
           return sendSuccess(res, {
             message: 'member_deactivated',
@@ -540,23 +543,23 @@ router.patch(
       }
 
       // deactivate
-      await prisma.membership.update({
-        where: { id: memberId },
-        data: { isActive: false }
-      })
-
-      // audit log
-      await prisma.auditLog.create({
-        data: {
-          orgId:     id,
-          tableName: 'memberships',
-          recordId:  memberId,
-          action:    'deactivate',
-          actorId:   req.user!.userId,
-          oldData:   { isActive: true },
-          newData:   { isActive: false }
-        }
-      })
+      await prisma.$transaction([
+        prisma.membership.update({
+          where: { id: memberId },
+          data: { isActive: false }
+        }),
+        prisma.auditLog.create({
+          data: {
+            orgId:     id,
+            tableName: 'memberships',
+            recordId:  memberId,
+            action:    'deactivate',
+            actorId:   req.user!.userId,
+            oldData:   { isActive: true },
+            newData:   { isActive: false }
+          }
+        })
+      ])
 
       return sendSuccess(res, { message: 'member_deactivated' })
 
@@ -632,7 +635,7 @@ router.patch(
 
       const today = new Date()
 
-      // deactivate membership + end occupancy in transaction
+      // deactivate membership + end occupancy + audit in one transaction
       await prisma.$transaction([
         prisma.membership.update({
           where: { id: memberId },
@@ -641,21 +644,19 @@ router.patch(
         prisma.unitOccupancy.update({
           where: { id: activeOccupancy.id },
           data: { occupiedUntil: today }
+        }),
+        prisma.auditLog.create({
+          data: {
+            orgId:     id,
+            tableName: 'memberships',
+            recordId:  memberId,
+            action:    'moveout',
+            actorId:   req.user!.userId,
+            oldData:   { isActive: true, occupiedUntil: null },
+            newData:   { isActive: false, occupiedUntil: today }
+          }
         })
       ])
-
-      // audit log
-      await prisma.auditLog.create({
-        data: {
-          orgId:     id,
-          tableName: 'memberships',
-          recordId:  memberId,
-          action:    'moveout',
-          actorId:   req.user!.userId,
-          oldData:   { isActive: true, occupiedUntil: null },
-          newData:   { isActive: false, occupiedUntil: today }
-        }
-      })
 
       return sendSuccess(res, { message: 'member_moved_out' })
 
@@ -699,13 +700,7 @@ router.patch(
         })
       }
 
-      // reactivate
-      await prisma.membership.update({
-        where: { id: memberId },
-        data: { isActive: true }
-      })
-
-      // check if their previous unit is still available
+      // check if their previous unit may need review (read before transaction)
       const previousOccupancy = await prisma.unitOccupancy.findFirst({
         where: {
           person: { userId: membership.userId },
@@ -714,18 +709,24 @@ router.patch(
         orderBy: { occupiedUntil: 'desc' }
       })
 
-      // audit log
-      await prisma.auditLog.create({
-        data: {
-          orgId:     id,
-          tableName: 'memberships',
-          recordId:  memberId,
-          action:    'reactivate',
-          actorId:   req.user!.userId,
-          oldData:   { isActive: false },
-          newData:   { isActive: true }
-        }
-      })
+      // reactivate + audit in one transaction
+      await prisma.$transaction([
+        prisma.membership.update({
+          where: { id: memberId },
+          data: { isActive: true }
+        }),
+        prisma.auditLog.create({
+          data: {
+            orgId:     id,
+            tableName: 'memberships',
+            recordId:  memberId,
+            action:    'reactivate',
+            actorId:   req.user!.userId,
+            oldData:   { isActive: false },
+            newData:   { isActive: true }
+          }
+        })
+      ])
 
       // warn if they had a unit that is now potentially occupied
       const warning = previousOccupancy
