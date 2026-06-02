@@ -203,6 +203,23 @@ describe('Members', () => {
     expect(res.status).toBe(200)
     expect(res.body.data.warning).toBeDefined()
   })
+
+  afterAll(async () => {
+    // Restore resident occupancy so subsequent test suites (visitors.test.ts)
+    // find an active occupant for flat 4B
+    const person = await prisma.person.findFirst({
+      where: { user: { phone: '+919222222222' } }
+    })
+    if (person) {
+      await prisma.unitOccupancy.updateMany({
+        where: {
+          personId: person.id,
+          occupiedUntil: { not: null }
+        },
+        data: { occupiedUntil: null }
+      })
+    }
+  })
 })
 
   // ─────────────────────────────────────────────
