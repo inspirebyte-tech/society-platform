@@ -506,14 +506,18 @@ router.patch(
 
       if (!isOccupant) return sendError(res, 'not_an_occupant', 403)
 
-      const updated = await prisma.visitorEntry.update({
-        where: { id: entry.id },
+      const result = await prisma.visitorEntry.updateMany({
+        where: { id: entry.id, status: 'PENDING' },
         data: {
           status: 'APPROVED',
           approvedBy: userId,
           respondedAt: new Date()
         }
       })
+
+      if (result.count === 0) {
+        return sendError(res, 'entry_not_pending', 400)
+      }
 
       // Get resident name for notification
       const resident = await prisma.person.findFirst({
@@ -528,7 +532,7 @@ router.patch(
         entryId: entry.id
       })
 
-      return sendSuccess(res, { message: 'visitor_approved', status: updated.status })
+      return sendSuccess(res, { message: 'visitor_approved', status: 'APPROVED' })
 
     } catch (error) {
       console.error('PATCH /entries/approve error:', error)
@@ -571,14 +575,18 @@ router.patch(
 
       if (!isOccupant) return sendError(res, 'not_an_occupant', 403)
 
-      const updated = await prisma.visitorEntry.update({
-        where: { id: entry.id },
+      const result = await prisma.visitorEntry.updateMany({
+        where: { id: entry.id, status: 'PENDING' },
         data: {
           status: 'DENIED',
           approvedBy: userId,
           respondedAt: new Date()
         }
       })
+
+      if (result.count === 0) {
+        return sendError(res, 'entry_not_pending', 400)
+      }
 
       const resident = await prisma.person.findFirst({
         where: { userId }
@@ -592,7 +600,7 @@ router.patch(
         entryId: entry.id
       })
 
-      return sendSuccess(res, { message: 'visitor_denied', status: updated.status })
+      return sendSuccess(res, { message: 'visitor_denied', status: 'DENIED' })
 
     } catch (error) {
       console.error('PATCH /entries/reject error:', error)

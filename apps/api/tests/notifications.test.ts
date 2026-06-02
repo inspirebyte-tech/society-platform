@@ -27,6 +27,10 @@ describe('Notifications', () => {
     residentUserId = resident!.id
     builderUserId  = builder!.id
 
+    // Clear any notifications left by other test suites before seeding
+    await prisma.userNotification.deleteMany({ where: { userId: residentUserId } })
+    await prisma.userNotification.deleteMany({ where: { userId: builderUserId } })
+
     // Explicit createdAt so ordering is deterministic across all tests
     await prisma.userNotification.createMany({
       data: [
