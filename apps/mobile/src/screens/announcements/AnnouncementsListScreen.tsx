@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
   Platform,
 } from 'react-native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
@@ -64,6 +65,9 @@ export function AnnouncementsListScreen({ route, navigation }: Props) {
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null)
 
   const load = useCallback(
@@ -72,7 +76,9 @@ export function AnnouncementsListScreen({ route, navigation }: Props) {
         if (!refreshing) setIsLoading(true)
         const category = categoryFilter === 'ALL' ? undefined : categoryFilter
         const data = await listAnnouncements(societyId, category)
-        setAnnouncements(data)
+        setAnnouncements(data.announcements)
+        setHasMore(data.hasMore)
+        setNextCursor(data.nextCursor)
       } catch {
         setToast({ message: 'Could not load announcements. Pull to retry.', type: 'error' })
       } finally {
@@ -93,6 +99,22 @@ export function AnnouncementsListScreen({ route, navigation }: Props) {
     setIsRefreshing(true)
     load(true)
   }, [load])
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || isLoadingMore || !nextCursor) return
+    setIsLoadingMore(true)
+    try {
+      const category = categoryFilter === 'ALL' ? undefined : categoryFilter
+      const data = await listAnnouncements(societyId, category, nextCursor)
+      setAnnouncements(prev => [...prev, ...data.announcements])
+      setHasMore(data.hasMore)
+      setNextCursor(data.nextCursor)
+    } catch {
+      // fail silently — user can scroll again
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [hasMore, isLoadingMore, nextCursor, societyId, categoryFilter])
 
   const renderItem = ({ item }: { item: Announcement }) => {
     const colors = CATEGORY_COLORS[item.category]
@@ -168,6 +190,17 @@ export function AnnouncementsListScreen({ route, navigation }: Props) {
         data={announcements}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={
+          isLoadingMore ? (
+            <ActivityIndicator
+              size="small"
+              color={Colors.primary}
+              style={{ paddingVertical: 16 }}
+            />
+          ) : null
+        }
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}

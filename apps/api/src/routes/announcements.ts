@@ -111,14 +111,20 @@ router.get(
   async (req: AuthRequest, res: Response) => {
     try {
       const { id: orgId } = req.params
-      const { category } = req.query
+      const { category, before, limit } = req.query
 
       if (category && !VALID_CATEGORIES.includes(category as string)) {
         return sendError(res, 'invalid_category', 400)
       }
 
-      const where: any = { orgId, deletedAt: null }
-      if (category) where.category = category
+      const limitNum = Math.min(50, parseInt(limit as string) || 20)
+
+      const where: any = {
+        orgId,
+        deletedAt: null,
+        ...(category ? { category } : {}),
+        ...(before ? { createdAt: { lt: new Date(before as string) } } : {})
+      }
 
       const announcements = await prisma.announcement.findMany({
         where,
@@ -126,8 +132,12 @@ router.get(
         include: {
           images:  { select: { id: true, imageUrl: true } },
           creator: { include: { person: true } }
-        }
+        },
+        take: limitNum + 1
       })
+
+      const hasMore = announcements.length > limitNum
+      if (hasMore) announcements.pop()
 
       return sendSuccess(res, {
         announcements: announcements.map(a => ({
@@ -139,7 +149,11 @@ router.get(
           images:    a.images,
           createdBy: { name: a.creator.person?.fullName ?? 'Unknown' },
           createdAt: a.createdAt,
-        }))
+        })),
+        hasMore,
+        nextCursor: hasMore
+          ? announcements[announcements.length - 1].createdAt.toISOString()
+          : null
       })
 
     } catch (error) {
