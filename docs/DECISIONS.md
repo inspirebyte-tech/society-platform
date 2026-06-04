@@ -745,3 +745,54 @@ app.set('trust proxy', 1) ensures req.ip is the real
 client IP behind Render's load balancer.
 OTP rate limit bypass narrowed to test environment only.
 Development now subject to same rate limits as production.
+
+## Decision 087 — End unit occupancy without deactivation
+Date: 04 June 2026
+New operation: end a member's occupancy for a specific
+unit without deactivating their society membership.
+Separate from "Mark as Moved Out" which ends both.
+Use case: member transfers between units in same society.
+getMember returns all active occupancies (was findFirst,
+now findMany ordered by occupiedFrom asc).
+One End Occupancy button shown per active occupancy.
+
+## Decision 088 — Primary occupant gap when primary leaves
+Date: 04 June 2026
+When primary occupant's occupancy is ended and
+co-occupants exist, no auto-promotion happens.
+Unit temporarily has no primary occupant.
+Admin must manually assign new primary.
+Avoids assumptions about who should be primary.
+
+## Decision 089 — Admin gets node.create and node.delete
+Date: 04 June 2026
+Admin role given node.create and node.delete permissions.
+Previously Admin had only node.update and node.view.
+Required for societies to remain manageable after
+Builder leaves via handover.
+Applied via seed update to production Neon DB.
+
+## Decision 090 — Announcements cursor pagination
+Date: 04 June 2026
+GET /announcements paginated with cursor-based approach.
+Default 20 per page, max 50.
+cursor = createdAt of last item on page.
+Pinned announcements sorted first — appear on page 1.
+Mobile uses FlatList onEndReached for infinite scroll.
+Pull to refresh resets to page 1.
+Category filter change resets cursor.
+
+## Decision 091 — Members list pagination deferred
+Date: 04 June 2026
+Members list uses ScrollView not FlatList.
+Refactoring to FlatList with three sections
+(Active, Pending, Inactive) is complex.
+Acceptable for pilot scale (50-200 members).
+Defer until society approaches 500+ members.
+
+## Decision 092 — Visitor entries cap at 50 accepted
+Date: 04 June 2026
+GET /entries has hardcoded take: 50.
+Returns 50 most recent entries.
+Date and status filters help narrow results.
+Acceptable for pilot — full pagination deferred.
