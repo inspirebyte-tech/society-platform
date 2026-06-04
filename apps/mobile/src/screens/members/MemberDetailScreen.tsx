@@ -22,6 +22,7 @@ import {
   moveOutMember,
   reactivateMember,
 } from '../../services/members'
+import { endOccupancy } from '../../services/units'
 import { getApiErrorCode } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
 import { Colors } from '../../constants/colors'
@@ -49,13 +50,14 @@ interface MemberDetail {
   unitId: string | null
   occupancyType: string | null
   isPrimary: boolean
+  occupancyId: string | null
   joinedAt: string
   invitedBy: string
   isActive: boolean
   occupancyHistory: OccupancyHistory[]
 }
 
-type ActionType = 'deactivate' | 'moveout' | 'reactivate'
+type ActionType = 'deactivate' | 'moveout' | 'reactivate' | 'end_occupancy'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -164,6 +166,16 @@ export function MemberDetailScreen({ route, navigation }: Props) {
       confirmLabel: 'Restore Access',
       fn: () => reactivateMember(societyId, memberId),
       successMsg: (w) => w ?? 'Access restored.',
+    },
+    end_occupancy: {
+      title: 'End Unit Occupancy?',
+      message: `This will remove ${member?.name} from ${member?.unit}. Their society membership stays active and they can be assigned to another unit.`,
+      confirmLabel: 'End Occupancy',
+      fn: () =>
+        endOccupancy(societyId, member!.unitId!, member!.occupancyId!).then(
+          () => ({ message: 'Occupancy ended.' })
+        ),
+      successMsg: () => 'Occupancy ended.',
     },
   }
 
@@ -311,6 +323,16 @@ export function MemberDetailScreen({ route, navigation }: Props) {
                   }
                 />
               ) : null}
+
+              {/* End Occupancy — unit.assign permission, active, has occupancy */}
+              {canAssignUnit && isActive && member.occupancyId ? (
+                <Button
+                  label="End Occupancy"
+                  variant="secondary"
+                  onPress={() => setConfirmAction('end_occupancy')}
+                />
+              ) : null}
+
               {/* Deactivate — active member only */}
               {canRemove && isActive ? (
                 <Button

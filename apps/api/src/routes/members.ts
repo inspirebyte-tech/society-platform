@@ -208,6 +208,7 @@ router.get(
         unitId:        currentOccupancy?.unit.id || null,
         occupancyType: currentOccupancy?.occupancyType || null,
         isPrimary:     currentOccupancy?.isPrimary || null,
+        occupancyId:   currentOccupancy?.id ?? null,
         joinedAt:      membership.joinedAt,
         invitedBy:     invitedByName,
         isActive:      membership.isActive,
