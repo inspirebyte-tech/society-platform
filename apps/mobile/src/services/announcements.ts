@@ -22,11 +22,19 @@ export interface CreateAnnouncementInput {
 
 export async function listAnnouncements(
   societyId: string,
-  category?: AnnouncementCategory,
-): Promise<Announcement[]> {
-  const params = category ? { category } : {}
+  category?: string,
+  before?: string,
+  limit = 20,
+): Promise<{
+  announcements: Announcement[]
+  hasMore: boolean
+  nextCursor: string | null
+}> {
+  const params: Record<string, string | number> = { limit }
+  if (category) params.category = category
+  if (before) params.before = before
   const res = await api.get(`/societies/${societyId}/announcements`, { params })
-  return res.data.data.announcements
+  return res.data.data
 }
 
 export async function getAnnouncement(societyId: string, announcementId: string): Promise<Announcement> {

@@ -277,4 +277,78 @@ describe('Announcements', () => {
       expect(res.body.error).toBe('announcement_not_found')
     })
   })
+
+  // ─────────────────────────────────────────────
+  // GET /societies/:id/announcements — pagination
+  // ─────────────────────────────────────────────
+  describe('GET /announcements — pagination', () => {
+    beforeAll(async () => {
+      await prisma.announcement.deleteMany({ where: { orgId: societyId } })
+      const builder = await prisma.user.findFirst({ where: { phone: '+919111111111' } })
+      const now = Date.now()
+      for (let i = 0; i < 3; i++) {
+        await prisma.announcement.create({
+          data: {
+            orgId:     societyId,
+            createdBy: builder!.id,
+            title:     `Paginated ${i + 1}`,
+            body:      `Body ${i + 1}`,
+            category:  'GENERAL',
+            createdAt: new Date(now - i * 1000),
+          }
+        })
+      }
+    })
+
+    afterAll(async () => {
+      await prisma.announcement.deleteMany({ where: { orgId: societyId } })
+    })
+
+    it('returns hasMore false when announcements are within limit', async () => {
+      const res = await request(app)
+        .get(`/api/societies/${societyId}/announcements?limit=20`)
+        .set('Authorization', `Bearer ${builderToken}`)
+      expect(res.status).toBe(200)
+      expect(res.body.data.hasMore).toBe(false)
+      expect(res.body.data.nextCursor).toBeNull()
+      expect(res.body.data.announcements).toHaveLength(3)
+    })
+
+    it('returns hasMore true when announcements exceed limit', async () => {
+      const res = await request(app)
+        .get(`/api/societies/${societyId}/announcements?limit=2`)
+        .set('Authorization', `Bearer ${builderToken}`)
+      expect(res.status).toBe(200)
+      expect(res.body.data.hasMore).toBe(true)
+      expect(res.body.data.nextCursor).not.toBeNull()
+      expect(res.body.data.announcements).toHaveLength(2)
+    })
+
+    it('returns nextCursor equal to createdAt of last item on page', async () => {
+      const res = await request(app)
+        .get(`/api/societies/${societyId}/announcements?limit=2`)
+        .set('Authorization', `Bearer ${builderToken}`)
+      expect(res.status).toBe(200)
+      const lastItem = res.body.data.announcements[res.body.data.announcements.length - 1]
+      expect(res.body.data.nextCursor).toBe(lastItem.createdAt)
+    })
+
+    it('respects before cursor and returns non-overlapping second page', async () => {
+      const page1 = await request(app)
+        .get(`/api/societies/${societyId}/announcements?limit=2`)
+        .set('Authorization', `Bearer ${builderToken}`)
+      const cursor = page1.body.data.nextCursor
+
+      const page2 = await request(app)
+        .get(`/api/societies/${societyId}/announcements?limit=2&before=${encodeURIComponent(cursor)}`)
+        .set('Authorization', `Bearer ${builderToken}`)
+      expect(page2.status).toBe(200)
+      expect(page2.body.data.announcements.length).toBeGreaterThan(0)
+      expect(page2.body.data.hasMore).toBe(false)
+
+      const page1Ids = page1.body.data.announcements.map((a: any) => a.id)
+      const page2Ids = page2.body.data.announcements.map((a: any) => a.id)
+      expect(page1Ids.some((id: string) => page2Ids.includes(id))).toBe(false)
+    })
+  })
 })
