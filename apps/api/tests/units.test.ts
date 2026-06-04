@@ -731,6 +731,18 @@ describe('DELETE /societies/:id/units/:nodeId/occupancy/:occupancyId', () => {
     expect(res.body.data.occupiedUntil).not.toBeNull()
   })
 
+  it('writes audit log on end occupancy', async () => {
+    const log = await prisma.auditLog.findFirst({
+      where: {
+        tableName: 'unit_occupancies',
+        recordId:  occupancyToDeleteId,
+        action:    'end_occupancy'
+      }
+    })
+    expect(log).not.toBeNull()
+    expect(log!.actorId).toBe(builderUserId)
+  })
+
   it('cannot end already ended occupancy — 400', async () => {
     const res = await request(app)
       .delete(`/api/societies/${orgId}/units/${flat4BId}/occupancy/${occupancyToDeleteId}`)

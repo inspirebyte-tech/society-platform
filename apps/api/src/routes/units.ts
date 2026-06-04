@@ -494,10 +494,24 @@ router.delete(
         return sendError(res, 'already_ended', 400)
       }
 
-      const updated = await prisma.unitOccupancy.update({
-        where: { id: occupancyId },
-        data: { occupiedUntil: new Date() }
-      })
+      const endedAt = new Date()
+      const [updated] = await prisma.$transaction([
+        prisma.unitOccupancy.update({
+          where: { id: occupancyId },
+          data: { occupiedUntil: endedAt }
+        }),
+        prisma.auditLog.create({
+          data: {
+            orgId,
+            tableName: 'unit_occupancies',
+            recordId:  occupancyId as string,
+            action:    'end_occupancy',
+            actorId:   req.user!.userId,
+            oldData:   { occupiedUntil: null },
+            newData:   { occupiedUntil: endedAt }
+          }
+        })
+      ])
 
       return sendSuccess(res, {
         message: 'occupancy_ended',
