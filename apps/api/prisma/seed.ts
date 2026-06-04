@@ -136,7 +136,7 @@ async function main() {
 
     Admin: [
       'society.update', 'society.view',
-      'node.update', 'node.view',
+      'node.create', 'node.update', 'node.delete', 'node.view',
       'member.view', 'member.remove',
       'invitation.create', 'invitation.cancel', 'invitation.view',
       'ownership.assign', 'ownership.remove', 'ownership.view',
