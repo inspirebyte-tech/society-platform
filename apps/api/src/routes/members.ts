@@ -161,8 +161,8 @@ router.get(
         return sendNotFound(res, 'member_not_found')
       }
 
-      // get current occupancy
-      const currentOccupancy = await prisma.unitOccupancy.findFirst({
+      // get all active occupancies
+      const activeOccupancies = await prisma.unitOccupancy.findMany({
         where: {
           occupiedUntil: null,
           person: { userId: membership.userId }
@@ -171,8 +171,10 @@ router.get(
           unit: {
             select: { id: true, name: true, code: true }
           }
-        }
+        },
+        orderBy: { occupiedFrom: 'asc' }
       })
+      const currentOccupancy = activeOccupancies[0] ?? null
 
       // get full occupancy history
       const occupancyHistory = await prisma.unitOccupancy.findMany({
@@ -217,7 +219,15 @@ router.get(
           from:     o.occupiedFrom,
           until:    o.occupiedUntil,
           type:     o.occupancyType
-        }))
+        })),
+        activeOccupancies: activeOccupancies.map(o => ({
+          occupancyId:   o.id,
+          unitId:        o.unit.id,
+          unitName:      o.unit.name,
+          occupancyType: o.occupancyType,
+          isPrimary:     o.isPrimary,
+          occupiedFrom:  o.occupiedFrom,
+        })),
       })
 
     } catch (error) {

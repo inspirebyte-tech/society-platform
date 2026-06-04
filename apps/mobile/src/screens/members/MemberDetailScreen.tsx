@@ -39,6 +39,15 @@ interface OccupancyHistory {
   type: string
 }
 
+interface ActiveOccupancy {
+  occupancyId: string
+  unitId: string
+  unitName: string
+  occupancyType: string
+  isPrimary: boolean
+  occupiedFrom: string
+}
+
 interface MemberDetail {
   membershipId: string
   userId: string
@@ -55,6 +64,7 @@ interface MemberDetail {
   invitedBy: string
   isActive: boolean
   occupancyHistory: OccupancyHistory[]
+  activeOccupancies: ActiveOccupancy[]
 }
 
 type ActionType = 'deactivate' | 'moveout' | 'reactivate' | 'end_occupancy'
@@ -106,6 +116,7 @@ export function MemberDetailScreen({ route, navigation }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   const [confirmAction, setConfirmAction] = useState<ActionType | null>(null)
+  const [selectedOccupancy, setSelectedOccupancy] = useState<ActiveOccupancy | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
 
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' | 'info' } | null>(null)
@@ -169,12 +180,14 @@ export function MemberDetailScreen({ route, navigation }: Props) {
     },
     end_occupancy: {
       title: 'End Unit Occupancy?',
-      message: `This will remove ${member?.name} from ${member?.unit}. Their society membership stays active and they can be assigned to another unit.`,
+      message: `This will remove ${member?.name} from ${selectedOccupancy?.unitName}. Their membership stays active.`,
       confirmLabel: 'End Occupancy',
       fn: () =>
-        endOccupancy(societyId, member!.unitId!, member!.occupancyId!).then(
-          () => ({ message: 'Occupancy ended.' })
-        ),
+        endOccupancy(
+          societyId,
+          selectedOccupancy!.unitId,
+          selectedOccupancy!.occupancyId
+        ).then(() => ({ message: 'Occupancy ended.' })),
       successMsg: () => 'Occupancy ended.',
     },
   }
@@ -324,14 +337,20 @@ export function MemberDetailScreen({ route, navigation }: Props) {
                 />
               ) : null}
 
-              {/* End Occupancy — unit.assign permission, active, has occupancy */}
-              {canAssignUnit && isActive && member.occupancyId ? (
-                <Button
-                  label="End Occupancy"
-                  variant="secondary"
-                  onPress={() => setConfirmAction('end_occupancy')}
-                />
-              ) : null}
+              {/* End Occupancy — one button per active occupancy */}
+              {canAssignUnit && isActive && member.activeOccupancies?.length > 0
+                ? member.activeOccupancies.map(occ => (
+                    <Button
+                      key={occ.occupancyId}
+                      label={`End Occupancy — ${occ.unitName}`}
+                      variant="secondary"
+                      onPress={() => {
+                        setSelectedOccupancy(occ)
+                        setConfirmAction('end_occupancy')
+                      }}
+                    />
+                  ))
+                : null}
 
               {/* Deactivate — active member only */}
               {canRemove && isActive ? (
