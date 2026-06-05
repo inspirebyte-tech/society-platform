@@ -39,3 +39,4 @@ yarn-error.log*
 *.pem
 .claude/
 apps/mobile/google-services.json
+docs/QA/screenshots/
