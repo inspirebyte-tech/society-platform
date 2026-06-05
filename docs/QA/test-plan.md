@@ -1,6 +1,6 @@
 # Vaastio — Manual Test Plan v0.16.2
 
-**Total Test Cases:** 127
+**Total Test Cases:** 207
 **Estimated Time:** 6-8 hours (can split across 2 days)
 **Phones Required:** 1 (2 for cross-role tests in Phase 5)
 
@@ -302,6 +302,146 @@ Before starting, note these details:
 | TC145 | Tap a notification | Navigates to relevant screen | 📸 | |
 | TC146 | Pull to refresh notifications | List refreshes | | |
 | TC147 | Scroll to bottom of notifications | Loads more if available | | |
+
+---
+
+## PHASE 10 — Invitation Acceptance Flow
+*Tests the SMS invite path end to end*
+*Use a fresh phone number you have access to*
+*Builder must be logged in on another device or done first*
+
+| ID | Step | Expected Result | 📸 | Pass/Fail |
+|----|------|----------------|-----|-----------|
+| TC144 | Builder invites fresh number via SMS (Invite via SMS) | Pending member appears in members list | 📸 | |
+| TC145 | On invited phone: open app fresh (no account) | Login screen shown | | |
+| TC146 | Enter the invited phone number, request OTP | OTP appears in Render logs | | |
+| TC147 | Enter correct OTP | App detects pending invitation | 📸 | |
+| TC148 | Enter name when prompted | Name saved | | |
+| TC149 | Dashboard loads with correct role and society | Correct society shown, correct role | 📸 | |
+| TC150 | Go back to Builder device, check members list | Invited member now shows as Active (not Pending) | 📸 | |
+| TC151 ⚠️ | Builder cancels a pending invitation | Invitation removed from pending list | 📸 | |
+| TC152 ⚠️ | Cancelled invitee tries to login with that number | No society membership found | | |
+
+---
+
+## PHASE 11 — Co-Resident Role
+*Clear app data. Login as Co-resident: +919444444444*
+*Ensure co-resident is assigned to a unit first (do via Builder)*
+
+| ID | Step | Expected Result | 📸 | Pass/Fail |
+|----|------|----------------|-----|-----------|
+| TC153 | Login as Co-resident | Dashboard loads with Co-resident role | 📸 | |
+| TC154 | Verify tiles same as Resident | My Home, Complaints, Announcements, My Visitors | 📸 | |
+| TC155 | Tap My Home | Unit details visible | 📸 | |
+| TC156 | Tap My Visitors | Visitors screen opens | | |
+| TC157 🔄 | Gatekeeper logs visitor for co-resident unit | Co-resident receives notification | 📸 | |
+| TC158 🔄 | Co-resident approves visitor | Status changes to ALLOWED | 📸 | |
+| TC159 | Tap Complaints | Can raise complaints | | |
+| TC160 | Tap Announcements | Can view all announcements | | |
+| TC161 ⚠️ | Verify cannot see Members tile | Members management not accessible | | |
+| TC162 ⚠️ | Verify cannot see Structure tile | Structure not accessible | | |
+
+---
+
+## PHASE 12 — Pre-Approval Used At Gate
+*Resident creates pre-approval, Gatekeeper logs that visitor*
+
+| ID | Step | Expected Result | 📸 | Pass/Fail |
+|----|------|----------------|-----|-----------|
+| TC163 | Resident creates pre-approval: Visitor name "Ramesh Kumar", Flat 101 | Pre-approval created | 📸 | |
+| TC164 🔄 | Gatekeeper taps Log Visitor | Log visitor form opens | | |
+| TC165 🔄 | Gatekeeper enters name "Ramesh Kumar", selects Flat 101 | Pre-approval detected and highlighted | 📸 | |
+| TC166 🔄 | Gatekeeper completes log entry | Entry created, pre-approval auto-allowed or flagged | 📸 | |
+| TC167 | Resident checks My Visitors → Recent tab | Entry shows as pre-approved | 📸 | |
+| TC168 ⚠️ | Resident checks pre-approval list | Pre-approval marked as used (single-use) | 📸 | |
+
+---
+
+## PHASE 13 — Frequent Visitors
+*Gatekeeper marks a visitor as frequent*
+
+| ID | Step | Expected Result | 📸 | Pass/Fail |
+|----|------|----------------|-----|-----------|
+| TC169 | Gatekeeper logs a visitor: "Suresh Delivery" for Flat 101 | Entry created | | |
+| TC170 | Gatekeeper taps on visitor in entry log | Visitor detail opens | 📸 | |
+| TC171 | Gatekeeper taps "Mark as Frequent" | Visitor marked frequent for that unit | 📸 | |
+| TC172 | Gatekeeper taps Frequent Visitors tab | Suresh Delivery appears | 📸 | |
+| TC173 | Gatekeeper logs same visitor again | Frequent tag visible on entry form | 📸 | |
+| TC174 | Gatekeeper removes frequent status | Visitor removed from frequent list | 📸 | |
+
+---
+
+## PHASE 14 — Complaint Full Lifecycle (Cross-Role)
+*Resident raises, Admin resolves*
+
+| ID | Step | Expected Result | 📸 | Pass/Fail |
+|----|------|----------------|-----|-----------|
+| TC175 | Resident raises complaint: "Water leakage in bathroom", category: Water Supply | Complaint created with status Open | 📸 | |
+| TC176 🔄 | Admin views complaints list | Resident's complaint visible | 📸 | |
+| TC177 🔄 | Admin taps complaint → detail screen | Full complaint details shown | 📸 | |
+| TC178 🔄 | Admin taps Resolve, adds note: "Plumber sent" | Complaint status changes to Resolved | 📸 | |
+| TC179 | Resident checks their complaint | Status shows Resolved | 📸 | |
+| TC180 ⚠️ | Resident tries to resolve own complaint | No resolve button visible for resident | | |
+
+---
+
+## PHASE 15 — Move Out vs End Occupancy
+*Distinction between full moveout and unit-only occupancy end*
+
+| ID | Step | Expected Result | 📸 | Pass/Fail |
+|----|------|----------------|-----|-----------|
+| TC181 | Builder goes to member detail for Test Resident | Actions section visible | | |
+| TC182 | Verify both buttons exist: "End Occupancy" AND "Mark as Moved Out" | Both visible | 📸 | |
+| TC183 | Tap End Occupancy — Flat 101 | Confirmation: membership stays active | 📸 | |
+| TC184 | Confirm end occupancy | Member stays in Active list, no unit shown | 📸 | |
+| TC185 | Assign member to Flat 103 | Assignment works on active memberless-unit member | 📸 | |
+| TC186 | Now tap Mark as Moved Out | Confirmation: membership AND occupancy ended | 📸 | |
+| TC187 | Confirm move out | Member moves to Inactive section | 📸 | |
+| TC188 ⚠️ | Try to Mark as Moved Out on member with no unit | Button should not be visible | | |
+
+---
+
+## PHASE 16 — Switch Society
+*Builder must be member of at least 2 societies*
+*Create a second society if needed*
+
+| ID | Step | Expected Result | 📸 | Pass/Fail |
+|----|------|----------------|-----|-----------|
+| TC189 | Builder creates a second society | Society created, lands on new society dashboard | 📸 | |
+| TC190 | Tap Switch Society (from dashboard or profile) | Switch Society screen lists both societies | 📸 | |
+| TC191 | Tap first society | Dashboard switches to first society | 📸 | |
+| TC192 | Verify society name in dashboard matches selected | Correct society shown | | |
+| TC193 | Switch back to second society | Correct society shown | 📸 | |
+| TC194 ⚠️ | Member with only one society | No Switch Society option visible | | |
+
+---
+
+## PHASE 17 — Entry Log Filters
+*Login as Builder, Admin, or Gatekeeper*
+
+| ID | Step | Expected Result | 📸 | Pass/Fail |
+|----|------|----------------|-----|-----------|
+| TC195 | Tap Entry Log tile | All recent entries visible (up to 50) | 📸 | |
+| TC196 | Filter by today's date | Only today's entries shown | 📸 | |
+| TC197 | Filter by status: Approved | Only approved entries shown | 📸 | |
+| TC198 | Filter by status: Denied | Only denied entries shown | | |
+| TC199 | Filter by unit: Flat 101 | Only Flat 101 entries shown | 📸 | |
+| TC200 ⚠️ | Filter by date with no entries | Empty state shown gracefully | | |
+
+---
+
+## PHASE 18 — Announcements Advanced
+*Login as Builder or Admin*
+
+| ID | Step | Expected Result | 📸 | Pass/Fail |
+|----|------|----------------|-----|-----------|
+| TC201 | Create announcement, tap pin toggle | Announcement marked as pinned | 📸 | |
+| TC202 | View announcements list | Pinned announcement always at top | 📸 | |
+| TC203 | Create 25+ announcements (or verify existing) | Infinite scroll loads page 2 | 📸 | |
+| TC204 | Pull to refresh after infinite scroll | Returns to first page | | |
+| TC205 | Create announcement with image attached | Image visible in detail screen | 📸 | |
+| TC206 | Delete an announcement | Announcement removed from list | 📸 | |
+| TC207 ⚠️ | Resident tries to create announcement | No create button visible | | |
 
 ---
 
