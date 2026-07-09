@@ -26,12 +26,13 @@ export const sendOtp = async (
 
     const payload = {
       template_id: MSG91_TEMPLATE_ID,
+      sender:      MSG91_SENDER_ID,
       short_url:   '0',
       realTimeResponse: '1',
       recipients: [
         {
           mobiles: mobile,
-          OTP:     otp
+          numeric: otp
         }
       ]
     }
