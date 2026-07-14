@@ -8,6 +8,13 @@ const MSG91_AUTH_KEY   = process.env.MSG91_AUTH_KEY
 const MSG91_SENDER_ID  = process.env.MSG91_SENDER_ID  || 'VAASTIO'
 const MSG91_TEMPLATE_ID = process.env.MSG91_TEMPLATE_ID
 
+const TEST_PHONES = [
+  '+919111111111',
+  '+919222222222',
+  '+919333333333',
+  '+919444444444',
+]
+
 export const sendOtp = async (
   phone: string,
   otp: string
@@ -17,6 +24,12 @@ export const sendOtp = async (
     console.log('--------------------------')
     console.log(`SMS for ${phone}: ${otp}`)
     console.log('--------------------------')
+    return
+  }
+
+  // Test numbers always log OTP — never send real SMS
+  if (TEST_PHONES.includes(phone)) {
+    console.log(`[TEST] OTP for ${phone}: ${otp}`)
     return
   }
 
