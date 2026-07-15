@@ -113,6 +113,14 @@ export async function getEntryLog(
   return res.data.data.entries
 }
 
+export async function getEntry(
+  societyId: string,
+  entryId: string
+): Promise<VisitorEntry> {
+  const res = await api.get(`/societies/${societyId}/entries/${entryId}`)
+  return res.data.data
+}
+
 export async function createPreApproval(
   societyId: string,
   data: { visitorName: string; visitorMobile?: string; unitId: string; note?: string; expiresAt?: string }

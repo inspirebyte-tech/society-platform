@@ -13,7 +13,7 @@ import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { Button } from '../../components/Button'
 import { Toast } from '../../components/Toast'
 import { AppStackParamList } from '../../navigation/AppNavigator'
-import { getEntryLog, approveEntry, rejectEntry, VisitorEntry } from '../../services/visitors'
+import { getEntry, approveEntry, rejectEntry, VisitorEntry } from '../../services/visitors'
 import { getApiErrorCode } from '../../services/api'
 import { getErrorMessage } from '../../utils/errorMessages'
 import { Colors } from '../../constants/colors'
@@ -31,15 +31,8 @@ export function VisitorApprovalScreen({ route, navigation }: Props) {
 
   const loadEntry = useCallback(async () => {
     try {
-      // Find the specific entry from today's log for this resident
-      const log = await getEntryLog(societyId)
-      const found = log.find(e => e.id === entryId)
-      
-      if (found) {
-        setEntry(found)
-      } else {
-        setToast({ message: 'Entry not found. It may have been removed or logged on a different day.', type: 'error' })
-      }
+      const found = await getEntry(societyId, entryId)
+      setEntry(found)
     } catch (e) {
       setToast({ message: 'Failed to load entry details', type: 'error' })
     } finally {

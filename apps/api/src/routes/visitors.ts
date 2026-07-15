@@ -384,6 +384,59 @@ router.get(
 )
 
 // ─────────────────────────────────────────────
+// GET /api/societies/:id/entries/:entryId
+// Fetch a single entry directly (avoids scanning the capped list)
+// Auth: visitor.view_log OR active occupant of the entry's unit
+// NOTE: Must be after /entries/active, before /entries
+// ─────────────────────────────────────────────
+router.get(
+  '/:id/entries/:entryId',
+  authenticate,
+  enforceTenantContext,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { id: orgId, entryId } = req.params
+      const userId = req.user!.userId
+
+      const entry = await prisma.visitorEntry.findFirst({
+        where: { id: entryId, orgId },
+        include: {
+          visitor: true,
+          logger: { include: { person: true } }
+        }
+      })
+
+      if (!entry) return sendNotFound(res, 'entry_not_found')
+
+      // Authorization: visitor.view_log sees any entry; otherwise the caller
+      // must be an active occupant of the entry's unit.
+      const hasViewLog = req.user!.permissions?.includes('visitor.view_log')
+
+      if (!hasViewLog) {
+        const isOccupant = entry.unitId
+          ? await prisma.unitOccupancy.findFirst({
+              where: {
+                unitId: entry.unitId,
+                person: { userId },
+                occupiedUntil: null
+              }
+            })
+          : null
+        if (!isOccupant) {
+          return sendError(res, 'not_an_occupant', 403)
+        }
+      }
+
+      return sendSuccess(res, formatEntry(entry))
+
+    } catch (error) {
+      console.error('GET /entries/:entryId error:', error)
+      return sendError(res, 'server_error', 500)
+    }
+  }
+)
+
+// ─────────────────────────────────────────────
 // GET /api/societies/:id/entries
 // Full entry log
 // ─────────────────────────────────────────────
