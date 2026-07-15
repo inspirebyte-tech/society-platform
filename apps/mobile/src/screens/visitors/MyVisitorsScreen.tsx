@@ -43,6 +43,23 @@ import { Spacing } from '../../constants/spacing'
 type Props = NativeStackScreenProps<AppStackParamList, 'MyVisitors'>
 type TabType = 'PRE_APPROVALS' | 'FREQUENT' | 'RECENT'
 
+function getStatusStyle(status: string) {
+  switch (status) {
+    case 'PENDING':
+      return { bg: '#fef08a', text: '#854d0e' }
+    case 'APPROVED':
+      return { bg: '#dcfce7', text: '#166534' }
+    case 'DENIED':
+      return { bg: '#fee2e2', text: '#991b1b' }
+    case 'ALLOWED':
+      return { bg: '#dbeafe', text: '#1e40af' }
+    case 'EXITED':
+      return { bg: Colors.border, text: Colors.subtle }
+    default:
+      return { bg: Colors.border, text: Colors.text }
+  }
+}
+
 export function MyVisitorsScreen({ route, navigation }: Props) {
   const { societyId } = route.params
 
@@ -289,6 +306,7 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
   const renderRecentItem = ({ item }: { item: VisitorEntry }) => {
     const isFrequent = frequentVisitors.some(v => v.id === item.visitorId)
     const myUnitId = units.find(u => u.name === item.flatName)?.id
+    const statusStyle = getStatusStyle(item.status)
 
     return (
       <Pressable
@@ -305,8 +323,8 @@ export function MyVisitorsScreen({ route, navigation }: Props) {
             </View>
             <Text style={styles.dateText}>{new Date(item.createdAt).toLocaleDateString()}</Text>
           </View>
-          <View style={[styles.badge, { backgroundColor: item.status === 'PENDING' ? '#fef08a' : Colors.border }]}>
-            <Text style={[styles.badgeText, { color: item.status === 'PENDING' ? '#854d0e' : Colors.text }]}>{item.status}</Text>
+          <View style={[styles.badge, { backgroundColor: statusStyle.bg }]}>
+            <Text style={[styles.badgeText, { color: statusStyle.text }]}>{item.status}</Text>
           </View>
         </View>
         {(item.status === 'PENDING' || (item.visitorId && !isFrequent && myUnitId)) && (

@@ -57,7 +57,8 @@ export function VisitorApprovalScreen({ route, navigation }: Props) {
     if (!entry) return
     setIsProcessing(true)
     try {
-      await approveEntry(societyId, entry.id)
+      const updated = await approveEntry(societyId, entry.id)
+      setEntry(updated)
       setToast({ message: 'Entry approved successfully.', type: 'success' })
       setTimeout(() => navigation.goBack(), 1500)
     } catch (e) {
@@ -70,7 +71,8 @@ export function VisitorApprovalScreen({ route, navigation }: Props) {
     if (!entry) return
     setIsProcessing(true)
     try {
-      await rejectEntry(societyId, entry.id)
+      const updated = await rejectEntry(societyId, entry.id)
+      setEntry(updated)
       setToast({ message: 'Entry denied.', type: 'success' })
       setTimeout(() => navigation.goBack(), 1500)
     } catch (e) {
