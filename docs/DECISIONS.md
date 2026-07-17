@@ -796,3 +796,62 @@ GET /entries has hardcoded take: 50.
 Returns 50 most recent entries.
 Date and status filters help narrow results.
 Acceptable for pilot — full pagination deferred.
+
+## Decision 093 — Visitor status color system
+Date: July 2026
+Status chips now use semantic colors:
+PENDING = yellow (#fef08a / #854d0e)
+APPROVED = green (#dcfce7 / #166534)
+DENIED = red (#fee2e2 / #991b1b)
+ALLOWED = blue (#dbeafe / #1e40af)
+EXITED = gray (Colors.border / Colors.subtle)
+
+## Decision 094 — Optimistic state update after approve/deny
+Date: July 2026
+VisitorApprovalScreen updates local entry state
+immediately after approve/deny API call returns.
+Screen shows already processed without waiting
+for navigation and reload cycle.
+
+## Decision 095 — Single entry endpoint for approval screen
+Date: July 2026
+GET /societies/:id/entries/:entryId added.
+VisitorApprovalScreen uses direct fetch instead
+of scanning the capped 50-entry list.
+Auth: visitor.view_log OR active occupant of unit.
+Fixes approval screen failing for older entries.
+Works around the take: 50 cap accepted in Decision 092.
+
+## Decision 096 — Active Visitors requires Mark Entered
+Date: July 2026
+APPROVED status does not automatically move visitor
+to Active Visitors list.
+Gatekeeper must tap Mark Entered after resident approves.
+Accurately reflects physical entry — some approved
+visitors never actually enter the premises.
+Two-step flow: Approve (resident) → Enter (gatekeeper).
+
+## Decision 097 — My Visitors Recent tab manual refresh
+Date: July 2026
+Recent tab does not auto-poll for new entries.
+Residents receive push notifications for new visitors.
+Tapping notification navigates directly to approval screen.
+Pull-to-refresh available for manual update.
+Auto-polling deferred to V2.
+
+## Decision 098 — dangerOutline Button variant added
+Date: July 2026
+Existing danger variant is solid red fill with white label.
+Used by Deny Entry, complaint actions, ConfirmSheet.
+New dangerOutline variant: transparent background,
+red border, red label — used for Leave Society button.
+Keeps destructive confirmation buttons visually distinct
+from dangerous-but-reversible actions.
+
+## Decision 099 — TextInput multiline height fix
+Date: July 2026
+Fixed height 52px moved to inputSingleLine style.
+Multiline inputs use minHeight 110px with
+textAlignVertical top and vertical padding 14px.
+Fixes Description field in Society Settings being
+crushed to a single line despite numberOfLines=4.
