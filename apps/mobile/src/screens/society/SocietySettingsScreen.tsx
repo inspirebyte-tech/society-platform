@@ -14,6 +14,7 @@ import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { TextInput } from '../../components/TextInput'
 import { Button } from '../../components/Button'
 import { BottomSheetPicker, PickerOption } from '../../components/BottomSheetPicker'
+import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { Toast } from '../../components/Toast'
 import { AppStackParamList } from '../../navigation/AppNavigator'
 import { useAuth } from '../../hooks/useAuth'
@@ -262,7 +263,7 @@ export function SocietySettingsScreen({ route, navigation }: Props) {
     }
   }
 
-  if (isLoading) return null
+  if (isLoading) return <LoadingSpinner fullScreen />
 
   const photoSource = photoPreviewUri ?? original?.photoUrl ?? null
   const avatarLetter = (original?.name ?? '?').trim().charAt(0).toUpperCase()
