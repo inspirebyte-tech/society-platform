@@ -418,8 +418,7 @@ export function SocietySettingsScreen({ route, navigation }: Props) {
               label="Leave Society"
               onPress={handleLeave}
               loading={isLeaving}
-              variant="secondary"
-              style={styles.leaveBtn}
+              variant="dangerOutline"
             />
           </View>
         )}
@@ -599,8 +598,5 @@ const styles = StyleSheet.create({
     color: Colors.subtle,
     lineHeight: 20,
     marginBottom: 16,
-  },
-  leaveBtn: {
-    borderColor: Colors.error,
   },
 })

@@ -267,7 +267,7 @@ export function LogVisitorScreen({ route, navigation }: Props) {
   // Render Status View (Phase 3)
   if (currentEntry) {
     return (
-      <ScreenWrapper style={styles.wrapper}>
+      <ScreenWrapper style={styles.wrapper} scroll={false}>
         <View style={styles.statusContainer}>
           <Text style={styles.statusHeader}>Entry Logged</Text>
 
@@ -344,7 +344,7 @@ export function LogVisitorScreen({ route, navigation }: Props) {
   // Render Entry Form (Phase 2)
   if (selectedVisitor) {
     return (
-      <ScreenWrapper style={styles.wrapper}>
+      <ScreenWrapper style={styles.wrapper} scroll={false}>
         <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView contentContainerStyle={styles.formContainer} keyboardShouldPersistTaps="handled">
             
@@ -455,7 +455,7 @@ export function LogVisitorScreen({ route, navigation }: Props) {
 
   // Render Search (Phase 1)
   return (
-    <ScreenWrapper style={styles.wrapper}>
+    <ScreenWrapper style={styles.wrapper} scroll={false}>
       <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
           <Ionicons name="search" size={20} color={Colors.subtle} style={styles.searchIcon} />

@@ -122,6 +122,7 @@ export function DashboardScreen({ route, navigation }: Props) {
   const [pendingCount, setPendingCount] = useState(0)
   const [pendingEntry, setPendingEntry] = useState<VisitorEntry | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   function openProfile() {
     setProfileName(user?.name ?? '')
@@ -241,7 +242,12 @@ export function DashboardScreen({ route, navigation }: Props) {
   }, [load, loadVisitorStats, loadNotificationBadge])
 
   const onRefresh = useCallback(async () => {
-    await Promise.all([load(), loadUser(), loadVisitorStats(), loadNotificationBadge()])
+    setIsRefreshing(true)
+    try {
+      await Promise.all([load(), loadUser(), loadVisitorStats(), loadNotificationBadge()])
+    } finally {
+      setIsRefreshing(false)
+    }
   }, [load, loadUser, loadVisitorStats, loadNotificationBadge])
 
   const canCreateSociety = permissions.includes('society.create')
@@ -439,7 +445,7 @@ export function DashboardScreen({ route, navigation }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={false}
+            refreshing={isRefreshing}
             onRefresh={onRefresh}
             tintColor={Colors.primary}
             colors={[Colors.primary]}
@@ -555,17 +561,17 @@ export function DashboardScreen({ route, navigation }: Props) {
             </View>
 
             <View style={layoutMode === 'grid' ? styles.gridContainer : styles.actionsList}>
-              {actions.map((action, index) => (
+              {actions.map((action) => (
                 layoutMode === 'grid' ? (
                   <ActionGridItem
-                    key={index}
+                    key={action.label}
                     icon={action.icon}
                     label={action.label}
                     onPress={action.onPress}
                   />
                 ) : (
                   <ActionRow
-                    key={index}
+                    key={action.label}
                     icon={action.icon}
                     label={action.label}
                     subtitle={action.subtitle}

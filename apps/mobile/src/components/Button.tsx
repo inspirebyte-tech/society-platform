@@ -10,7 +10,14 @@ import {
 import { Colors } from '../constants/colors'
 import { Spacing } from '../constants/spacing'
 
-type Variant = 'primary' | 'secondary' | 'danger'
+type Variant = 'primary' | 'secondary' | 'danger' | 'dangerOutline'
+
+const SPINNER_COLORS: Record<Variant, string> = {
+  primary:       Colors.surface,
+  secondary:     Colors.primary,
+  danger:        Colors.surface,
+  dangerOutline: Colors.error,
+}
 
 interface ButtonProps {
   label: string
@@ -39,7 +46,7 @@ export function Button({
       style={[styles.base, styles[variant], isDisabled && styles.disabled, style]}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'secondary' ? Colors.primary : Colors.surface} />
+        <ActivityIndicator color={SPINNER_COLORS[variant]} />
       ) : (
         <Text style={[labelStyles[variant]]}>{label}</Text>
       )}
@@ -66,6 +73,11 @@ const styles = StyleSheet.create({
   danger: {
     backgroundColor: Colors.error,
   },
+  dangerOutline: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: Colors.error,
+  },
   disabled: {
     opacity: 0.5,
   },
@@ -84,6 +96,11 @@ const labelStyles = StyleSheet.create({
   } as TextStyle,
   danger: {
     color: Colors.surface,
+    fontSize: 16,
+    fontWeight: '600',
+  } as TextStyle,
+  dangerOutline: {
+    color: Colors.error,
     fontSize: 16,
     fontWeight: '600',
   } as TextStyle,

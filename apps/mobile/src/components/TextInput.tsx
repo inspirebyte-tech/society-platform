@@ -24,6 +24,7 @@ export function TextInput({ label, error, helper, style, ...props }: TextInputPr
         {...props}
         style={[
           styles.input,
+          props.multiline ? styles.inputMultiline : styles.inputSingleLine,
           focused && styles.inputFocused,
           error ? styles.inputError : null,
           style,
@@ -54,7 +55,6 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   input: {
-    height: 52,
     borderWidth: 1.5,
     borderColor: Colors.border,
     borderRadius: 10,
@@ -62,6 +62,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
     backgroundColor: Colors.surface,
+  },
+  inputSingleLine: {
+    height: 52,
+  },
+  inputMultiline: {
+    minHeight: 110,
+    textAlignVertical: 'top',
+    paddingTop: 14,
+    paddingBottom: 14,
   },
   inputFocused: {
     borderColor: Colors.primary,
