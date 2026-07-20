@@ -269,7 +269,13 @@ export function LogVisitorScreen({ route, navigation }: Props) {
     return (
       <ScreenWrapper style={styles.wrapper} scroll={false}>
         <View style={styles.statusContainer}>
-          <Text style={styles.statusHeader}>Entry Logged</Text>
+          <Text style={styles.statusHeader}>
+            {currentEntry.status === 'DENIED' || currentEntry.status === 'TURNED_AWAY'
+              ? 'Entry Denied'
+              : currentEntry.status === 'APPROVED' || currentEntry.status === 'ALLOWED'
+              ? 'Entry Approved'
+              : 'Entry Logged'}
+          </Text>
 
           <View style={styles.statusCard}>
             <Text style={styles.statusVisitorName}>{currentEntry.visitorName}</Text>

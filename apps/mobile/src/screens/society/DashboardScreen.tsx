@@ -512,11 +512,11 @@ export function DashboardScreen({ route, navigation }: Props) {
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
               <Text style={styles.statNumber}>{society.totalUnits}</Text>
-              <Text style={styles.statLabel}>Total Units</Text>
+              <Text style={styles.statLabel}>{society.totalUnits === 1 ? 'Total Unit' : 'Total Units'}</Text>
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statNumber}>{society.totalMembers}</Text>
-              <Text style={styles.statLabel}>Members</Text>
+              <Text style={styles.statLabel}>{society.totalMembers === 1 ? 'Member' : 'Members'}</Text>
             </View>
           </View>
         ) : null}
@@ -582,13 +582,6 @@ export function DashboardScreen({ route, navigation }: Props) {
             </View>
           </View>
         ) : null}
-
-        {/* Sign out */}
-        <View style={styles.footer}>
-          <Pressable onPress={signOut} hitSlop={12}>
-            <Text style={styles.signOutText}>Sign out</Text>
-          </Pressable>
-        </View>
       </ScrollView>
 
       {/* ── Profile sheet ── */}
@@ -653,6 +646,16 @@ export function DashboardScreen({ route, navigation }: Props) {
               disabled={isSaving}
             />
           </View>
+
+          <Pressable
+            onPress={() => {
+              setShowProfile(false)
+              setTimeout(() => signOut(), 300)
+            }}
+            style={styles.signOutModalBtn}
+          >
+            <Text style={styles.signOutModalText}>Sign Out</Text>
+          </Pressable>
         </View>
       </Modal>
 
@@ -929,14 +932,15 @@ const styles = StyleSheet.create({
     lineHeight: 26,
   },
 
-  // Footer
-  footer: {
+  // Sign out (in profile modal)
+  signOutModalBtn: {
     alignItems: 'center',
-    paddingTop: 8,
+    paddingVertical: 16,
+    marginTop: 8,
   },
-  signOutText: {
-    fontSize: 14,
-    color: Colors.subtle,
+  signOutModalText: {
+    fontSize: 15,
+    color: Colors.error,
     fontWeight: '500',
   },
 

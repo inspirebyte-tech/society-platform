@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from 'react-native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { Ionicons } from '@expo/vector-icons'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { LoadingSpinner } from '../../components/LoadingSpinner'
 import { EmptyState } from '../../components/EmptyState'
@@ -327,10 +328,14 @@ function NodeBranch({
             {canDelete ? (
               <Pressable
                 onPress={() => onDelete(node)}
-                style={[styles.actionBtn, styles.actionBtnDanger]}
-                hitSlop={8}
+                style={styles.actionBtnIcon}
+                hitSlop={12}
               >
-                <Text style={[styles.actionBtnText, styles.actionBtnDangerText]}>Del</Text>
+                <Ionicons
+                  name="trash-outline"
+                  size={18}
+                  color={Colors.error}
+                />
               </Pressable>
             ) : null}
           </View>
@@ -513,17 +518,13 @@ const styles = StyleSheet.create({
     minWidth: 36,
     alignItems: 'center',
   },
-  actionBtnDanger: {
-    backgroundColor: '#fff1f2',
-    borderColor: '#fecdd3',
-  },
   actionBtnText: {
     fontSize: 11,
     fontWeight: '600',
     color: Colors.subtle,
   },
-  actionBtnDangerText: {
-    color: Colors.error,
+  actionBtnIcon: {
+    padding: 6,
   },
 
   // Type badge
